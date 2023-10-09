@@ -38,7 +38,7 @@ if SERVER then
 	local ttt_allow_ooc = CreateConVar('ttt_allow_ooc', '1')
 
 	hook.Add('PlayerCanSeePlayersChat', Tag, function(text, teamOnly, listener, sender)
-		if sender.always_ooc or (ttt_allow_ooc:GetBool() and text and (text:find('OOC ', 1, true) or text:find(' OOC', 1, true))) then
+		if sender.always_ooc or sender.Unrestricted or (ttt_allow_ooc:GetBool() and text and (text:find('OOC ', 1, true) or text:find(' OOC', 1, true))) then
 			if not sender.sent_ooc then
 				sender.sent_ooc = true
 				sender:ChatPrint('[Notice] OOC chat can be seen by everyone. You will get banned for abusing OOC to reveal traitors.')
@@ -47,6 +47,21 @@ if SERVER then
 			return true
 		end
 	end)
+
+	
+	hook.Add("TTT2PlayerPreventPickupEnt",Tag,function(pl,ent) 
+		for k,v in pairs(player.GetAll()) do
+			local veh = v:GetVehicle()
+			if veh:IsValid() then
+				if veh:GetParent()==ent then
+					return true
+				end
+			end
+		end
+	
+	end)
+
+	
 end
 
 AOWL_NO_TEAMS = true
