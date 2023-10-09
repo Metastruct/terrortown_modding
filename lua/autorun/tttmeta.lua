@@ -94,6 +94,12 @@ hook.Add('CanPlayerTimescale', Tag, function(pl)
 end)
 
 if CLIENT then
+	do
+		hook.Add('PAC3Autoload', Tag, function(name)
+			return "autoload_ttt"
+		end)
+	end
+	
 	local suppress_until = 0
 
 	hook.Add('ScoreboardShow', Tag, function(reason)
@@ -110,7 +116,7 @@ if CLIENT then
 	local played_180
 	local played_30
 	local last_play = 0
-	local ttt_extra_sounds = CreateClientConVar('ttt_extra_sounds', '1', true, false, 'Play countdown sounds', 0, 1)
+	local ttt_extra_sounds = CreateClientConVar('ttt_extra_sounds', '0', true, false, 'Play countdown sounds', 0, 1)
 
 	local function playSound(snd)
 		if not ttt_extra_sounds:GetBool() then return end
@@ -126,7 +132,7 @@ if CLIENT then
 		last_play = RealTime()
 	end
 
-	local outfitter_ttt_perfmode = CreateClientConVar('outfitter_ttt_perfmode', '0', true, false, 'Only load outfits during spectate and endround and prepare', 0, 1)
+	local outfitter_ttt_perfmode = CreateClientConVar('outfitter_terrortown_perfmode', '1', true, false, 'Only load outfits during spectate and endround and prepare', 0, 1)
 
 	local function SetPerfMode(want_perf)
 		--BUG:TODO: will not fix playermodels if they get unset!!! fix in outfitter.
