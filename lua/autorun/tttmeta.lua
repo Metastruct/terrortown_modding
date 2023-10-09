@@ -157,7 +157,8 @@ if CLIENT then
 	do
 		local Tag = 'tttfix'
 		local played_begin_ever
-
+		--TODO: allow outfitter when spectating 
+		
 		hook.Add('TTTBeginRound', Tag, function()
 			if not played_begin_ever then
 				played_begin_ever = true
