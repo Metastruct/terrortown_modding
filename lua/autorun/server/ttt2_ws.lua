@@ -2,6 +2,7 @@ local list = {
 	"1357204556",	-- TTT2
 	"2586573261",	-- Huh
 	"105875340",	-- Jihad Bomb
+	"254177214",	-- Jihad Bomb fix?
 	"654570222",	-- Banana Bomb
 	"2730454615",	-- Kobold Hoarder
 	"481692085",	-- Super Discobombulator
