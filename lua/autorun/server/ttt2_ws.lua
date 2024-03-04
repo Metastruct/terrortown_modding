@@ -10,6 +10,8 @@ local list = {
 	"1473581448",	-- Death Faker
 	"1599710095",	-- Kamehameha
 	"1777819207",	-- Marker Role
+	"2133752484",	-- Executioner Role
+	"2454277638",	-- Medium Role
 }
 
 for _, id in ipairs(list) do 
