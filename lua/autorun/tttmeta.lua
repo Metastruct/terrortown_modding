@@ -48,20 +48,18 @@ if SERVER then
 		end
 	end)
 
-	
-	hook.Add("TTT2PlayerPreventPickupEnt",Tag,function(pl,ent) 
-		for k,v in pairs(player.GetAll()) do
+	-- Disable picking up vehicles
+	hook.Add("TTT2PlayerPreventPickupEnt",Tag,function(pl,ent)
+		for k,v in ipairs(player.GetAll()) do
 			local veh = v:GetVehicle()
-			if veh:IsValid() then
-				if veh:GetParent()==ent then
-					return true
-				end
+			if veh:IsValid() and veh:GetParent() == ent then
+				return true
 			end
 		end
-	
 	end)
 
-	
+	-- Disable EasyChat indicating
+	hook.Add("ECCanIndicate",Tag,function() return false end)
 end
 
 AOWL_NO_TEAMS = true
