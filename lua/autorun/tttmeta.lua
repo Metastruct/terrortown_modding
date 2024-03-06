@@ -12,6 +12,35 @@ if SERVER then
 				return 1
 			end
 		end
+
+		if aowl then
+			local function tttRevive(pl)
+				if IsValid(ent) and ent:IsPlayer() and not ent:IsTerror() then
+					ent:SpawnForRound(true)
+				end
+			end
+
+			aowl.AddCommand("tttrevive","Properly revives a player in TTT as their current role",function(pl, line, target)
+				local ent = easylua.FindEntity(target)
+
+				if type(ent) == "table" then
+					if ent.get then
+						ent = ent.get()
+					end
+
+					for k, v in ipairs(ent) do
+						if IsValid(v) and v:IsPlayer() then
+							tttRevive(v)
+						end
+					end
+
+					return
+				end
+
+				tttRevive(ent)
+			end,
+			"developers", true)
+		end
 	end)
 
 	local badcmds = {
