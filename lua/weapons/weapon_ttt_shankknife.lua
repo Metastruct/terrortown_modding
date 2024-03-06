@@ -78,7 +78,7 @@ function SWEP:PrimaryAttack()
 		self:SendWeaponAnim(ACT_VM_HITCENTER)
 
 		local edata = EffectData()
-		edata:SetStart(spos)
+		edata:SetStart(tr.StartPos)
 		edata:SetOrigin(tr.HitPos)
 		edata:SetNormal(tr.Normal)
 		edata:SetEntity(hitEnt)
@@ -92,25 +92,25 @@ function SWEP:PrimaryAttack()
 
 	if SERVER then
 		owner:SetAnimation(PLAYER_ATTACK1)
-	end
 
-	if SERVER and tr.Hit and tr.HitNonWorld and IsValid(hitEnt) then
-		local aimVector = owner:GetAimVector()
-		local dmgInt = self.Primary.Damage
+		if tr.Hit and tr.HitNonWorld and IsValid(hitEnt) then
+			local aimVector = owner:GetAimVector()
+			local dmgInt = self.Primary.Damage
 
-		if hitEnt:IsPlayer() and self:IsBackstab(hitEnt) then
-			dmgInt = 999
+			if hitEnt:IsPlayer() and self:IsBackstab(hitEnt) then
+				dmgInt = 999
+			end
+
+			local dmg = DamageInfo()
+			dmg:SetDamage(dmgInt)
+			dmg:SetAttacker(owner)
+			dmg:SetInflictor(self)
+			dmg:SetDamageForce(aimVector * 5)
+			dmg:SetDamagePosition(owner:GetPos())
+			dmg:SetDamageType(DMG_SLASH)
+
+			hitEnt:DispatchTraceAttack(dmg, tr.StartPos + (aimVector * 3), tr.EndPos)
 		end
-
-		local dmg = DamageInfo()
-		dmg:SetDamage(dmgInt)
-		dmg:SetAttacker(owner)
-		dmg:SetInflictor(self)
-		dmg:SetDamageForce(aimVector * 5)
-		dmg:SetDamagePosition(owner:GetPos())
-		dmg:SetDamageType(DMG_SLASH)
-
-		hitEnt:DispatchTraceAttack(dmg, spos + (aimVector * 3), sdest)
 	end
 
 	owner:LagCompensation(false)
@@ -143,6 +143,9 @@ function SWEP:TraceStab()
 			mask = MASK_SHOT_HULL
 		})
 	end
+
+	-- Provide an extra field that holds the max range position
+	tr.EndPos = sdest
 
 	return tr
 end
