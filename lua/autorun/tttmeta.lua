@@ -49,7 +49,7 @@ if SERVER then
 	end)
 
 	-- Disable picking up vehicles
-	hook.Add("TTT2PlayerPreventPickupEnt",Tag,function(pl,ent)
+	hook.Add("TTT2PlayerPreventPickupEnt", Tag, function(pl, ent)
 		for k,v in ipairs(player.GetAll()) do
 			local veh = v:GetVehicle()
 			if veh:IsValid() and veh:GetParent() == ent then
@@ -59,7 +59,12 @@ if SERVER then
 	end)
 
 	-- Disable EasyChat indicating
-	hook.Add("ECCanIndicate",Tag,function() return false end)
+	hook.Add("ECCanIndicate", Tag, function() return false end)
+
+	-- Disable chatsounds from dead/deathmatching people
+	hook.Add("ChatsoundsShouldNetwork", Tag, function(pl)
+		if not pl:IsTerror() then return false end
+	end)
 end
 
 AOWL_NO_TEAMS = true
@@ -112,7 +117,7 @@ if CLIENT then
 			return "autoload_ttt"
 		end)
 	end
-	
+
 	local suppress_until = 0
 
 	hook.Add('ScoreboardShow', Tag, function(reason)
