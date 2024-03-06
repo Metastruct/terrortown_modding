@@ -39,7 +39,7 @@ SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Delay = 0.6
 SWEP.Primary.Ammo = "none"
-SWEP.Primary.HitRange = 100
+SWEP.Primary.HitRange = 80
 
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
@@ -75,42 +75,43 @@ function SWEP:PrimaryAttack()
 
 	-- effects
 	if IsValid(hitEnt) then
-		self:SendWeaponAnim(ACT_VM_HITCENTER)
+		local isPlayer = hitEnt:IsPlayer()
+		local isBackstab = isPlayer and self:IsBackstab(hitEnt)
 
-		local edata = EffectData()
-		edata:SetStart(tr.StartPos)
-		edata:SetOrigin(tr.HitPos)
-		edata:SetNormal(tr.Normal)
-		edata:SetEntity(hitEnt)
+		self:SendWeaponAnim(isBackstab and ACT_VM_SECONDARYATTACK or ACT_VM_PRIMARYATTACK)
 
-		if hitEnt:IsPlayer() or hitEnt:GetClass() == "prop_ragdoll" then
+		if isPlayer or hitEnt:GetClass() == "prop_ragdoll" then
+			local edata = EffectData()
+			edata:SetStart(tr.StartPos)
+			edata:SetOrigin(tr.HitPos)
+			edata:SetNormal(tr.Normal)
+			edata:SetEntity(hitEnt)
+
 			util.Effect("BloodImpact", edata)
 		end
 	else
 		self:SendWeaponAnim(ACT_VM_MISSCENTER)
 	end
 
-	if SERVER then
-		owner:SetAnimation(PLAYER_ATTACK1)
+	owner:SetAnimation(PLAYER_ATTACK1)
 
-		if tr.Hit and tr.HitNonWorld and IsValid(hitEnt) then
-			local aimVector = owner:GetAimVector()
-			local dmgInt = self.Primary.Damage
+	if SERVER and tr.Hit and tr.HitNonWorld and IsValid(hitEnt) then
+		local aimVector = owner:GetAimVector()
+		local dmgInt = self.Primary.Damage
 
-			if hitEnt:IsPlayer() and self:IsBackstab(hitEnt) then
-				dmgInt = 999
-			end
-
-			local dmg = DamageInfo()
-			dmg:SetDamage(dmgInt)
-			dmg:SetAttacker(owner)
-			dmg:SetInflictor(self)
-			dmg:SetDamageForce(aimVector * 5)
-			dmg:SetDamagePosition(owner:GetPos())
-			dmg:SetDamageType(DMG_SLASH)
-
-			hitEnt:DispatchTraceAttack(dmg, tr.StartPos + (aimVector * 3), tr.EndPos)
+		if hitEnt:IsPlayer() and self:IsBackstab(hitEnt) then
+			dmgInt = 999
 		end
+
+		local dmg = DamageInfo()
+		dmg:SetDamage(dmgInt)
+		dmg:SetAttacker(owner)
+		dmg:SetInflictor(self)
+		dmg:SetDamageForce(aimVector * 12)
+		dmg:SetDamagePosition(owner:GetPos())
+		dmg:SetDamageType(DMG_SLASH)
+
+		hitEnt:DispatchTraceAttack(dmg, tr.StartPos + (aimVector * 3), tr.EndPos)
 	end
 
 	owner:LagCompensation(false)
@@ -122,8 +123,8 @@ function SWEP:TraceStab()
 	local spos = owner:GetShootPos()
 	local sdest = spos + owner:GetAimVector() * self.Primary.HitRange
 
-	local kmins = Vector(-10, -10, -10)
-	local kmaxs = Vector(10, 10, 10)
+	local kmins = Vector(-5, -5, -5)
+	local kmaxs = Vector(5, 5, 5)
 
 	local tr = util.TraceHull({
 		start = spos,
