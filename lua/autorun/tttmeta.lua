@@ -141,11 +141,42 @@ hook.Add('CanPlayerTimescale', Tag, function(pl)
 end)
 
 if CLIENT then
-	do
-		hook.Add('PAC3Autoload', Tag, function(name)
-			return "autoload_ttt"
-		end)
-	end
+	-- Tell PAC to load a TTT autoload
+	hook.Add('PAC3Autoload', Tag, function(name)
+		return "autoload_ttt"
+	end)
+
+	util.OnInitialize(function()
+		if SpecDM then
+			-- Replace Spectator Deathmatch's invasive PlayerBindPress hook to fix spectators not being able to press use on stuff
+			hook.Add("PlayerBindPress", "TTTGHOSTDMBINDS", function(ply, bind, pressed)
+				if not IsValid(ply) or not ply:IsSpec() or not (ply.IsGhost and ply:IsGhost()) then return end
+
+				if bind == "invnext" and pressed then
+					WSWITCH:SelectNext()
+					return true
+				elseif bind == "invprev" and pressed then
+					WSWITCH:SelectPrev()
+					return true
+				elseif bind == "+attack" then
+					if WSWITCH:PreventAttack() then
+						if not pressed then
+							WSWITCH:ConfirmSelection()
+						end
+
+						return true
+					end
+				elseif bind == "+use" and pressed then
+					-- Block pressing use as a ghost
+					return true
+				elseif bind == "+duck" and pressed then
+					if not IsValid(ply:GetObserverTarget()) then
+						GAMEMODE.ForcedMouse = true
+					end
+				end
+			end)
+		end
+	end)
 
 	local suppress_until = 0
 
@@ -204,8 +235,8 @@ if CLIENT then
 	do
 		local Tag = 'tttfix'
 		local played_begin_ever
-		--TODO: allow outfitter when spectating 
-		
+		--TODO: allow outfitter when spectating
+
 		hook.Add('TTTBeginRound', Tag, function()
 			if not played_begin_ever then
 				played_begin_ever = true
