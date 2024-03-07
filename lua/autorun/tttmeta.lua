@@ -14,13 +14,23 @@ if SERVER then
 		end
 
 		if aowl then
-			local function tttRevive(pl)
-				if IsValid(ent) and ent:IsPlayer() and not ent:IsTerror() then
-					ent:SpawnForRound(true)
+			local function tttRevive(sourcePl, pl)
+				if IsValid(pl) and pl:IsPlayer() and not pl:IsTerror() then
+					local success = pl:SpawnForRound(true)
+
+					if success then
+						-- Devs shouldn't be doing this in real games anyway so make some noise :)
+						print(sourcePl or "CONSOLE", "forcibly revived", pl, "with tttrevive!")
+						pl:EmitSound("npc/vort/attack_shoot.wav", 100, 90)
+					end
+
+					return success
 				end
+
+				return false
 			end
 
-			aowl.AddCommand("tttrevive","Properly revives a player in TTT as their current role",function(pl, line, target)
+			aowl.AddCommand("tttrevive", "Properly revives a player in TTT as their current role", function(pl, line, target)
 				local ent = easylua.FindEntity(target)
 
 				if type(ent) == "table" then
@@ -30,14 +40,14 @@ if SERVER then
 
 					for k, v in ipairs(ent) do
 						if IsValid(v) and v:IsPlayer() then
-							tttRevive(v)
+							tttRevive(pl, v)
 						end
 					end
 
 					return
 				end
 
-				tttRevive(ent)
+				tttRevive(pl, ent)
 			end,
 			"developers", true)
 		end
