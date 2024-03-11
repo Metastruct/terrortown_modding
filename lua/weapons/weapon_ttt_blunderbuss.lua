@@ -6,6 +6,7 @@ if SERVER then
 	resource.AddFile("models/weapons/blunderbus.mdl")
 	resource.AddFile("models/weapons/w_blunderbus.mdl")
 	resource.AddFile("materials/models/weapons/blunderbus.vmt")
+	resource.AddSingleFile("materials/models/weapons/blunderbus_normal.vtf")
 	resource.AddSingleFile("materials/models/weapons/blunderbus_skin.vmt")
 
 	resource.AddFile("sound/weapons/blunderbuss_fire.mp3")
@@ -26,7 +27,7 @@ else
 
 	SWEP.EquipMenuData = {
 		type = "item_weapon",
-		desc = "A quite explosive blunderbuss loaded for only one shot."
+		desc = "A quite explosive blunderbuss that shreds through whatever is in front of it.\n\nUse it wisely, you only get one shot with this thing."
 	}
 
 	SWEP.Icon = "vgui/ttt/icon_blunderbuss"
@@ -94,7 +95,7 @@ function SWEP:PrimaryAttack()
 	self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
 
 	if self:GetFired() then
-		self:EmitSound("weapons/pistol/pistol_empty.wav", 64, math.random(40, 42), 0.2, CHAN_BODY)
+		self:EmitSound("weapons/pistol/pistol_empty.wav", 64, math.random(40, 42), 0.2, CHAN_VOICE)
 		return
 	end
 
