@@ -1,7 +1,3 @@
----
--- @class SWEP
--- @section weapon_ttt_shankknife
-
 if SERVER then
 	AddCSLuaFile()
 	resource.AddFile("materials/vgui/ttt/icon_knife.vmt")
@@ -19,7 +15,7 @@ if CLIENT then
 	SWEP.DrawCrosshair = false
 
 	SWEP.EquipMenuData = {
-		type = "shank",
+		type = "item_weapon",
 		desc = "Shank them in the back for an instant kill."
 	}
 
@@ -50,15 +46,12 @@ SWEP.Secondary.Delay = 1.4
 SWEP.Kind = WEAPON_EQUIP
 SWEP.CanBuy = {}
 SWEP.LimitedStock = true
-SWEP.WeaponID = AMMO_KNIFE
 
 SWEP.IsSilent = true
 
 -- Pull out faster than standard guns
 SWEP.DeploySpeed = 2
 
----
--- @ignore
 function SWEP:PrimaryAttack()
 	local owner = self:GetOwner()
 
@@ -163,28 +156,20 @@ function SWEP:IsBackstab(target)
     return angle <= 90 and angle >= -90
 end
 
----
--- @ignore
 function SWEP:SecondaryAttack() end
 
 if SERVER then
-	---
-	-- @ignore
 	function SWEP:Equip()
 		self:SetNextPrimaryFire(CurTime() + self.Primary.Delay * 1.5)
 		self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay * 1.5)
 	end
 
-	---
-	-- @ignore
 	function SWEP:PreDrop()
 		-- for consistency, dropped knife should not have DNA/prints
 		self.fingerprints = {}
 	end
 end
 
----
--- @ignore
 function SWEP:OnRemove()
 	if SERVER then return end
 
