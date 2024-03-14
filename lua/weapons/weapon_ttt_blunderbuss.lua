@@ -1,5 +1,6 @@
 local effectNetworkTag = "TTTBlunderbussFireEffect"
 local className = "weapon_ttt_blunderbuss"
+local convarFireDelay = "ttt_blunderbuss_firedelay"
 
 if SERVER then
 	AddCSLuaFile()
@@ -9,12 +10,15 @@ if SERVER then
 	resource.AddSingleFile("materials/models/weapons/blunderbus_normal.vtf")
 	resource.AddSingleFile("materials/models/weapons/blunderbus_skin.vmt")
 
-	resource.AddFile("sound/weapons/blunderbuss_fire.mp3")
-	resource.AddFile("sound/weapons/blunderbuss_fire_distant.mp3")
+	resource.AddSingleFile("sound/weapons/blunderbuss_fire.mp3")
+	resource.AddSingleFile("sound/weapons/blunderbuss_fire_distant.mp3")
+	resource.AddSingleFile("sound/weapons/blunderbuss_delay.mp3")
 
 	resource.AddFile("materials/vgui/ttt/icon_blunderbuss.vmt")
 
 	util.AddNetworkString(effectNetworkTag)
+
+	SWEP.ConvarFireDelay = CreateConVar(convarFireDelay, 0.3, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED})
 else
 	SWEP.PrintName = "Blunderbuss"
 	SWEP.Author = "TW1STaL1CKY"
@@ -32,6 +36,10 @@ else
 
 	SWEP.Icon = "vgui/ttt/icon_blunderbuss"
 	SWEP.IconLetter = "c"
+
+	SWEP.ConvarFireDelay = GetConVar(convarFireDelay)
+
+	LANG.AddToLanguage("en", convarFireDelay.."_help", "If this is set to 0, the blunderbuss will fire instantly when pulling the trigger.\nIf this is set to a number above 0, the blunderbuss will make a click and fuse sound before actually firing. This setting will alter how long the delay is, in seconds.")
 end
 
 SWEP.HoldType = "shotgun"
@@ -48,6 +56,8 @@ SWEP.Primary.DefaultClip = 1
 SWEP.Primary.Automatic = false
 SWEP.Primary.Delay = 0.2
 SWEP.Primary.Ammo = "none"
+SWEP.Primary.Sound = ")weapons/blunderbuss_fire.mp3"
+SWEP.Primary.DelayedShotSound = ")weapons/blunderbuss_delay.mp3"
 SWEP.Primary.MaxPenetrations = 3
 SWEP.Primary.DamageScalePerPenetration = 0.9
 SWEP.Primary.MaxRange = 400
@@ -88,6 +98,7 @@ local funcBreakableSurfClass = "func_breakable_surf"
 
 function SWEP:SetupDataTables()
 	self:NetworkVar("Bool", 0, "Fired")
+	self:NetworkVar("Float", 0, "DelayedShotTime")
 end
 
 function SWEP:PrimaryAttack()
@@ -95,24 +106,64 @@ function SWEP:PrimaryAttack()
 	self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
 
 	if self:GetFired() then
-		self:EmitSound("weapons/pistol/pistol_empty.wav", 64, math.random(40, 42), 0.2, CHAN_VOICE)
+		if self:GetDelayedShotTime() <= 0 then
+			self:EmitSound("weapons/pistol/pistol_empty.wav", 64, math.random(50, 52), 0.2, CHAN_VOICE)
+		end
+
 		return
 	end
 
 	local owner = self:GetOwner()
 	if not IsValid(owner) then return end
 
-	self:SetClip1(0)
 	self:SetFired(true)
 
+	local fireDelay = self.ConvarFireDelay:GetFloat()
+
+	if fireDelay > 0 then
+		-- This is actually needed to track to who held it last
+		self.LastFiredOwner = owner
+
+		self:EmitSound(self.Primary.DelayedShotSound, 68)
+
+		self:SetDelayedShotTime(CurTime() + fireDelay)
+
+		owner:ViewPunch(Angle(1,0,0))
+	else
+		self:Shoot()
+	end
+end
+
+function SWEP:Shoot()
+	self:SetDelayedShotTime(0)
+	self:SetClip1(0)
+
+	local owner = self:GetOwner()
+	local ownerIsPlayer = IsValid(owner) and owner:IsPlayer()
+
+	if not ownerIsPlayer then
+		-- We're going to be shooting from the blunderbuss entity itself! Fun!
+		owner = self
+	end
+
 	local spreadInfo = self.Primary.Spread
-	local startPos = owner:GetShootPos()
-	local viewVec = owner:GetAimVector()
-	local viewAng = viewVec:Angle()
+
+	local startPos
+	local viewVec
+	local viewAng
+
+	if ownerIsPlayer then
+		startPos = owner:GetShootPos()
+		viewVec = owner:GetAimVector()
+		viewAng = viewVec:Angle()
+	else
+		viewAng = owner:GetAngles()
+		viewVec = viewAng:Forward()
+		startPos = owner:GetPos() + (viewVec * 24) + (viewAng:Up() * 1.9)
+	end
 
 	local viewRight = viewAng:Right()
 	local viewUp = viewAng:Up()
-	local viewForward = viewAng:Forward()
 
 	local firstTimePredicted = IsFirstTimePredicted()
 
@@ -122,7 +173,9 @@ function SWEP:PrimaryAttack()
 		FirstPredict = firstTimePredicted
 	}
 
-	owner:LagCompensation(true)
+	if ownerIsPlayer then
+		owner:LagCompensation(true)
+	end
 
 	-- Do one pellet trace straight forward
 	self:DoPelletTrace(startPos, viewVec)
@@ -147,51 +200,78 @@ function SWEP:PrimaryAttack()
 		end
 	end
 
-	owner:LagCompensation(false)
+	if ownerIsPlayer then
+		owner:LagCompensation(false)
 
-	-- Calculate and add some knockback to owner
-	local knockbackForce = self.Primary.SelfKnockbackForce
+		-- Calculate and add some knockback to owner
+		local knockbackForce = self.Primary.SelfKnockbackForce
 
-	local vel2D = owner:GetVelocity()
-	vel2D.z = 0
+		local vel2D = owner:GetVelocity()
+		vel2D.z = 0
 
-	local velTotal = vel2D:Length2D()
+		local velTotal = vel2D:Length2D()
 
-	local viewVec2D = Vector(viewVec)
-	viewVec2D.z = 0
-	viewVec2D = viewVec2D:GetNormalized()
+		local viewVec2D = Vector(viewVec)
+		viewVec2D.z = 0
+		viewVec2D = viewVec2D:GetNormalized()
 
-	local vecDot = viewVec2D:Dot(vel2D:GetNormalized())
+		local vecDot = viewVec2D:Dot(vel2D:GetNormalized())
 
-	local forwardScale = math.max(vecDot, 0)
-	local backwardScale = -math.min(vecDot, 0)
+		local forwardScale = math.max(vecDot, 0)
+		local backwardScale = -math.min(vecDot, 0)
 
-	local calculatedKnockbackAmt = math.max(knockbackForce - (velTotal * backwardScale), 0)
-	local resultVel =
-		(vector_up * knockbackForce * -viewVec.z) 								-- Z-axis knockback based on up/down viewangle
-		+ (viewVec2D * (1 - math.abs(viewVec.z)) * -calculatedKnockbackAmt)		-- Actual knockback based on how much you're already moving backwards
-		- (viewVec2D * velTotal * forwardScale)									-- Forward velocity to cancel any forward momentum
+		local calculatedKnockbackAmt = math.max(knockbackForce - (velTotal * backwardScale), 0)
+		local resultVel =
+			(vector_up * knockbackForce * -viewVec.z) 								-- Z-axis knockback based on up/down viewangle
+			+ (viewVec2D * (1 - math.abs(viewVec.z)) * -calculatedKnockbackAmt)		-- Actual knockback based on how much you're already moving backwards
+			- (viewVec2D * velTotal * forwardScale)									-- Forward velocity to cancel any forward momentum
 
-	owner:SetGroundEntity()
-	owner:SetVelocity(resultVel)
+		owner:SetGroundEntity()
+		owner:SetVelocity(resultVel)
 
-	self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
-	owner:SetAnimation(PLAYER_ATTACK1)
-	owner:ViewPunch(Angle(-20,0,0))
+		self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
+		owner:SetAnimation(PLAYER_ATTACK1)
+		owner:ViewPunch(Angle(-20,0,0))
+	else
+		local phys = owner:GetPhysicsObject()
+
+		if IsValid(phys) then
+			phys:Wake()
+			phys:AddVelocity(viewVec * -1600)
+		end
+	end
 
 	if firstTimePredicted then
-		-- Close range sound
-		self:EmitSound(")weapons/blunderbuss_fire.mp3", 90)
+		local effectPos = owner:GetPos()
 
-		local effectPos = owner:GetPos() + (viewVec * 32)
-		effectPos.z = effectPos.z + 50
+		if ownerIsPlayer then
+			self:EmitSound(self.Primary.Sound, 90)
+
+			effectPos.z = effectPos.z + 50
+		else
+			-- If it's going to come from the blunderbuss itself, don't let the sound follow it, play it where it fired instead
+			sound.Play(self.Primary.Sound, effectPos, 90)
+
+			-- Do this to stop the click-fizzle sound playing after it's been fired
+			if SERVER and IsValid(self.LastFiredOwner) then
+				self:StopSound(self.Primary.DelayedShotSound)
+			end
+		end
+
+		effectPos = effectPos + (viewVec * 32)
 
 		-- Synced particles and long range sound
 		if SERVER then
 			net.Start(effectNetworkTag)
 			net.WriteVector(effectPos)
 			net.WriteVector(viewVec)
-			net.SendOmit(owner)
+			net.WriteEntity(self.LastFiredOwner)
+
+			if ownerIsPlayer then
+				net.SendOmit(owner)
+			else
+				net.Broadcast()
+			end
 		else
 			self:DoShootEffects(effectPos, viewVec)
 		end
@@ -242,6 +322,8 @@ function SWEP:ContinuePelletTrace()
 			local isFuncBreakable = className == funcBreakableClass or className == funcBreakableSurfClass
 
 			if SERVER then
+				local suppressNeedsRestoring = false
+
 				if not ent._gibbed then
 					local hp = ent:Health()
 
@@ -249,7 +331,8 @@ function SWEP:ContinuePelletTrace()
 						-- If it's a breakable prop and we're going to break it, run this epic workaround to let gibs spawn (weapon_fists does the same, it's cool)
 						if isProp and hp > 0 then
 							SuppressHostEvents(NULL)
-							SuppressHostEvents(owner)
+
+							suppressNeedsRestoring = true
 
 							-- Health() doesn't update after taking damage?? Flag that we've gibbed instead I guess :)
 							ent._gibbed = true
@@ -269,6 +352,10 @@ function SWEP:ContinuePelletTrace()
 				dmg:SetDamageForce(tr.Normal * 4000)
 
 				ent:TakeDamageInfo(dmg)
+
+				if suppressNeedsRestoring then
+					SuppressHostEvents(self.CurrentShot.Owner)
+				end
 			end
 
 			if self.CurrentShot.FirstPredict then
@@ -313,11 +400,40 @@ end
 
 function SWEP:SecondaryAttack() end
 
+function SWEP:Think()
+	local shootTime = self:GetDelayedShotTime()
+
+	if shootTime > 0 and shootTime <= CurTime() then
+		self:Shoot()
+	end
+end
+
 if SERVER then
 	function SWEP:Equip()
 		self:SetNextPrimaryFire(CurTime() + 0.75)
 		self:SetNextSecondaryFire(CurTime() + 0.75)
 	end
+
+	function SWEP:OwnerChanged()
+		-- :Think() doesn't run while not being held, so we need to continue the delay with a timer
+
+		local shootTime = self:GetDelayedShotTime()
+		if shootTime <= 0 then return end
+
+		local newOwner = self:GetOwner()
+		if IsValid(newOwner) then return end
+
+		timer.Simple(shootTime - CurTime(), function()
+			if IsValid(self) then
+				self:Shoot()
+			end
+		end)
+	end
+
+	-- Disable pickup while delayed shot is going on, otherwise jank happens
+	hook.Add("PlayerCanPickupWeapon", className, function(pl, wep)
+		if wep:GetClass() == className and wep:GetDelayedShotTime() > 0 then return false end
+	end)
 else
 	SWEP.ClientsideWorldModel = {
 		Pos = Vector(6.5, -1.1, -2.6),
@@ -392,8 +508,21 @@ else
 		ang:RotateAroundAxis(right, -9)
 		ang:RotateAroundAxis(up, -4)
 
+		local rightAmount = 0
+		local forwardAmount = -1
+
+		if self:GetDelayedShotTime() > 0 then
+			self.DelayedShotPullScale = Lerp(3 * FrameTime(), self.DelayedShotPullScale or 0, 3)
+
+			rightAmount = rightAmount + (math.Rand(-0.05, 0.05) * self.DelayedShotPullScale)
+			forwardAmount = forwardAmount - self.DelayedShotPullScale
+		else
+			self.DelayedShotPullScale = nil
+		end
+
+		pos = pos + rightAmount * right
 		pos = pos + 2 * up
-		pos = pos + -1 * forward
+		pos = pos + forwardAmount * forward
 
 		return pos, ang
 	end
@@ -408,6 +537,9 @@ else
 		local owner = self:GetOwner()
 
 		if not IsValid(owner) then return false end
+
+		local pl = LocalPlayer()
+		if not IsValid(pl) or (pl:GetObserverMode() == OBS_MODE_IN_EYE and pl:GetObserverTarget() == owner) then return false end
 
 		local modelData = self.ClientsideWorldModel
 
@@ -434,6 +566,22 @@ else
 		return true
 	end
 
+	function SWEP:AddToSettingsMenu(parent)
+		local form = vgui.CreateTTT2Form(parent, "header_equipment_additional")
+
+        form:MakeHelp({
+            label = convarFireDelay.."_help",
+        })
+
+        form:MakeSlider({
+            serverConvar = convarFireDelay,
+            label = "Firing delay",
+            min = 0,
+            max = 2,
+            decimal = 2,
+        })
+	end
+
 	net.Receive(effectNetworkTag, function()
 		-- We want the effects' position to be synced up for all clients regardless of entity position, angles, and PVS
 		local pos = net.ReadVector()
@@ -442,9 +590,15 @@ else
 		local normal = net.ReadVector()
 		if not normal then return end
 
-		-- This is mega hacky, but we needed a place to keep this function safe without adding bloat anywhere else
+		-- This is mega hacky, but we needed a place to keep the DoShootEffects function safe without adding bloat anywhere else
 		local wepInfo = weapons.GetStored(className)
 		if not wepInfo then return end
+
+		local lastFiredOwner = net.ReadEntity()
+		if IsValid(lastFiredOwner) then
+			-- Stop the click-fizzle sound on the clientside
+			lastFiredOwner:StopSound(wepInfo.Primary.DelayedShotSound)
+		end
 
 		wepInfo:DoShootEffects(pos, normal)
 	end)
