@@ -12,6 +12,7 @@ local list = {
 	"1777819207",	-- Marker Role
 	"2133752484",	-- Executioner Role
 	"2454277638",	-- Medium Role
+	"1615324913",   -- Demonic Possession (Added to test)
 }
 
 for _, id in ipairs(list) do 
