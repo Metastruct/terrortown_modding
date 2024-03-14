@@ -11,9 +11,14 @@ local list = {
 	"1599710095",	-- Kamehameha
 	"1777819207",	-- Marker Role
 	"2133752484",	-- Executioner Role
-	"2454277638",	-- Medium Role
-	"1615324913",   -- Demonic Possession (Added to test)
-	"2817347191",   -- Fan item (Added to test again)
+	"2480382394", 	-- impostor role
+	"2756749225", 	-- astronaut role
+	"2620700649", 	-- sacrefice role
+	"2594893673", 	-- nova role
+	"3048226332", 	-- green demon
+	"2846938449", 	-- kiss weapon
+	"1641605106", 	-- beartrap addon
+	"1615324913", 	-- demonic possession
 }
 
 for _, id in ipairs(list) do 
