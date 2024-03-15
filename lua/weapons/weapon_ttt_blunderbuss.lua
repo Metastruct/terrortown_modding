@@ -285,7 +285,7 @@ function SWEP:DoPelletTrace(startPos, normal)
 	self.CurrentPellet = {
 		CurrentPos = startPos,
 		EndPos = endPos,
-		Damage = self.Primary.Damage,
+		Damage = self.Primary.Damage * (self.damageScaling or 1),	-- .damageScaling is TTT2's "Damage Scaling" setting found in the admin equipment menu
 		Penetrations = 0,
 		Filter = { self.CurrentShot.Owner }
 	}
