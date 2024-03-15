@@ -69,6 +69,10 @@ if SERVER then
 		["push"] = true
 	}
 
+	for cmd in pairs(badcmds) do
+		aowl.cmds[cmd] = nil
+	end
+
 	hook.Add("AowlCommandAdded", Tag, function(cmd)
 		if badcmds[cmd] then
 			aowl.cmds[cmd] = nil
