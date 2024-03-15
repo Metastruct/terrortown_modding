@@ -17,8 +17,6 @@ if SERVER then
 	resource.AddFile("materials/vgui/ttt/icon_blunderbuss.vmt")
 
 	util.AddNetworkString(effectNetworkTag)
-
-	SWEP.ConvarFireDelay = CreateConVar(convarFireDelay, 0.3, {FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED})
 else
 	SWEP.PrintName = "Blunderbuss"
 	SWEP.Author = "TW1STaL1CKY"
@@ -36,8 +34,6 @@ else
 
 	SWEP.Icon = "vgui/ttt/icon_blunderbuss"
 	SWEP.IconLetter = "c"
-
-	SWEP.ConvarFireDelay = GetConVar(convarFireDelay)
 
 	LANG.AddToLanguage("en", convarFireDelay.."_help", "If this is set to 0, the blunderbuss will fire instantly when pulling the trigger.\nIf this is set to a number above 0, the blunderbuss will make a click and fuse sound before actually firing. This setting will alter how long the delay is, in seconds.")
 end
@@ -90,6 +86,8 @@ SWEP.CanBuy = {ROLE_TRAITOR}
 SWEP.LimitedStock = true
 
 SWEP.DeploySpeed = 0.6
+
+SWEP.ConvarFireDelay = CreateConVar(convarFireDelay, 0.3, {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED})
 
 local propPhysicsClass = "prop_physics"
 local propDynamicClass = "prop_dynamic"
