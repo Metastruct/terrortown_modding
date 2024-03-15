@@ -146,6 +146,10 @@ function SWEP:Shoot()
 
 	local spreadInfo = self.Primary.Spread
 
+	if ownerIsPlayer then
+		owner:LagCompensation(true)
+	end
+
 	local startPos
 	local viewVec
 	local viewAng
@@ -168,12 +172,9 @@ function SWEP:Shoot()
 	self.CurrentShot = {
 		StartPos = startPos,
 		Owner = owner,
+		Attacker = self.LastFiredOwner,
 		FirstPredict = firstTimePredicted
 	}
-
-	if ownerIsPlayer then
-		owner:LagCompensation(true)
-	end
 
 	-- Do one pellet trace straight forward
 	self:DoPelletTrace(startPos, viewVec)
@@ -197,6 +198,8 @@ function SWEP:Shoot()
 			self:DoPelletTrace(startPos, spreadNormal)
 		end
 	end
+
+	self.CurrentShot = nil
 
 	if ownerIsPlayer then
 		owner:LagCompensation(false)
@@ -342,7 +345,7 @@ function SWEP:ContinuePelletTrace()
 				end
 
 				local dmg = DamageInfo()
-				dmg:SetAttacker(self.CurrentShot.Owner)
+				dmg:SetAttacker(IsValid(self.CurrentShot.Attacker) and self.CurrentShot.Attacker or self.CurrentShot.Owner)
 				dmg:SetInflictor(self)
 				dmg:SetDamage(scaledDamage)
 				dmg:SetDamageType(DMG_BULLET)
