@@ -2,6 +2,9 @@
 -- No longer required: if engine.ActiveGamemode() ~= "terrortown" then return end
 
 local Tag = "tttfix"
+local emptyFunc = function() end
+
+AOWL_NO_TEAMS = true
 
 if SERVER then
 	AddCSLuaFile()
@@ -56,6 +59,8 @@ if SERVER then
 	local badcmds = {
 		["ragdoll"] = true,
 		["ragdollize"] = true,
+		["unragdoll"] = true,
+		["unragdollize"] = true,
 		["vomit"] = true,
 		["puke"] = true,
 		["ooc"] = true,
@@ -111,59 +116,8 @@ if SERVER then
 	end)
 
 	-- Disable alternative way of using "aowl push"
-	concommand.Add("push", function() end)
-end
-
-AOWL_NO_TEAMS = true
-
-hook.Add("CanPlyGotoPly", Tag, function(pl)
-	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false, "no teleporting while round is active" end
-end)
-
-hook.Add("CanAutojump", Tag, function(pl)
-	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false end
-end)
-
-hook.Add("CanPlyGoto", Tag, function(pl)
-	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false, "no teleporting while round is active" end
-end)
-
-hook.Add("CanPlyTeleport", Tag, function(pl)
-	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false, "no teleporting while round is active" end
-end)
-
-hook.Add("IsEntityTeleportable", Tag, function(pl)
-	if pl.Unrestricted then return end
-
-	return false
-end)
-
-hook.Add("CanSSJump", Tag, function(pl)
-	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false, "no jumping while round is active" end
-end)
-
-hook.Add("CanPlyRespawn", Tag, function(pl)
-	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false, "no respawning while round is active" end
-end)
-
-hook.Add("CanPlayerTimescale", Tag, function(pl)
-	if pl.Unrestricted then return end
-
-	return false, "not allowed in ttt"
-end)
-
-if CLIENT then
-	-- Tell PAC to load a TTT autoload
-	hook.Add("PAC3Autoload", Tag, function(name)
-		return "autoload_ttt"
-	end)
-
+	concommand.Add("push", emptyFunc)
+else
 	util.OnInitialize(function()
 		if SpecDM then
 			-- Replace Spectator Deathmatch's invasive PlayerBindPress hook to fix spectators not being able to press use on stuff
@@ -195,6 +149,14 @@ if CLIENT then
 			end)
 		end
 	end)
+
+	-- Tell PAC to load a TTT autoload
+	hook.Add("PAC3Autoload", Tag, function(name)
+		return "autoload_ttt"
+	end)
+
+	-- Disable the root "boxify" command that exists on the client
+	concommand.Add("boxify", emptyFunc)
 
 	local suppress_until = 0
 
@@ -394,4 +356,70 @@ if CLIENT then
 	concommand.Add("tttfix", outfitter_remount)
 	concommand.Add("outfitter_remount_all", outfitter_remount)
 	concommand.Add("outfitter_fix_error_models", outfitter_remount)
+end
+
+-- Shared amends
+
+hook.Add("AowlGiveAmmo", Tag, function(pl)
+	if pl.Unrestricted then return end
+	return false
+end)
+
+hook.Add("CanPlyGotoPly", Tag, function(pl)
+	if pl.Unrestricted then return end
+	if GAMEMODE.round_state == 3 then return false, "no teleporting while round is active" end
+end)
+
+hook.Add("CanAutojump", Tag, function(pl)
+	if pl.Unrestricted then return end
+	if GAMEMODE.round_state == 3 then return false end
+end)
+
+hook.Add("CanPlyGoto", Tag, function(pl)
+	if pl.Unrestricted then return end
+	if GAMEMODE.round_state == 3 then return false, "no teleporting while round is active" end
+end)
+
+hook.Add("CanPlyTeleport", Tag, function(pl)
+	if pl.Unrestricted then return end
+	if GAMEMODE.round_state == 3 then return false, "no teleporting while round is active" end
+end)
+
+hook.Add("IsEntityTeleportable", Tag, function(pl)
+	if pl.Unrestricted then return end
+	return false
+end)
+
+hook.Add("CanSSJump", Tag, function(pl)
+	if pl.Unrestricted then return end
+	if GAMEMODE.round_state == 3 then return false, "no jumping while round is active" end
+end)
+
+hook.Add("CanPlyRespawn", Tag, function(pl)
+	if pl.Unrestricted then return end
+	if GAMEMODE.round_state == 3 then return false, "no respawning while round is active" end
+end)
+
+hook.Add("CanPlayerTimescale", Tag, function(pl)
+	if pl.Unrestricted then return end
+	return false, "not allowed in TTT"
+end)
+
+-- Since it's being disabled, completely rip out the "boxify" code since it adds several hooks worth of bloat on both realms
+do
+	local PLAYER = FindMetaTable("Player")	-- pull this out of the do statement if we need to remove more player functions
+	local boxifyTag = "boxify"
+
+	for k,v in next, hook.GetTable() do
+		for i in next, v do
+			if i == boxifyTag then
+				hook.Remove(k, i)
+			end
+		end
+	end
+
+	PLAYER.UnBoxify = nil
+
+	list.Set("ChatCommands", "box")
+	list.Set("ChatCommands", "boxify")
 end
