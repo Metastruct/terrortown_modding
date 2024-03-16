@@ -56,22 +56,41 @@ if SERVER then
 		end
 	end)
 
+	-- Remove these aowl commands, either because they are cheaty, annoying, or don't work with TTT
 	local badcmds = {
+		["advert"] = true,
+		["box"] = true,
+		["boxify"] = true,
+		["cheats"] = true,
+		["dropcoin"] = true,
+		["dropcoins"] = true,
+		["economy"] = true,
+		["findfag"] = true,
+		["findlag"] = true,
+		["givecoins"] = true,
+		["giveup"] = true,
+		["god"] = true,
+		["gomoving"] = true,
+		["headexplode"] = true,
+		["hitler"] = true,
+		["hoborope"] = true,
+		["hsplode"] = true,
+		["ignite"] = true,
+		["invisible"] = true,
+		["jail"] = true,
+		["jump"] = true,
+		["leavegame"] = true,
+		["kidmode"] = true,
+		["newswriter"] = true,
+		["ooc"] = true,
+		["puke"] = true,
+		["push"] = true,
 		["ragdoll"] = true,
 		["ragdollize"] = true,
 		["unragdoll"] = true,
 		["unragdollize"] = true,
-		["vomit"] = true,
-		["puke"] = true,
-		["ooc"] = true,
-		["advert"] = true,
-		["headexplode"] = true,
-		["kidmode"] = true,
-		["jail"] = true,
-		["hoborope"] = true,
-		["box"] = true,
-		["boxify"] = true,
-		["push"] = true
+		["unreserve"] = true,
+		["vomit"] = true
 	}
 
 	for cmd in pairs(badcmds) do
