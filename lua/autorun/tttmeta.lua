@@ -177,6 +177,7 @@ else
 	-- Disable the root "boxify" command that exists on the client
 	concommand.Add("boxify", emptyFunc)
 
+	-- Shortcuts to show the Meta scoreboard
 	local suppress_until = 0
 
 	hook.Add("ScoreboardShow", Tag, function(reason)
@@ -242,13 +243,10 @@ else
 				playSound"npc/overwatch/cityvoice/f_anticitizenreport_spkr.wav"
 			end
 
-			print("TTTBeginRound")
 			SetPerfMode(true)
 		end)
 
 		hook.Add("TTTEndRound", Tag, function()
-			print("TTTEndRound")
-
 			timer.Simple(5, function()
 				played_30 = false
 				played_60 = false
@@ -259,9 +257,7 @@ else
 			SetPerfMode(false)
 		end)
 
-		hook.Add("TTTPrepareRound", Tag, function()
-			print("TTTPrepareRound")
-		end)
+		--hook.Add("TTTPrepareRound", Tag, function() end)
 	end
 
 	local snd_time60 = "npc/overwatch/cityvoice/fcitadel_1minutetosingularity.wav"
@@ -386,22 +382,22 @@ end)
 
 hook.Add("CanPlyGotoPly", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false, "no teleporting while round is active" end
+	if GAMEMODE.round_state == ROUND_ACTIVE then return false, "no teleporting while round is active" end
 end)
 
 hook.Add("CanAutojump", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false end
+	if GAMEMODE.round_state == ROUND_ACTIVE then return false end
 end)
 
 hook.Add("CanPlyGoto", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false, "no teleporting while round is active" end
+	if GAMEMODE.round_state == ROUND_ACTIVE then return false, "no teleporting while round is active" end
 end)
 
 hook.Add("CanPlyTeleport", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false, "no teleporting while round is active" end
+	if GAMEMODE.round_state == ROUND_ACTIVE then return false, "no teleporting while round is active" end
 end)
 
 hook.Add("IsEntityTeleportable", Tag, function(pl)
@@ -411,17 +407,21 @@ end)
 
 hook.Add("CanSSJump", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false, "no jumping while round is active" end
+	if GAMEMODE.round_state == ROUND_ACTIVE then return false, "no jumping while round is active" end
 end)
 
 hook.Add("CanPlyRespawn", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == 3 then return false, "no respawning while round is active" end
+	if GAMEMODE.round_state == ROUND_ACTIVE then return false, "no respawning while round is active" end
 end)
 
 hook.Add("CanPlayerTimescale", Tag, function(pl)
 	if pl.Unrestricted then return end
 	return false, "not allowed in TTT"
+end)
+
+hook.Add("prone.CanEnter", Tag, function()
+	return false
 end)
 
 -- Since it's being disabled, completely rip out the "boxify" code since it adds several hooks worth of bloat on both realms
