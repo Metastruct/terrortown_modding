@@ -189,27 +189,7 @@ else
 		return false
 	end)
 
-	local played_60
-	local played_120
-	local played_180
-	local played_30
-	local last_play = 0
-	local ttt_extra_sounds = CreateClientConVar("ttt_extra_sounds", "0", true, false, "Play countdown sounds", 0, 1)
-
-	local function playSound(snd)
-		if not ttt_extra_sounds:GetBool() then return end
-
-		if RealTime() - last_play < 3 then
-			print("TOO EARLY?", snd)
-
-			return
-		end
-
-		surface.PlaySound(snd)
-		print("SND", snd)
-		last_play = RealTime()
-	end
-
+	-- Outfitter fixes
 	local outfitter_ttt_perfmode = CreateClientConVar("outfitter_terrortown_perfmode", "1", true, false, "Only load outfits during spectate and endround and prepare", 0, 1)
 
 	local function SetPerfMode(want_perf)
@@ -232,101 +212,7 @@ else
 		_G.TTT_OUTFITTER_PERF = want_perf
 	end
 
-	do
-		local Tag = "tttfix"
-		local played_begin_ever
-		--TODO: allow outfitter when spectating
-
-		hook.Add("TTTBeginRound", Tag, function()
-			if not played_begin_ever then
-				played_begin_ever = true
-				playSound"npc/overwatch/cityvoice/f_anticitizenreport_spkr.wav"
-			end
-
-			SetPerfMode(true)
-		end)
-
-		hook.Add("TTTEndRound", Tag, function()
-			timer.Simple(5, function()
-				played_30 = false
-				played_60 = false
-				played_120 = false
-				played_180 = false
-			end)
-
-			SetPerfMode(false)
-		end)
-
-		--hook.Add("TTTPrepareRound", Tag, function() end)
-	end
-
-	local snd_time60 = "npc/overwatch/cityvoice/fcitadel_1minutetosingularity.wav"
-	local snd_time120 = "npc/overwatch/cityvoice/fcitadel_2minutestosingularity.wav"
-	local snd_time180 = "npc/overwatch/cityvoice/fcitadel_3minutestosingularity.wav"
-	local snd_time30 = "npc/overwatch/cityvoice/fcitadel_30sectosingularity.wav"
-
-	timer.Create(Tag, 0, 0, function()
-		-- https://github.com/TTT-2/TTT2/blob/fc797b61282fbf9d69de834144cbc6ed8d920a1b/gamemodes/terrortown/gamemode/shared/hud_elements/tttroundinfo/pure_skin_roundinfo.lua#L64
-		local client = LocalPlayer()
-		if not client:IsValid() or not client.IsActive then return end
-		local round_state = GAMEMODE.round_state
-		local round_prep = round_state == ROUND_PREP
-		local round_active = round_state == ROUND_ACTIVE
-		local round_post = round_state == ROUND_POST
-		local round_wait = round_state == ROUND_WAIT
-		local isHaste = HasteMode() and round_state == ROUND_ACTIVE
-		local endtime = GetGlobalFloat("ttt_round_end", 0) - CurTime()
-		--TODO: haste mode and traitor is isOmniscient? What about dead?
-		local remaining = isHaste and (GetGlobalFloat("ttt_haste_end", 0) - CurTime())
-		local isOmniscient = not client:IsActive() or client:GetSubRoleData().isOmniscientRole
-
-		if not isOmniscient then
-  		remaining = math.max(remaining or 0, endtime)
-		end
-
-		if remaining then
-
-			if not played_180 and remaining < 180 then
-				played_180 = true
-				playSound(snd_time180)
-			end
-
-			if not played_120 and remaining < 120 then
-				played_120 = true
-				playSound(snd_time120)
-			end
-
-			if not played_60 and remaining < 60 then
-				played_60 = true
-				playSound(snd_time60)
-			end
-
-			if not played_30 and remaining < 30 then
-				played_30 = true
-				playSound(snd_time30)
-			end
-
-			if played_180 and remaining > 180 then
-				played_180 = false
-			end
-
-			if played_120 and remaining > 120 then
-				played_120 = false
-			end
-
-			if played_60 and remaining > 60 then
-				played_60 = false
-			end
-
-			if played_30 and remaining > 30 then
-				played_30 = false
-			end
-		end
-	end)
-
-	--	print("endtime=",endtime/60)
-	--print("remaining=",remaining/60)
-	--print("GAMEMODE.round_state=",GAMEMODE.round_state)
+	--TODO: allow outfitter when spectating
 	local function badModel(mdl)
 		local mdl = ClientsideModel(mdl)
 		local count = mdl:GetBoneCount()
@@ -345,8 +231,8 @@ else
 				if not util.IsValidModel(mdl) then
 					if tonumber(wsid) then
 						--TODO: use outfitter mounting system!!! This bypasses safety checks.
-						chat.AddText("FIXING", v, " - ", mdl, " - ", wsid)
 						easylua.Print("FIXING", wsid, mdl, v)
+						chat.AddText("FIXING", v, " - ", mdl, " - ", wsid)
 
 						if not downloading[wsid] then
 							downloading[wsid] = true
@@ -356,8 +242,8 @@ else
 							end)
 						end
 					else
-						easylua.Print("Can\"t reload", wsid, mdl, v)
-						chat.AddText("Can\"t reload:", wsid)
+						easylua.Print("Can't reload", wsid, mdl, v)
+						chat.AddText("Can't reload:", wsid)
 					end
 				elseif badModel(mdl) then
 					easylua.Print("Did not catch", wsid, mdl, v)
@@ -371,6 +257,17 @@ else
 	concommand.Add("tttfix", outfitter_remount)
 	concommand.Add("outfitter_remount_all", outfitter_remount)
 	concommand.Add("outfitter_fix_error_models", outfitter_remount)
+
+	-- Trigger things on TTT round hooks (eg. outfitter fixes)
+	hook.Add("TTTBeginRound", Tag, function()
+		SetPerfMode(true)
+	end)
+
+	hook.Add("TTTEndRound", Tag, function()
+		SetPerfMode(false)
+	end)
+
+	--hook.Add("TTTPrepareRound", Tag, function() end)
 end
 
 -- Shared amends
