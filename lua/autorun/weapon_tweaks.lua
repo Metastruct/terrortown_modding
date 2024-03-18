@@ -36,3 +36,12 @@ if CLIENT then
 		end
 	end
 end
+
+-- H.U.G.E-249: Buff the DPS while trading a little bit of recoil for accuracy
+SWEP = weapons.GetStored("weapon_zm_sledge")
+if SWEP then
+	SWEP.Primary.Damage = 10
+	SWEP.Primary.Delay = 0.05
+	SWEP.Primary.Cone = 0.08
+	SWEP.Primary.Recoil = 2
+end
