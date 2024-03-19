@@ -321,21 +321,23 @@ hook.Add("prone.CanEnter", Tag, function()
 	return false
 end)
 
--- Since it's being disabled, completely rip out the "boxify" code since it adds several hooks worth of bloat on both realms
-do
-	local PLAYER = FindMetaTable("Player")	-- pull this out of the do statement if we need to remove more player functions
-	local boxifyTag = "boxify"
+util.OnInitialize(function()
+	-- Since it's being disabled, completely rip out the "boxify" code since it adds several hooks worth of bloat on both realms
+	do
+		local PLAYER = FindMetaTable("Player")	-- pull this out of the do statement if we need to remove more player functions
+		local boxifyTag = "boxify"
 
-	for k,v in next, hook.GetTable() do
-		for i in next, v do
-			if i == boxifyTag then
-				hook.Remove(k, i)
+		for k,v in next, hook.GetTable() do
+			for i in next, v do
+				if i == boxifyTag then
+					hook.Remove(k, i)
+				end
 			end
 		end
+
+		PLAYER.UnBoxify = nil
+
+		list.Set("ChatCommands", "box")
+		list.Set("ChatCommands", "boxify")
 	end
-
-	PLAYER.UnBoxify = nil
-
-	list.Set("ChatCommands", "box")
-	list.Set("ChatCommands", "boxify")
-end
+end)
