@@ -126,6 +126,11 @@ if SERVER then
 		end
 	end)
 
+	-- Disable RP tapping shoulder thing - I would like to support this somewhat for funnies, but it opens opportunities for meta-gaming
+	hook.Add("PlayerUsedByPlayer", Tag, function(pl, poker)
+		return true
+	end)
+
 	-- Disable EasyChat indicating
 	hook.Add("ECCanIndicate", Tag, function() return false end)
 
