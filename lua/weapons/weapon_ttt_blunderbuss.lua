@@ -490,15 +490,11 @@ else
 	end
 
 	function SWEP:OnRemove()
-		local owner = self:GetOwner()
-
-		if IsValid(owner) and owner == LocalPlayer() and owner:IsTerror() then
-			RunConsoleCommand("lastinv")
-		end
-
 		if IsValid(self.ClientsideWorldModel.Model) then
 			self.ClientsideWorldModel.Model:Remove()
 		end
+
+		baseclass.OnRemove(self)
 	end
 
 	function SWEP:GetViewModelPosition(pos, ang)
