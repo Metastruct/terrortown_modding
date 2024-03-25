@@ -38,9 +38,9 @@ else
 	LANG.AddToLanguage("en", convarFireDelay.."_help", "If this is set to 0, the blunderbuss will fire instantly when pulling the trigger.\nIf this is set to a number above 0, the blunderbuss will make a click and fuse sound before actually firing. This setting will alter how long the delay is, in seconds.")
 end
 
-SWEP.HoldType = "shotgun"
+DEFINE_BASECLASS("weapon_tttbase")
 
-SWEP.Base = "weapon_tttbase"
+SWEP.HoldType = "shotgun"
 SWEP.ClassName = className
 
 SWEP.ViewModel = "models/weapons/blunderbus.mdl"
@@ -494,7 +494,7 @@ else
 			self.ClientsideWorldModel.Model:Remove()
 		end
 
-		baseclass.OnRemove(self)
+		BaseClass.OnRemove(self)
 	end
 
 	function SWEP:GetViewModelPosition(pos, ang)
