@@ -3,7 +3,7 @@ if SERVER then
 	resource.AddFile("materials/vgui/ttt/icon_knife.vmt")
 end
 
-SWEP.HoldType = "knife"
+DEFINE_BASECLASS("weapon_tttbase")
 
 if CLIENT then
 	SWEP.PrintName = "Shanker's Knife"
@@ -23,7 +23,7 @@ if CLIENT then
 	SWEP.IconLetter = "c"
 end
 
-SWEP.Base = "weapon_tttbase"
+SWEP.HoldType = "knife"
 
 SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/cstrike/c_knife_t.mdl"
@@ -164,37 +164,37 @@ if SERVER then
 		self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay * 1.5)
 	end
 else
-	local TryT = LANG.TryTranslation
+	local tryT = LANG.TryTranslation
 
 	hook.Add("TTTRenderEntityInfo", "HUDDrawTargetIDShankKnife", function(tData)
-		local client = LocalPlayer()
+		local pl = LocalPlayer()
 
-		if not IsValid(client) or not client:IsTerror() or not client:Alive() then return end
+		if not IsValid(pl) or not pl:IsTerror() or not pl:Alive() then return end
 
-		local c_wep = client:GetActiveWeapon()
+		local wep = pl:GetActiveWeapon()
 
-		if not IsValid(c_wep) or c_wep:GetClass() ~= "weapon_ttt_shankknife" or tData:GetEntityDistance() > c_wep.Primary.HitRange then return end
+		if not IsValid(wep) or wep:GetClass() != "weapon_ttt_shankknife" or tData:GetEntityDistance() > wep.Primary.HitRange then return end
 
 		local ent = tData:GetEntity()
 
-		if not ent:IsPlayer() or not c_wep:IsBackstab(ent) then return end
+		if not ent:IsPlayer() or not wep:IsBackstab(ent) then return end
 
-		local role_color = client:GetRoleColor()
+		local roleColor = pl:GetRoleColor()
 
 		-- enable targetID rendering
 		tData:EnableOutline()
-		tData:SetOutlineColor(role_color)
+		tData:SetOutlineColor(roleColor)
 
 		tData:AddDescriptionLine(
-			TryT("knife_instant"),
-			role_color
+			tryT("knife_instant"),
+			roleColor
 		)
 
 		-- draw instant-kill maker
 		local x = ScrW() * 0.5
 		local y = ScrH() * 0.5
 
-		surface.SetDrawColor(clr(role_color))
+		surface.SetDrawColor(clr(roleColor))
 
 		local outer = 20
 		local inner = 10
