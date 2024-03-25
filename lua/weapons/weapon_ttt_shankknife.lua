@@ -163,24 +163,7 @@ if SERVER then
 		self:SetNextPrimaryFire(CurTime() + self.Primary.Delay * 1.5)
 		self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay * 1.5)
 	end
-
-	function SWEP:PreDrop()
-		-- for consistency, dropped knife should not have DNA/prints
-		self.fingerprints = {}
-	end
-end
-
-function SWEP:OnRemove()
-	if SERVER then return end
-
-	local owner = self:GetOwner()
-
-	if IsValid(owner) and owner == LocalPlayer() and owner:Alive() then
-		RunConsoleCommand("lastinv")
-	end
-end
-
-if CLIENT then
+else
 	local TryT = LANG.TryTranslation
 
 	hook.Add("TTTRenderEntityInfo", "HUDDrawTargetIDShankKnife", function(tData)
