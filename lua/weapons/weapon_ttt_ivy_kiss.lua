@@ -36,7 +36,7 @@ function SWEP:Kiss()
 
 		local timer_name = ("ivy_poison_[%d]"):format(victim:EntIndex())
 		timer.Simple(5, function()
-			timer.Create(timer_name, 2, 0, function()
+			timer.Create(timer_name, 2, 20, function()
 				if not IsValid(victim) then
 					timer.Remove(timer_name)
 					return
