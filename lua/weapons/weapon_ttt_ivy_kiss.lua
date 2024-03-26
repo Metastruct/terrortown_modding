@@ -8,6 +8,7 @@ DEFINE_BASECLASS("weapon_ttt2_kiss")
 SWEP.Kind = WEAPON_EQUIP
 SWEP.CanBuy = { ROLE_TRAITOR }
 SWEP.LimitedStock = true
+SWEP.AutoSpawnable = false
 
 if CLIENT then
 	SWEP.PrintName = "Ivy Kiss"
