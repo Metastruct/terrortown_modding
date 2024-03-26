@@ -21,6 +21,6 @@ local list = {
 	"1615324913", 	-- demonic possession
 }
 
-for _, id in ipairs(list) do 
+for _, id in ipairs(list) do
 	resource.AddWorkshop(id)
 end

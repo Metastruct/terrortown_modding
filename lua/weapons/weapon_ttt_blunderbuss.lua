@@ -35,7 +35,7 @@ else
 	SWEP.Icon = "vgui/ttt/icon_blunderbuss"
 	SWEP.IconLetter = "c"
 
-	LANG.AddToLanguage("en", convarFireDelay.."_help", "If this is set to 0, the blunderbuss will fire instantly when pulling the trigger.\nIf this is set to a number above 0, the blunderbuss will make a click and fuse sound before actually firing. This setting will alter how long the delay is, in seconds.")
+	LANG.AddToLanguage("en", convarFireDelay .. "_help", "If this is set to 0, the blunderbuss will fire instantly when pulling the trigger.\nIf this is set to a number above 0, the blunderbuss will make a click and fuse sound before actually firing. This setting will alter how long the delay is, in seconds.")
 end
 
 DEFINE_BASECLASS("weapon_tttbase")
@@ -451,37 +451,37 @@ else
 		-- Smoke emission
 		local em = ParticleEmitter(pos)
 		local particleTex = "particle/particle_noisesphere"
-        local radius = 5
+		local radius = 5
 
-        for i = 1, 50 do
-            local randPos = VectorRand() * radius
+		for i = 1, 50 do
+			local randPos = VectorRand() * radius
 
-            local p = em:Add(particleTex, pos + randPos)
-            if p then
-                local gray = math.random(20, 80)
+			local p = em:Add(particleTex, pos + randPos)
+			if p then
+				local gray = math.random(20, 80)
 
-                p:SetColor(gray, gray, gray)
-                p:SetStartAlpha(255)
-                p:SetEndAlpha(10)
-                p:SetAirResistance(300)
-                p:SetVelocity((VectorRand() * math.Rand(250, 500)) + (normal * 40 * i))
+				p:SetColor(gray, gray, gray)
+				p:SetStartAlpha(255)
+				p:SetEndAlpha(10)
+				p:SetAirResistance(300)
+				p:SetVelocity((VectorRand() * math.Rand(250, 500)) + (normal * 40 * i))
 
-                p:SetLifeTime(0)
-                p:SetDieTime(math.Rand(30, 35))
+				p:SetLifeTime(0)
+				p:SetDieTime(math.Rand(30, 35))
 
-                p:SetStartSize(math.random(100, 150))
-                p:SetEndSize(math.random(60, 80))
-                p:SetRoll(math.random(-180, 180))
-                p:SetRollDelta(math.Rand(-0.5, 0.5))
+				p:SetStartSize(math.random(100, 150))
+				p:SetEndSize(math.random(60, 80))
+				p:SetRoll(math.random(-180, 180))
+				p:SetRollDelta(math.Rand(-0.5, 0.5))
 
-                p:SetCollide(true)
-                p:SetBounce(0.4)
+				p:SetCollide(true)
+				p:SetBounce(0.4)
 
-                p:SetLighting(false)
-            end
-        end
+				p:SetLighting(false)
+			end
+		end
 
-        em:Finish()
+		em:Finish()
 
 		-- Distant sound
 		local dist = EyePos():Distance(pos)
@@ -566,17 +566,17 @@ else
 	function SWEP:AddToSettingsMenu(parent)
 		local form = vgui.CreateTTT2Form(parent, "header_equipment_additional")
 
-        form:MakeHelp({
-            label = convarFireDelay.."_help",
-        })
+		form:MakeHelp({
+			label = convarFireDelay .. "_help",
+		})
 
-        form:MakeSlider({
-            serverConvar = convarFireDelay,
-            label = "Firing delay",
-            min = 0,
-            max = 2,
-            decimal = 2,
-        })
+		form:MakeSlider({
+			serverConvar = convarFireDelay,
+			label = "Firing delay",
+			min = 0,
+			max = 2,
+			decimal = 2,
+		})
 	end
 
 	net.Receive(effectNetworkTag, function()

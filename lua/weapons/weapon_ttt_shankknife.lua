@@ -9,7 +9,6 @@ if CLIENT then
 	SWEP.PrintName = "Shanker's Knife"
 	SWEP.Slot = 8
 	SWEP.SlotPos = 1
-
 	SWEP.ViewModelFlip = false
 	SWEP.ViewModelFOV = 54
 	SWEP.DrawCrosshair = false
@@ -24,11 +23,9 @@ if CLIENT then
 end
 
 SWEP.HoldType = "knife"
-
 SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/cstrike/c_knife_t.mdl"
 SWEP.WorldModel = "models/weapons/w_knife_t.mdl"
-
 SWEP.Primary.Damage = 40
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
@@ -36,41 +33,31 @@ SWEP.Primary.Automatic = true
 SWEP.Primary.Delay = 0.6
 SWEP.Primary.Ammo = "none"
 SWEP.Primary.HitRange = 80
-
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = true
 SWEP.Secondary.Ammo = "none"
 SWEP.Secondary.Delay = 1.4
-
 SWEP.Kind = WEAPON_EQUIP
 SWEP.CanBuy = {}
 SWEP.LimitedStock = true
-
 SWEP.IsSilent = true
-
 -- Pull out faster than standard guns
 SWEP.DeploySpeed = 2
 
 function SWEP:PrimaryAttack()
 	local owner = self:GetOwner()
-
 	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 	self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
-
 	if not IsValid(owner) then return end
-
 	owner:LagCompensation(true)
-
 	local tr = self:TraceStab()
-
 	local hitEnt = tr.Entity
 
 	-- effects
 	if IsValid(hitEnt) then
 		local isPlayer = hitEnt:IsPlayer()
 		local isBackstab = isPlayer and self:IsBackstab(hitEnt)
-
 		self:SendWeaponAnim(isBackstab and ACT_VM_SECONDARYATTACK or ACT_VM_PRIMARYATTACK)
 
 		if isPlayer or hitEnt:GetClass() == "prop_ragdoll" then
@@ -79,7 +66,6 @@ function SWEP:PrimaryAttack()
 			edata:SetOrigin(tr.HitPos)
 			edata:SetNormal(tr.Normal)
 			edata:SetEntity(hitEnt)
-
 			util.Effect("BloodImpact", edata)
 		end
 	else
@@ -103,7 +89,6 @@ function SWEP:PrimaryAttack()
 		dmg:SetDamageForce(aimVector * 12)
 		dmg:SetDamagePosition(owner:GetPos())
 		dmg:SetDamageType(DMG_SLASH)
-
 		hitEnt:DispatchTraceAttack(dmg, tr.StartPos + (aimVector * 3), tr.EndPos)
 	end
 
@@ -112,10 +97,8 @@ end
 
 function SWEP:TraceStab()
 	local owner = self:GetOwner()
-
 	local spos = owner:GetShootPos()
 	local sdest = spos + owner:GetAimVector() * self.Primary.HitRange
-
 	local kmins = Vector(-5, -5, -5)
 	local kmaxs = Vector(5, 5, 5)
 
@@ -146,17 +129,17 @@ end
 
 function SWEP:IsBackstab(target)
 	local owner = self:GetOwner()
-
 	local angle = owner:GetAngles().y - target:GetAngles().y
 
-    if angle < -180 then
-        angle = 360 + angle
+	if angle < -180 then
+		angle = 360 + angle
 	end
 
-    return angle <= 90 and angle >= -90
+	return angle <= 90 and angle >= -90
 end
 
-function SWEP:SecondaryAttack() end
+function SWEP:SecondaryAttack()
+end
 
 if SERVER then
 	function SWEP:Equip()
@@ -168,40 +151,29 @@ else
 
 	hook.Add("TTTRenderEntityInfo", "HUDDrawTargetIDShankKnife", function(tData)
 		local pl = LocalPlayer()
-
 		if not IsValid(pl) or not pl:IsTerror() or not pl:Alive() then return end
 
 		local wep = pl:GetActiveWeapon()
-
-		if not IsValid(wep) or wep:GetClass() != "weapon_ttt_shankknife" or tData:GetEntityDistance() > wep.Primary.HitRange then return end
+		if not IsValid(wep) or wep:GetClass() ~= "weapon_ttt_shankknife" or tData:GetEntityDistance() > wep.Primary.HitRange then return end
 
 		local ent = tData:GetEntity()
-
 		if not ent:IsPlayer() or not wep:IsBackstab(ent) then return end
 
 		local roleColor = pl:GetRoleColor()
-
 		-- enable targetID rendering
 		tData:EnableOutline()
 		tData:SetOutlineColor(roleColor)
-
-		tData:AddDescriptionLine(
-			tryT("knife_instant"),
-			roleColor
-		)
-
+		tData:AddDescriptionLine(tryT("knife_instant"), roleColor)
 		-- draw instant-kill maker
+
 		local x = ScrW() * 0.5
 		local y = ScrH() * 0.5
-
 		surface.SetDrawColor(clr(roleColor))
 
 		local outer = 20
 		local inner = 10
-
 		surface.DrawLine(x - outer, y - outer, x - inner, y - inner)
 		surface.DrawLine(x + outer, y + outer, x + inner, y + inner)
-
 		surface.DrawLine(x - outer, y + outer, x - inner, y + inner)
 		surface.DrawLine(x + outer, y - outer, x + inner, y - inner)
 	end)
