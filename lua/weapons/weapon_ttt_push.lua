@@ -41,7 +41,7 @@ SWEP.WeaponID = AMMO_PUSH
 SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/c_superphyscannon.mdl"
 SWEP.WorldModel = "models/weapons/w_physics.mdl"
-AccessorFuncDT(SWEP, "charge", "Charge")
+
 SWEP.IsCharging = false
 SWEP.NextCharge = 0
 local CHARGE_AMOUNT = 0.02
@@ -57,7 +57,15 @@ function SWEP:Initialize()
 end
 
 function SWEP:SetupDataTables()
-	self:DTVar("Float", 0, "charge")
+	self:SetNWFloat("charge", 0)
+end
+
+function SWEP:GetCharge()
+	return self:GetNWFloat("charge", 0)
+end
+
+function SWEP:SetCharge(charge)
+	self:SetNWFloat("charge", charge)
 end
 
 function SWEP:PrimaryAttack()
@@ -184,7 +192,7 @@ if CLIENT then
 		local x = ScrW() / 2.0
 		local y = ScrH() / 2.0
 		local nxt = self:GetNextPrimaryFire()
-		local charge = self.dt.charge
+		local charge = self:GetCharge()
 
 		if LocalPlayer():IsTraitor() then
 			surface.SetDrawColor(255, 0, 0, 255)
