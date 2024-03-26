@@ -69,7 +69,7 @@ if SERVER then
 
 				if math.random(invert + 20) == 1 then
 					if ply.drunkfactor >= 50 then
-						ply:Puke()
+						--ply:Puke()
 					end
 
 					ply.drunkfactor = math.max(ply.drunkfactor - 5, 0)
