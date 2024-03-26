@@ -29,7 +29,7 @@ function SWEP:Kiss()
 		local owner = self:GetOwner()
 		local dmg_info = DamageInfo()
 		dmg_info:SetAttacker(owner)
-		dmg_info:SetDamageType(DMG_POISON)
+		dmg_info:SetDamageType(DMG_NERVEGAS)
 		dmg_info:SetInflictor(self)
 		dmg_info:SetDamage(5)
 
