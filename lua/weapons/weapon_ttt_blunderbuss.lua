@@ -86,6 +86,7 @@ SWEP.CanBuy = {ROLE_TRAITOR}
 SWEP.LimitedStock = true
 
 SWEP.DeploySpeed = 0.6
+SWEP.NoSights = true
 
 SWEP.ConvarFireDelay = CreateConVar(convarFireDelay, 0.3, {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED})
 
@@ -119,7 +120,7 @@ function SWEP:PrimaryAttack()
 	local fireDelay = self.ConvarFireDelay:GetFloat()
 
 	if fireDelay > 0 then
-		-- This is actually needed to track to who held it last
+		-- This is needed to track to who held it last
 		self.LastFiredOwner = owner
 
 		self:EmitSound(self.Primary.DelayedShotSound, 68)
@@ -400,6 +401,11 @@ function SWEP:ContinuePelletTrace()
 end
 
 function SWEP:SecondaryAttack() end
+
+function SWEP:Holster()
+	-- Prevent swapping away if delayed shot is in progress
+	return self:GetDelayedShotTime() <= 0
+end
 
 function SWEP:Think()
 	local shootTime = self:GetDelayedShotTime()
