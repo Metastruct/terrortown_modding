@@ -1,26 +1,28 @@
-local list = {
+-- Add workshop addons here to fix custom content they use not showing up properly for players
+-- THIS DOESN'T INSTALL ADDONS ONTO THE SERVER, it only adds them to the client download list
+-- Not every addon needs adding to this list - if an addon uses custom content that is missing (eg. UI icons are black/purple), add it here
+
+local addons = {
 	"1357204556",	-- TTT2
 	"2586573261",	-- Huh
 	"105875340",	-- Jihad Bomb
 	"254177214",	-- Jihad Bomb fix?
 	"654570222",	-- Banana Bomb
-	"2730454615",	-- Kobold Hoarder
 	"481692085",	-- Super Discobombulator
 	"959443907",	-- Detective Taser
 	"1473581448",	-- Death Faker
 	"1599710095",	-- Kamehameha
-	"1777819207",	-- Marker Role
+	"2669390710",	-- Defector Role
 	"2133752484",	-- Executioner Role
-	"2480382394", 	-- impostor role
-	"2756749225", 	-- astronaut role
-	"2620700649", 	-- sacrefice role
-	"2594893673", 	-- nova role
+	"2480382394", 	-- Impostor Role
+	"2620700649", 	-- Sacrifice Role
+	"2594893673", 	-- Nova Role
 	"3048226332", 	-- green demon
 	"2846938449", 	-- kiss weapon
-	"1641605106", 	-- beartrap addon
+	"1641605106", 	-- beartrap
 	"1615324913", 	-- demonic possession
 }
 
-for _, id in ipairs(list) do
+for _, id in ipairs(addons) do
 	resource.AddWorkshop(id)
 end
