@@ -1,6 +1,6 @@
 local effectNetworkTag = "TTTBlunderbussFireEffect"
 local className = "weapon_ttt_blunderbuss"
-local convarFireDelay = "ttt_blunderbuss_firedelay"
+local convarFireDelayName = "ttt_blunderbuss_firedelay"
 
 if SERVER then
 	AddCSLuaFile()
@@ -35,7 +35,7 @@ else
 	SWEP.Icon = "vgui/ttt/icon_blunderbuss"
 	SWEP.IconLetter = "c"
 
-	LANG.AddToLanguage("en", convarFireDelay .. "_help", "If this is set to 0, the blunderbuss will fire instantly when pulling the trigger.\nIf this is set to a number above 0, the blunderbuss will make a click and fuse sound before actually firing. This setting will alter how long the delay is, in seconds.")
+	LANG.AddToLanguage("en", convarFireDelayName .. "_help", "If this is set to 0, the blunderbuss will fire instantly when pulling the trigger.\nIf this is set to a number above 0, the blunderbuss will make a click and fuse sound before actually firing. This setting will alter how long the delay is, in seconds.")
 end
 
 DEFINE_BASECLASS("weapon_tttbase")
@@ -88,7 +88,7 @@ SWEP.LimitedStock = true
 SWEP.DeploySpeed = 0.6
 SWEP.NoSights = true
 
-SWEP.ConvarFireDelay = CreateConVar(convarFireDelay, 0.3, {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED})
+local convarFireDelay = CreateConVar(convarFireDelayName, 0.3, {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED})
 
 local propPhysicsClass = "prop_physics"
 local propDynamicClass = "prop_dynamic"
@@ -117,7 +117,7 @@ function SWEP:PrimaryAttack()
 
 	self:SetFired(true)
 
-	local fireDelay = self.ConvarFireDelay:GetFloat()
+	local fireDelay = convarFireDelay:GetFloat()
 
 	if fireDelay > 0 then
 		-- This is needed to track to who held it last
@@ -573,15 +573,15 @@ else
 		local form = vgui.CreateTTT2Form(parent, "header_equipment_additional")
 
 		form:MakeHelp({
-			label = convarFireDelay .. "_help",
+			label = convarFireDelayName .. "_help",
 		})
 
 		form:MakeSlider({
-			serverConvar = convarFireDelay,
+			serverConvar = convarFireDelayName,
 			label = "Firing delay",
 			min = 0,
 			max = 2,
-			decimal = 2,
+			decimal = 2
 		})
 	end
 
