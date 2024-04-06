@@ -54,6 +54,12 @@ if SERVER then
 			end,
 			"developers", true)
 		end
+
+		-- Disable an obsolete engine protect hook we have if it's there - all it really does now is print a useless message in console
+		hook.Remove("EntityRemoved", "dont_remove_players")
+
+		-- Disable an engine protect hook that isn't needed at all in TTT, free up some processing time
+		hook.Remove("EntityTakeDamage", "weapon_striderbuster_anticrash")
 	end)
 
 	-- Remove these aowl commands, either because they are cheaty, annoying, or don't work with TTT
@@ -138,12 +144,6 @@ if SERVER then
 	hook.Add("ChatsoundsShouldNetwork", Tag, function(pl)
 		if not pl:IsTerror() then return false end
 	end)
-
-	-- Disable an obsolete engine protect hook we have if it's there - all it really does now is print a useless message in console
-	hook.Remove("EntityRemoved", "dont_remove_players")
-
-	-- Disable an engine protect hook that isn't needed at all in TTT, free up some processing time
-	hook.Remove("EntityTakeDamage", "weapon_striderbuster_anticrash")
 
 	-- Disable alternative way of using "aowl push"
 	concommand.Add("push", emptyFunc)
