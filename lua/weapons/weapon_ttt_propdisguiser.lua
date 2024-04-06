@@ -152,7 +152,7 @@ function SWEP:SecondaryAttack()
 	if GetRoundState() != ROUND_ACTIVE then return end
 
 	local owner = self:GetOwner()
-	if not IsValid(owner) then return end
+	if not IsValid(owner) or owner:InVehicle() then return end
 
 	local mdl = self:GetSelectedModelPath()
 	if not mdl or mdl == "" then return end
@@ -578,6 +578,7 @@ if SERVER then
 
 			pl:SetNoDraw(true)
 			pl:DrawShadow(false)
+			pl:Flashlight(false)
 			pl:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
 
 			pl.PropDisguiserSavedOffsets = {
@@ -731,6 +732,11 @@ if SERVER then
 
 	-- Don't let disguised people pick up items like ammo
 	hook.Add("PlayerCanPickupItem", hookTag, denyIfDisguised)
+
+	-- Don't let disguised people turn on their flashlight
+	hook.Add("PlayerSwitchFlashlight", hookTag, function(pl, state)
+		if state and IsValid(pl.PropDisguiserProp) then return false end
+	end)
 
 	-- We need to force people out of disguises before the next round starts, otherwise people don't respawn properly
 	hook.Add("TTTEndRound", hookTag, function()
