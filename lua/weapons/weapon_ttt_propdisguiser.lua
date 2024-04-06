@@ -753,7 +753,11 @@ if SERVER then
 
 	-- If a player dies while disguised, pass the prop velocity to their corpse
 	hook.Add("TTT2ModifyRagdollVelocity", hookTag, function(pl, rag, vel)
-		if pl.PropDisguiserVelocity then return pl.PropDisguiserVelocity end
+		if pl.PropDisguiserVelocity then
+			vel.x = pl.PropDisguiserVelocity.x
+			vel.y = pl.PropDisguiserVelocity.y
+			vel.z = pl.PropDisguiserVelocity.z
+		end
 	end)
 else
 	local LocalPlayer = LocalPlayer
@@ -768,7 +772,6 @@ else
 	local textFirstPerson = "[Hold] First-person"
 	local textBreakableWarning = "Careful, this prop is breakable!"
 
-	local handBoneName = "ValveBiped.Bip01_R_Hand"
 	local materialKeyLMB = Material("vgui/ttt/hudhelp/lmb")
 	local warningColor, disallowedColor = Color(250, 175, 0), Color(255, 80, 0)
 
