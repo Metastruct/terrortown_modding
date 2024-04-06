@@ -199,6 +199,7 @@ hook.Add("SetupMove", hookTag, function(pl, mv, cm)
 
 	if not IsValid(wep)
 		or wep:GetClass() != className
+		or not wep.GetDisguised
 		or not wep:GetDisguised() then return end
 
 	local p = wep:GetDisguisedProp()
@@ -601,7 +602,7 @@ if SERVER then
 
 				p.PropDisguiserBreatheSound = CreateSound(p, self.Secondary.SoundBreathe, filter)
 				p.PropDisguiserBreatheSound:SetSoundLevel(68)
-				p.PropDisguiserBreatheSound:PlayEx(0.175, math.random(92, 102))
+				p.PropDisguiserBreatheSound:PlayEx(0.2, math.random(92, 102))
 			end)
 		else
 			pl:SetParent()
@@ -902,6 +903,7 @@ else
 
 		if not IsValid(wep)
 			or wep:GetClass() != className
+			or not wep.GetDisguised
 			or wep:GetDisguised() then return end
 
 		local now = RealTime()
@@ -943,6 +945,7 @@ else
 
 		if IsValid(wep)
 			and wep:GetClass() == className
+			and wep.GetDisguised
 			and wep:GetDisguised() then return false end
 	end)
 
@@ -955,6 +958,7 @@ else
 
 		if not IsValid(wep)
 			or wep:GetClass() != className
+			or not wep.GetDisguised
 			or wep:GetDisguised()
 			or tData:GetEntityDistance() > wep.Primary.Range then return end
 
