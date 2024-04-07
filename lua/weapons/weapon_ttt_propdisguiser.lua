@@ -33,12 +33,10 @@ end
 DEFINE_BASECLASS("weapon_tttbase")
 
 SWEP.HoldType = "normal"
+SWEP.ClassName = className
 
-SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/c_stunstick.mdl"
 SWEP.WorldModel = "models/xqm/button2.mdl"
-
-SWEP.DeploySpeed = 1.8
 
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
@@ -60,6 +58,9 @@ SWEP.Secondary.SoundBreathe = ")player/breathe1.wav"
 SWEP.Kind = WEAPON_EQUIP
 SWEP.CanBuy = {ROLE_TRAITOR, ROLE_DETECTIVE}
 SWEP.LimitedStock = true
+
+SWEP.DeploySpeed = 1.8
+SWEP.NoSights = true
 
 SWEP.MaxPropSize = 72
 
