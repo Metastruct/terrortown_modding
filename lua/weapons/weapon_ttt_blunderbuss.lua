@@ -1,5 +1,5 @@
-local effectNetworkTag = "TTTBlunderbussFireEffect"
 local className = "weapon_ttt_blunderbuss"
+local effectNetworkTag = "TTTBlunderbussFireEffect"
 local convarFireDelayName = "ttt_blunderbuss_firedelay"
 
 if SERVER then
