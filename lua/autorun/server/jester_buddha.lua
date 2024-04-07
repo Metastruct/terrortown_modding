@@ -1,29 +1,47 @@
 -- The Jester role gains buddha to certain damage types
 
-if ROLE_JESTER then
-	local buddhaDamageType = {
-		[DMG_BURN] = true,
-		[DMG_BLAST] = true
-	}
+local buddhaDamageTypes = {
+	[DMG_BURN] = true,
+	[DMG_BLAST] = true
+}
 
-	hook.Add("EntityTakeDamage", "TTTJesterBuddha", function(pl, dmg)
-		if IsValid(pl) and
-			pl:IsPlayer() and
-			pl:GetRole() == ROLE_JESTER and
-			buddhaDamageType[dmg:GetDamageType()] then
+local function shouldDamageTypeBuddha(dmgType)
+	if buddhaDamageTypes[dmgType] then return true end
 
-			local attacker = dmg:GetAttacker()
+	for k in pairs(buddhaDamageTypes) do
+		if bit.band(dmgType, k) != 0 then return true end
+	end
 
-			if IsValid(attacker) and attacker:IsPlayer() then
-				local dmg = math.floor(dmginfo:GetDamage())
+	return false
+end
 
-				dmginfo:SetDamage(dmg)
+-- "WTF why are you doing it in this hacky way???"
+-- Because there are other factors that further scale the final damage output after EntityTakeDamage and TTT's PlayerTakeDamage
+-- Inside GM:PlayerTakeDamage, this is the final step of the damage calculation, so to ensure the buddha calculation happens last, we append it here!
+if ARMOR then
+	ARMOR.HandlePlayerTakeDamage_Original = ARMOR.HandlePlayerTakeDamage_Original or ARMOR.HandlePlayerTakeDamage
 
-				if dmg >= pl:Health() then
-					pl:SetHealth(dmg + 1)
-				end
+	function ARMOR:HandlePlayerTakeDamage(pl, infl, attacker, originalDmg, dmgInfo)
+		-- Run the original ARMOR:HandlePlayerTakeDamage
+		self:HandlePlayerTakeDamage_Original(pl, infl, attacker, originalDmg, dmgInfo)
+
+		-- Now do the jester buddha calculations if needed
+		if shouldDamageTypeBuddha(dmgInfo:GetDamageType())
+		and pl:GetSubRole() == ROLE_JESTER
+		and IsValid(attacker)
+		and attacker:IsPlayer()
+		and attacker != pl
+		and attacker:GetSubRole() != ROLE_JESTER
+		then
+			local dmgFloor = math.floor(dmgInfo:GetDamage())
+
+			dmgInfo:SetDamage(dmgFloor)
+
+			if dmgFloor >= pl:Health() then
+				pl:SetHealth(dmgFloor + 1)
 			end
 		end
-	end)
-
+	end
+else
+	ErrorNoHalt("TTT's ARMOR table was not found! Jester Buddha won't be working!")
 end
