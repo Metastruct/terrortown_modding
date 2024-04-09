@@ -145,6 +145,11 @@ if SERVER then
 		if not pl:IsTerror() then return false end
 	end)
 
+	-- Disable AOWL failed/rate-limit sound for spectators/dead
+	hook.Add("AowlShouldPlayErrorSound", Tag, function(ply)
+		if not ply:IsTraitor() then return false end
+	end)
+
 	-- Disable alternative way of using "aowl push"
 	concommand.Add("push", emptyFunc)
 else
