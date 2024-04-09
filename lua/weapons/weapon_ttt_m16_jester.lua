@@ -137,7 +137,7 @@ if SERVER then
 		local jesterOwner = self:GetJesterOwner()
 		local isTaken = IsValid(jesterOwner)
 
-		if newOwner:IsPlayer() and newOwner:GetSubRole() == ROLE_JESTER then
+		if newOwner:IsPlayer() and newOwner:GetRole() == ROLE_JESTER then
 			if isTaken then
 				if newOwner != jesterOwner then
 					LANG.Msg(newOwner, "Another Jester has claimed this weapon. It rejects your power...", nil, MSG_MSTACK_PLAIN)
