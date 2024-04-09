@@ -1,0 +1,5 @@
+VertexLitGeneric
+{
+$basetexture "models/weapons/tw1stal1cky/physics_trash"
+$surfaceprop default
+}
