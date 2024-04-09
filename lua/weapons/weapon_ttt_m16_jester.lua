@@ -39,7 +39,7 @@ end
 function SWEP:IsWorthyOfPower(pl)
 	pl = pl or self:GetOwner()
 
-	return IsValid(pl) and pl:IsPlayer() and self:GetJesterOwner() == pl and pl:GetRole() == ROLE_TRAITOR
+	return IsValid(pl) and pl:IsPlayer() and self:GetJesterOwner() == pl and pl:GetTeam() == TEAM_TRAITOR
 end
 
 function SWEP:PrimaryAttack(worldsnd)
@@ -137,7 +137,7 @@ if SERVER then
 		local jesterOwner = self:GetJesterOwner()
 		local isTaken = IsValid(jesterOwner)
 
-		if newOwner:IsPlayer() and newOwner:GetRole() == ROLE_JESTER then
+		if newOwner:IsPlayer() and newOwner:GetTeam() == TEAM_JESTER then
 			if isTaken then
 				if newOwner != jesterOwner then
 					LANG.Msg(newOwner, "Another Jester has claimed this weapon. It rejects your power...", nil, MSG_MSTACK_PLAIN)
