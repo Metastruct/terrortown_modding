@@ -55,7 +55,7 @@ SWEP.Secondary.SoundOn = "npc/scanner/scanner_nearmiss1.wav"
 SWEP.Secondary.SoundOff = "npc/scanner/scanner_nearmiss2.wav"
 SWEP.Secondary.SoundBreathe = ")player/breathe1.wav"
 
-SWEP.Kind = WEAPON_EQUIP
+SWEP.Kind = WEAPON_EXTRA
 SWEP.CanBuy = {ROLE_TRAITOR, ROLE_DETECTIVE}
 SWEP.LimitedStock = true
 
