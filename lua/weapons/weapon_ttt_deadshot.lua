@@ -6,14 +6,18 @@ end
 
 --#region CVars
 
+local HITPLAYERACT_STOP = 0
+local HITPLAYERACT_BOUNCE = 1
+local HITPLAYERACT_CONTINUE = 2
+
 local cvarNonbounceDamage = CreateConVar("ttt_deadshot_nonbouncedamage",
     50, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 local cvarMaxBounces = CreateConVar("ttt_deadshot_maxbounces",
     20, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 local cvarShotTrailTime = CreateConVar("ttt_deadshot_shottrail",
     1, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
-local cvarBounceOffPlayers = CreateConVar("ttt_deadshot_bounceoffplayers",
-    1, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
+local cvarHitPlayerAction = CreateConVar("ttt_deadshot_hitplayeraction",
+    HITPLAYERACT_STOP, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 
 --#endregion
 
@@ -99,21 +103,24 @@ SWEP.IronSightsAng = Vector(2.6, 1.37, 3.5)
 ---@param maxLength number
 ---@return {traces: TraceResult[], pos: Vector, ang: Angle}
 local function calculateTrajectory(startPos, direction, maxLength, ignoredEnts)
-    local bounceOffPlayers = cvarBounceOffPlayers:GetBool()
+    local playerHitMode = cvarHitPlayerAction:GetInt()
 
     local pos = startPos
     local dir = direction:Forward()
     local length = maxLength
     local traces = {}
+    local ignored = table.Copy(ignoredEnts)
 
-    for i = 1, cvarMaxBounces:GetInt() do
+    local i = 0
+    while i < cvarMaxBounces:GetInt() do
+        i = i + 1
         local endpos = pos + dir * length
 
         local trace = util.TraceLine({
             start = pos,
             endpos = endpos,
             mask = MASK_SHOT,
-            filter = ignoredEnts
+            filter = ignored
         })
 
         table.insert(traces, trace)
@@ -122,17 +129,22 @@ local function calculateTrajectory(startPos, direction, maxLength, ignoredEnts)
             return { traces = traces, pos = endpos, ang = dir:Angle() }
         end
 
-        -- Don't bounce off skybox or players
-        if trace.HitSky or trace.Entity:IsPlayer() and not bounceOffPlayers then
+        -- Don't bounce off skybox or players if set not to
+        if trace.HitSky or trace.Entity:IsPlayer() and playerHitMode == HITPLAYERACT_STOP then
             return { traces = traces, pos = trace.HitPos, ang = dir:Angle() }
         end
 
-        -- Offset the position slightly to prevent the trace from hitting the
-        -- same surface again
-        pos = trace.HitPos + trace.HitNormal * 0.1
+        if trace.Entity and trace.Entity:IsPlayer() and cvarHitPlayerAction:GetInt() == HITPLAYERACT_CONTINUE then
+            table.insert(ignored, trace.Entity)
+            i = i - 1
+        else
+            -- Offset the position slightly to prevent the trace from hitting the
+            -- same surface again
+            pos = trace.HitPos + trace.HitNormal * 0.1
 
-        dir = dir - 2 * dir:Dot(trace.HitNormal) * trace.HitNormal
-        length = length - trace.Fraction * length
+            dir = dir - 2 * dir:Dot(trace.HitNormal) * trace.HitNormal
+            length = length - trace.Fraction * length
+        end
     end
 
     return { traces = traces, pos = pos, ang = dir:Angle() }
