@@ -11,11 +11,11 @@ else
     SWEP.Icon = "vgui/ttt/icon_laggrenade"
     SWEP.IconLetter = "h"
 
-    LANG.AddToLanguage("en", "ttt_laggrenade_radius_name", "Lag Grenade Radius")
+    LANG.AddToLanguage("en", "ttt_laggrenade_radius_name", "Effect Radius")
     LANG.AddToLanguage("en", "ttt_laggrenade_radius_help", "The radius a lag grenade affects, in units.")
-    LANG.AddToLanguage("en", "ttt_laggrenade_duration_name", "Lag Grenade Duration")
+    LANG.AddToLanguage("en", "ttt_laggrenade_duration_name", "Effect Duration")
     LANG.AddToLanguage("en", "ttt_laggrenade_duration_help", "The duration a lag grenade applies for, in seconds.")
-    LANG.AddToLanguage("en", "ttt_laggrenade_fps_name", "Lag Grenade FPS Limit")
+    LANG.AddToLanguage("en", "ttt_laggrenade_fps_name", "FPS Limit")
     LANG.AddToLanguage("en", "ttt_laggrenade_fps_help",
         "The FPS player within the radius of an active lag grenade will be limited to.")
 end
@@ -81,7 +81,7 @@ if CLIENT then
             label = "ttt_laggrenade_fps_name",
             min = 1,
             max = 30,
-            decimal = 0
+            decimal = 1
         })
     end
 end
