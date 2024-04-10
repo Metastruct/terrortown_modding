@@ -41,7 +41,7 @@ if CLIENT then
         "A rifle with a rubberized round that can bounce off walls, and a "
         .. "scope that can infinitely zoom and show the trajectory of the "
         .. "round.\n" ..
-        "Note that this weapon deals middling damage before bouncing; make"
+        "Note that this weapon deals middling damage before bouncing; make "
         .. "sure you bounce it off a wall to maximize its potential!\n" ..
         "Use the mouse-wheel while scoped to zoom in and out.")
 
