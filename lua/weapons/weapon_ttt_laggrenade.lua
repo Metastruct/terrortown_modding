@@ -8,7 +8,7 @@ else
     SWEP.ViewModelFlip = false
     SWEP.ViewModelFOV = 54
 
-    SWEP.Icon = "vgui/ttt/icon_confgrenade"
+    SWEP.Icon = "vgui/ttt/icon_laggrenade"
     SWEP.IconLetter = "h"
 
     LANG.AddToLanguage("en", "ttt_laggrenade_radius_name", "Lag Grenade Radius")
