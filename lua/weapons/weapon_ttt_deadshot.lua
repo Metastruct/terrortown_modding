@@ -166,6 +166,7 @@ function SWEP:PrimaryAttack()
     if not self:CanPrimaryAttack() then return end
 
     self:TakePrimaryAmmo(1)
+    self:EmitSound(self.Primary.Sound, 100)
 
     if CLIENT then return end
 
@@ -210,8 +211,6 @@ function SWEP:PrimaryAttack()
         end
         net.Broadcast()
     end
-
-    self:EmitSound(self.Primary.Sound, 100)
 end
 
 function SWEP:SecondaryAttack()
