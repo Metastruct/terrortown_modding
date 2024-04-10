@@ -80,7 +80,7 @@ if CLIENT then
             serverConvar = "ttt_laggrenade_fps",
             label = "ttt_laggrenade_fps_name",
             min = 1,
-            max = 1000,
+            max = 30,
             decimal = 0
         })
     end
