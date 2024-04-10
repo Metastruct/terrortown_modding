@@ -25,8 +25,9 @@ if CLIENT then
     SWEP.Author = "Lixquid"
     SWEP.Slot = 7
 
-    SWEP.ViewModelFlip = true
+    SWEP.ViewModelFlip = false
     SWEP.ViewModelFOV = 54
+    SWEP.UseHands = true
 
     SWEP.EquipMenuData = {
         type = "item_weapon",
@@ -69,7 +70,7 @@ end
 
 SWEP.HoldType = "ar2"
 
-SWEP.ViewModel = "models/weapons/v_snip_awp.mdl"
+SWEP.ViewModel = "models/weapons/cstrike/c_snip_awp.mdl"
 SWEP.WorldModel = "models/weapons/w_snip_awp.mdl"
 
 SWEP.Primary.Damage = 1000
