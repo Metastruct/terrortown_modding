@@ -1,5 +1,6 @@
 if SERVER then
     AddCSLuaFile()
+    resource.AddFile("materials/vgui/ttt/icon_deadshot.vmt")
 
     util.AddNetworkString("ttt_deadshot_trail")
 end
