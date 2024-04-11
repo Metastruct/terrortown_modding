@@ -51,25 +51,31 @@ if CLIENT then
         "Use the mouse-wheel while scoped to zoom in and out.")
 
     LANG.AddToLanguage("en", "ttt_deadshot_nonbouncedamage_name",
-        "Deadshot Rifle Non-Bounce Damage")
+        "Non-Bounce Damage")
     LANG.AddToLanguage("en", "ttt_deadshot_nonbouncedamage_help",
         "The amount of damage the Deadshot Rifle deals if it hits a player "
         .. "without bouncing off a wall.")
     LANG.AddToLanguage("en", "ttt_deadshot_maxbounces_name",
-        "Deadshot Rifle Max Bounces")
+        "Max Bounces")
     LANG.AddToLanguage("en", "ttt_deadshot_maxbounces_help",
         "The maximum number of times the Deadshot Rifle's round can bounce.")
     LANG.AddToLanguage("en", "ttt_deadshot_shottrail_name",
-        "Deadshot Rifle Shot Trail Time")
+        "Shot Trail Time")
     LANG.AddToLanguage("en", "ttt_deadshot_shottrail_help",
         "The length of time the Deadshot Rifle's shot trail is visible, " ..
         "in seconds.\n" ..
         "Set to 0 to disable the shot trail.")
-    LANG.AddToLanguage("en", "ttt_deadshot_bounceoffplayers_name",
-        "Deadshot Rifle Bounce Off Players")
-    LANG.AddToLanguage("en", "ttt_deadshot_bounceoffplayers_help",
-        "If enabled, the Deadshot Rifle's round will continue to travel " ..
-        "after hitting a player.")
+    LANG.AddToLanguage("en", "ttt_deadshot_hitplayeraction_name",
+        "Hit Players Action")
+    LANG.AddToLanguage("en", "ttt_deadshot_hitplayeraction_help",
+        "What to do upon hitting a player with a shot.")
+
+    LANG.AddToLanguage("en", "ttt_deadshot_hitplayeraction_stop",
+        "Stop the shot.")
+    LANG.AddToLanguage("en", "ttt_deadshot_hitplayeraction_bounce",
+        "Bounce off the player.")
+    LANG.AddToLanguage("en", "ttt_deadshot_hitplayeraction_continue",
+        "Penetrate through the player.")
 end
 
 SWEP.HoldType = "ar2"
@@ -259,6 +265,53 @@ function SWEP:AdjustMouseSensitivity()
     if SERVER or self.ZoomDisplay < 1 then return end
 
     return math.min(100 / self.ZoomDisplay, 1)
+end
+
+function SWEP:AddToSettingsMenu(parent)
+    local form = vgui.CreateTTT2Form(parent, "header_equipment_additional")
+
+    form:MakeHelp({
+        label = "ttt_deadshot_nonbouncedamage_help"
+    })
+    form:MakeSlider({
+        serverConvar = "ttt_deadshot_nonbouncedamage",
+        label = "ttt_deadshot_nonbouncedamage_name",
+        min = 0,
+        max = 200,
+        decimal = 0
+    })
+    form:MakeHelp({
+        label = "ttt_deadshot_maxbounces_help"
+    })
+    form:MakeSlider({
+        serverConvar = "ttt_deadshot_maxbounces",
+        label = "ttt_deadshot_maxbounces_name",
+        min = 0,
+        max = 50,
+        decimal = 0
+    })
+    form:MakeHelp({
+        label = "ttt_deadshot_shottrail_help"
+    })
+    form:MakeSlider({
+        serverConvar = "ttt_deadshot_shottrail",
+        label = "ttt_deadshot_shottrail_name",
+        min = 0,
+        max = 20,
+        decimal = 1
+    })
+    form:MakeHelp({
+        label = "ttt_deadshot_bounceoffplayers_help"
+    })
+    form:MakeComboBox({
+        serverConvar = "ttt_deadshot_hitplayeraction",
+        label = "ttt_deadshot_bounceoffplayers_name",
+        choices = {
+            { title = "ttt_deadshot_hitplayeraction_stop",     value = HITPLAYERACT_STOP },
+            { title = "ttt_deadshot_hitplayeraction_bounce",   value = HITPLAYERACT_BOUNCE },
+            { title = "ttt_deadshot_hitplayeraction_continue", value = HITPLAYERACT_CONTINUE }
+        }
+    })
 end
 
 --#endregion
