@@ -254,13 +254,6 @@ function SWEP:PreDrop()
     return BaseClass.PreDrop(self)
 end
 
-function SWEP:CalcView(ply, origin, angles, fov)
-    if SERVER or self.ZoomDisplay < 1 then return end
-
-    local t = calculateTrajectory(origin, angles, self.ZoomDisplay, { ply })
-    return t.pos, t.ang, fov
-end
-
 function SWEP:AdjustMouseSensitivity()
     if SERVER or self.ZoomDisplay < 1 then return end
 
@@ -399,6 +392,19 @@ if CLIENT then
                 render.DrawBeam(v.from, v.to, s * 16, 0, 0, COLOR_WHITE)
             end
         end
+    end)
+
+    hook.Add("CalcView", "ttt_deadshot", function(ply, origin, angles)
+        if not playerIsHoldingZoomedDeadshot(ply) then return end
+
+        -- Needs to be in hook to allow for rendering player model
+        local wep = ply:GetActiveWeapon()
+        local t = calculateTrajectory(origin, angles, wep.Zoom, { ply })
+        return {
+            origin = t.pos,
+            angles = t.ang,
+            drawviewer = wep.Zoom > 20
+        }
     end)
 end
 --#endregion
