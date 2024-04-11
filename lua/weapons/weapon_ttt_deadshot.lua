@@ -118,6 +118,13 @@ local function calculateTrajectory(startPos, direction, maxLength, ignoredEnts)
     local traces = {}
     local ignored = table.Copy(ignoredEnts)
 
+    -- Ignore all players if set to penetrate through them
+    if playerHitMode == HITPLAYERACT_CONTINUE then
+        for _, ply in ipairs(player.GetAll()) do
+            table.insert(ignored, ply)
+        end
+    end
+
     local i = 0
     while i < cvarMaxBounces:GetInt() do
         i = i + 1
