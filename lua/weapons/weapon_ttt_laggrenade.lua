@@ -2,7 +2,7 @@ if SERVER then
     AddCSLuaFile()
     resource.AddFile("materials/vgui/ttt/icon_laggrenade.vmt")
 else
-    SWEP.PrintName = "Lag Grenade"
+    SWEP.PrintName = "ttt_laggrenade_name"
     SWEP.Author = "Lixquid"
     SWEP.Slot = 3
 
@@ -11,6 +11,8 @@ else
 
     SWEP.Icon = "vgui/ttt/icon_laggrenade"
     SWEP.IconLetter = "h"
+
+    LANG.AddToLanguage("en", "ttt_laggrenade_name", "Lag Grenade")
 
     LANG.AddToLanguage("en", "ttt_laggrenade_radius_name", "Effect Radius")
     LANG.AddToLanguage("en", "ttt_laggrenade_radius_help", "The radius a lag grenade affects, in units.")
