@@ -180,7 +180,8 @@ function SWEP:AddToSettingsMenu(parent)
         serverConvar = "ttt_beer_initialcount",
         label = "ttt_beer_initialcount_name",
         min = 1,
-        max = 20
+        max = 20,
+        decimal = 0
     })
 end
 
