@@ -18,6 +18,7 @@ ENT.Base = "ttt_basegrenade_proj"
 ENT.Model = Model("models/weapons/w_eq_flashbang_thrown.mdl")
 
 local explodeSound = Sound("npc/assassin/ball_zap1.wav")
+local droneSound = Sound("ambient/levels/citadel/portal_beam_loop1.wav")
 
 function ENT:Initialize()
     self:SetColor(Color(255, 0, 0, 255))
@@ -27,22 +28,31 @@ function ENT:Initialize()
 end
 
 function ENT:Explode(tr)
-    if CLIENT then return end
+    if CLIENT or self.Exploded then return end
+    self.Exploded = true
     local pos = self:GetPos()
 
-    self:Remove()
+    self:SetNoDraw(true)
 
     net.Start("ttt_laggrenade_detonation")
     net.WriteVector(pos)
     net.Broadcast()
 
     -- Effects
+    self:EmitSound(droneSound, 75 * cvarRadius:GetFloat() / 400, 200)
     sound.Play(explodeSound, pos, 100, 100)
     local effectData = EffectData()
     effectData:SetStart(pos)
     effectData:SetOrigin(pos)
     util.Effect("Explosion", effectData, true, true)
     util.Effect("cball_explode", effectData, true, true)
+
+    timer.Simple(cvarDuration:GetFloat(), function()
+        if IsValid(self) then
+            self:StopSound(droneSound)
+        end
+        SafeRemoveEntity(self)
+    end)
 end
 
 if SERVER then
@@ -85,7 +95,7 @@ else
                 surface.DrawOutlinedRect(x + 60, y, 20, 90)
             end
             if detData.nextparticle < CurTime() then
-                detData.nextparticle = CurTime() + 0.2
+                detData.nextparticle = CurTime() + 0.08
 
                 local e = EffectData()
                 e:SetOrigin(detData.pos + Vector(
@@ -97,6 +107,9 @@ else
                 e:SetMagnitude(1)
                 e:SetRadius(16)
                 util.Effect("Sparks", e, true, true)
+                if math.random(1, 3) == 1 then
+                    util.Effect("cball_explode", e, true, true)
+                end
             end
         end
     end)
