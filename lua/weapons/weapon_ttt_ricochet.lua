@@ -1,8 +1,8 @@
 if SERVER then
     AddCSLuaFile()
-    resource.AddFile("materials/vgui/ttt/icon_deadshot.vmt")
+    resource.AddFile("materials/vgui/ttt/icon_ricochet.vmt")
 
-    util.AddNetworkString("ttt_deadshot_trail")
+    util.AddNetworkString("ttt_ricochet_trail")
 end
 
 --#region CVars
@@ -11,16 +11,16 @@ local HITPLAYERACT_STOP = 0
 local HITPLAYERACT_BOUNCE = 1
 local HITPLAYERACT_CONTINUE = 2
 
-local cvarNonbounceDamage = CreateConVar("ttt_deadshot_nonbouncedamage",
-    50, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
-local cvarMaxBounces = CreateConVar("ttt_deadshot_maxbounces",
+local cvarNonbounceDamage = CreateConVar("ttt_ricochet_nonbouncedamage",
+    25, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
+local cvarMaxBounces = CreateConVar("ttt_ricochet_maxbounces",
     20, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
-local cvarShotTrailTime = CreateConVar("ttt_deadshot_shottrail",
-    1, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
-local cvarHitPlayerAction = CreateConVar("ttt_deadshot_hitplayeraction",
-    HITPLAYERACT_STOP, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
-local cvarShotCount = CreateConVar("ttt_deadshot_shotcount",
-    1, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
+local cvarShotTrailTime = CreateConVar("ttt_ricochet_shottrail",
+    1.5, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
+local cvarHitPlayerAction = CreateConVar("ttt_ricochet_hitplayeraction",
+    HITPLAYERACT_CONTINUE, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
+local cvarShotCount = CreateConVar("ttt_ricochet_shotcount",
+    3, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 
 --#endregion
 
@@ -28,7 +28,7 @@ DEFINE_BASECLASS("weapon_tttbase")
 SWEP.Base = "weapon_tttbase"
 
 if CLIENT then
-    SWEP.PrintName = "ttt_deadshot_name"
+    SWEP.PrintName = "ttt_ricochet_name"
     SWEP.Author = "Lixquid"
     SWEP.Slot = 7
 
@@ -38,14 +38,14 @@ if CLIENT then
 
     SWEP.EquipMenuData = {
         type = "item_weapon",
-        desc = "ttt_deadshot_desc"
+        desc = "ttt_ricochet_desc"
     }
 
-    SWEP.Icon = "vgui/ttt/icon_deadshot"
+    SWEP.Icon = "vgui/ttt/icon_ricochet"
     SWEP.IconLetter = "n"
 
-    LANG.AddToLanguage("en", "ttt_deadshot_name", "Deadshot Rifle")
-    LANG.AddToLanguage("en", "ttt_deadshot_desc",
+    LANG.AddToLanguage("en", "ttt_ricochet_name", "Deadshot Rifle")
+    LANG.AddToLanguage("en", "ttt_ricochet_desc",
         "A rifle with a rubberized round that can bounce off walls, and a "
         .. "scope that can infinitely zoom and show the trajectory of the "
         .. "round.\n" ..
@@ -53,36 +53,44 @@ if CLIENT then
         .. "sure you bounce it off a wall to maximize its potential!\n" ..
         "Use the mouse-wheel while scoped to zoom in and out.")
 
-    LANG.AddToLanguage("en", "ttt_deadshot_nonbouncedamage_name",
+    LANG.AddToLanguage("en", "ttt_ricochet_nonbouncedamage_name",
         "Non-Bounce Damage")
-    LANG.AddToLanguage("en", "ttt_deadshot_nonbouncedamage_help",
+    LANG.AddToLanguage("en", "ttt_ricochet_nonbouncedamage_help",
         "The amount of damage the Deadshot Rifle deals if it hits a player "
         .. "without bouncing off a wall.")
-    LANG.AddToLanguage("en", "ttt_deadshot_maxbounces_name",
+    LANG.AddToLanguage("en", "ttt_ricochet_maxbounces_name",
         "Max Bounces")
-    LANG.AddToLanguage("en", "ttt_deadshot_maxbounces_help",
+    LANG.AddToLanguage("en", "ttt_ricochet_maxbounces_help",
         "The maximum number of times the Deadshot Rifle's round can bounce.")
-    LANG.AddToLanguage("en", "ttt_deadshot_shottrail_name",
+    LANG.AddToLanguage("en", "ttt_ricochet_shottrail_name",
         "Shot Trail Time")
-    LANG.AddToLanguage("en", "ttt_deadshot_shottrail_help",
+    LANG.AddToLanguage("en", "ttt_ricochet_shottrail_help",
         "The length of time the Deadshot Rifle's shot trail is visible, " ..
         "in seconds.\n" ..
         "Set to 0 to disable the shot trail.")
-    LANG.AddToLanguage("en", "ttt_deadshot_hitplayeraction_name",
+    LANG.AddToLanguage("en", "ttt_ricochet_hitplayeraction_name",
         "Hit Players Action")
-    LANG.AddToLanguage("en", "ttt_deadshot_hitplayeraction_help",
+    LANG.AddToLanguage("en", "ttt_ricochet_hitplayeraction_help",
         "What to do upon hitting a player with a shot.")
 
-    LANG.AddToLanguage("en", "ttt_deadshot_hitplayeraction_stop",
+    LANG.AddToLanguage("en", "ttt_ricochet_hitplayeraction_stop",
         "Stop the shot.")
-    LANG.AddToLanguage("en", "ttt_deadshot_hitplayeraction_bounce",
+    LANG.AddToLanguage("en", "ttt_ricochet_hitplayeraction_bounce",
         "Bounce off the player.")
-    LANG.AddToLanguage("en", "ttt_deadshot_hitplayeraction_continue",
+    LANG.AddToLanguage("en", "ttt_ricochet_hitplayeraction_continue",
         "Penetrate through the player.")
-    LANG.AddToLanguage("en", "ttt_deadshot_shotcount_name",
+    LANG.AddToLanguage("en", "ttt_ricochet_shotcount_name",
         "Shot Count")
-    LANG.AddToLanguage("en", "ttt_deadshot_shotcount_help",
+    LANG.AddToLanguage("en", "ttt_ricochet_shotcount_help",
         "The number of shots the Deadshot Rifle spawns with.")
+
+    language.Add("ttt_ricochet_scopeinfo",
+        "Zoom: %du\n" ..
+        "Bounces: %d / %d\n" ..
+        "\n" ..
+        "Scroll the mouse to zoom in and out.\n" ..
+        "Zoom into a wall to follow the trajectory of the bounced round."
+    )
 end
 
 SWEP.HoldType = "ar2"
@@ -173,7 +181,7 @@ end
 local function playerIsHoldingZoomedDeadshot(ply)
     if not IsValid(ply) or not ply:IsPlayer() then return false end
     local wep = ply:GetActiveWeapon()
-    return IsValid(wep) and wep:GetClass() == "weapon_ttt_deadshot" and wep.GetIronsights and wep:GetIronsights()
+    return IsValid(wep) and wep:GetClass() == "weapon_ttt_ricochet" and wep.GetIronsights and wep:GetIronsights()
 end
 --#endregion
 
@@ -238,7 +246,7 @@ function SWEP:PrimaryAttack()
     end
 
     if cvarShotTrailTime:GetFloat() > 0 then
-        net.Start("ttt_deadshot_trail")
+        net.Start("ttt_ricochet_trail")
         net.WriteInt(#trails, 8)
         for _, v in ipairs(trails) do
             net.WriteVector(v[1])
@@ -280,53 +288,53 @@ function SWEP:AddToSettingsMenu(parent)
     local form = vgui.CreateTTT2Form(parent, "header_equipment_additional")
 
     form:MakeHelp({
-        label = "ttt_deadshot_nonbouncedamage_help"
+        label = "ttt_ricochet_nonbouncedamage_help"
     })
     form:MakeSlider({
-        serverConvar = "ttt_deadshot_nonbouncedamage",
-        label = "ttt_deadshot_nonbouncedamage_name",
+        serverConvar = "ttt_ricochet_nonbouncedamage",
+        label = "ttt_ricochet_nonbouncedamage_name",
         min = 0,
         max = 200,
         decimal = 0
     })
     form:MakeHelp({
-        label = "ttt_deadshot_maxbounces_help"
+        label = "ttt_ricochet_maxbounces_help"
     })
     form:MakeSlider({
-        serverConvar = "ttt_deadshot_maxbounces",
-        label = "ttt_deadshot_maxbounces_name",
+        serverConvar = "ttt_ricochet_maxbounces",
+        label = "ttt_ricochet_maxbounces_name",
         min = 0,
         max = 50,
         decimal = 0
     })
     form:MakeHelp({
-        label = "ttt_deadshot_shottrail_help"
+        label = "ttt_ricochet_shottrail_help"
     })
     form:MakeSlider({
-        serverConvar = "ttt_deadshot_shottrail",
-        label = "ttt_deadshot_shottrail_name",
+        serverConvar = "ttt_ricochet_shottrail",
+        label = "ttt_ricochet_shottrail_name",
         min = 0,
         max = 20,
         decimal = 1
     })
     form:MakeHelp({
-        label = "ttt_deadshot_bounceoffplayers_help"
+        label = "ttt_ricochet_bounceoffplayers_help"
     })
     form:MakeComboBox({
-        serverConvar = "ttt_deadshot_hitplayeraction",
-        label = "ttt_deadshot_bounceoffplayers_name",
+        serverConvar = "ttt_ricochet_hitplayeraction",
+        label = "ttt_ricochet_bounceoffplayers_name",
         choices = {
-            { title = "ttt_deadshot_hitplayeraction_stop",     value = HITPLAYERACT_STOP },
-            { title = "ttt_deadshot_hitplayeraction_bounce",   value = HITPLAYERACT_BOUNCE },
-            { title = "ttt_deadshot_hitplayeraction_continue", value = HITPLAYERACT_CONTINUE }
+            { title = "ttt_ricochet_hitplayeraction_stop",     value = HITPLAYERACT_STOP },
+            { title = "ttt_ricochet_hitplayeraction_bounce",   value = HITPLAYERACT_BOUNCE },
+            { title = "ttt_ricochet_hitplayeraction_continue", value = HITPLAYERACT_CONTINUE }
         }
     })
     form:MakeHelp({
-        label = "ttt_deadshot_shotcount_help"
+        label = "ttt_ricochet_shotcount_help"
     })
     form:MakeSlider({
-        serverConvar = "ttt_deadshot_shotcount",
-        label = "ttt_deadshot_shotcount_name",
+        serverConvar = "ttt_ricochet_shotcount",
+        label = "ttt_ricochet_shotcount_name",
         min = 1,
         max = 10,
         decimal = 0
@@ -349,6 +357,11 @@ function SWEP:DrawHUD()
     surface.SetTexture(scope)
     surface.SetDrawColor(255, 255, 255, 255)
     surface.DrawTexturedRect((w - h) / 2, 0, h, h)
+
+    local bounces = self.LastTraces and #self.LastTraces - 1 or 0
+    local text = language.GetPhrase("ttt_ricochet_scopeinfo"):format(self.ZoomDisplay, bounces, cvarMaxBounces:GetInt())
+    draw.DrawText(text, "HudDefault", w / 2 + 22, h / 2 + 22, Color(0, 0, 0, 255))
+    draw.DrawText(text, "HudDefault", w / 2 + 20, h / 2 + 20, COLOR_WHITE)
 end
 
 --#endregion
@@ -366,7 +379,7 @@ end
 --#region Gamemode Hooks
 if CLIENT then
     -- Capture the mouse wheel input to zoom in and out
-    hook.Add("CreateMove", "ttt_deadshot", function(cmd)
+    hook.Add("CreateMove", "ttt_ricochet", function(cmd)
         if not playerIsHoldingZoomedDeadshot(LocalPlayer()) then return end
 
         local wep = LocalPlayer():GetActiveWeapon()
@@ -381,7 +394,7 @@ if CLIENT then
     end)
 
     -- Don't scroll the weapon select while using the scope
-    hook.Add("PlayerBindPress", "ttt_deadshot", function(_, bind, pressed)
+    hook.Add("PlayerBindPress", "ttt_ricochet", function(_, bind, pressed)
         if not pressed or not playerIsHoldingZoomedDeadshot(LocalPlayer()) then return end
 
         if bind == "invprev" or bind == "invnext" then
@@ -390,15 +403,15 @@ if CLIENT then
     end)
 
     ---@type {from: Vector, to: Vector, timeStarted: number, timeEnd: number}[]
-    local deadshotTrails = {}
-    net.Receive("ttt_deadshot_trail", function()
+    local ricochetTrails = {}
+    net.Receive("ttt_ricochet_trail", function()
         local count = net.ReadInt(8)
 
         for i = 1, count do
             local from = net.ReadVector()
             local to = net.ReadVector()
 
-            table.insert(deadshotTrails, {
+            table.insert(ricochetTrails, {
                 from = from,
                 to = to,
                 timeStarted = CurTime(),
@@ -406,10 +419,10 @@ if CLIENT then
             })
         end
     end)
-    hook.Add("PostDrawTranslucentRenderables", "ttt_deadshot", function()
-        for k, v in pairs(deadshotTrails) do
+    hook.Add("PostDrawTranslucentRenderables", "ttt_ricochet", function()
+        for k, v in pairs(ricochetTrails) do
             if v.timeEnd < CurTime() then
-                deadshotTrails[k] = nil
+                ricochetTrails[k] = nil
             else
                 local s = (v.timeEnd - CurTime()) / (v.timeEnd - v.timeStarted)
 
@@ -420,12 +433,13 @@ if CLIENT then
         end
     end)
 
-    hook.Add("CalcView", "ttt_deadshot", function(ply, origin, angles)
+    hook.Add("CalcView", "ttt_ricochet", function(ply, origin, angles)
         if not playerIsHoldingZoomedDeadshot(ply) then return end
 
         -- Needs to be in hook to allow for rendering player model
         local wep = ply:GetActiveWeapon()
         local t = calculateTrajectory(origin, angles, wep.Zoom, { ply })
+        wep.LastTraces = t.traces
         return {
             origin = t.pos,
             angles = t.ang,
