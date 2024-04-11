@@ -314,6 +314,24 @@ function SWEP:AddToSettingsMenu(parent)
     })
 end
 
+function SWEP:DrawHUD()
+    if not self:GetIronsights() then return end
+
+    local w = ScrW()
+    local h = ScrH()
+    local scope = surface.GetTextureID("sprites/scope")
+
+    surface.SetDrawColor(0, 0, 0, 255)
+    surface.DrawLine(0, h / 2, w, h / 2)
+    surface.DrawLine(w / 2, 0, w / 2, h)
+    surface.DrawRect(0, 0, (w - h) / 2, h)
+    surface.DrawRect((w + h) / 2, 0, (w - h) / 2, h)
+
+    surface.SetTexture(scope)
+    surface.SetDrawColor(255, 255, 255, 255)
+    surface.DrawTexturedRect((w - h) / 2, 0, h, h)
+end
+
 --#endregion
 
 --#region Private
