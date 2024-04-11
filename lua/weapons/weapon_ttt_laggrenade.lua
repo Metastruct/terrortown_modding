@@ -1,5 +1,6 @@
 if SERVER then
     AddCSLuaFile()
+    resource.AddFile("materials/vgui/ttt/icon_laggrenade.vmt")
 else
     SWEP.PrintName = "Lag Grenade"
     SWEP.Author = "Lixquid"
