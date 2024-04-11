@@ -19,6 +19,8 @@ local cvarShotTrailTime = CreateConVar("ttt_deadshot_shottrail",
     1, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 local cvarHitPlayerAction = CreateConVar("ttt_deadshot_hitplayeraction",
     HITPLAYERACT_STOP, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
+local cvarShotCount = CreateConVar("ttt_deadshot_shotcount",
+    1, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 
 --#endregion
 
@@ -77,6 +79,10 @@ if CLIENT then
         "Bounce off the player.")
     LANG.AddToLanguage("en", "ttt_deadshot_hitplayeraction_continue",
         "Penetrate through the player.")
+    LANG.AddToLanguage("en", "ttt_deadshot_shotcount_name",
+        "Shot Count")
+    LANG.AddToLanguage("en", "ttt_deadshot_shotcount_help",
+        "The number of shots the Deadshot Rifle spawns with.")
 end
 
 SWEP.HoldType = "ar2"
@@ -86,7 +92,7 @@ SWEP.WorldModel = "models/weapons/w_snip_awp.mdl"
 
 SWEP.Primary.Damage = 1000
 SWEP.Primary.ClipSize = 1
-SWEP.Primary.DefaultClip = 1
+SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = false
 SWEP.Primary.Delay = 1.5
 SWEP.Primary.Ammo = "none"
@@ -174,6 +180,7 @@ end
 --#region SWEP Hooks
 function SWEP:Initialize()
     self:ResetZoom()
+    self:SetClip1(cvarShotCount:GetInt())
 
     return BaseClass.Initialize(self)
 end
@@ -194,6 +201,7 @@ function SWEP:PrimaryAttack()
 
     self:TakePrimaryAmmo(1)
     self:EmitSound(self.Primary.Sound, 100)
+    self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 
     if CLIENT then return end
 
@@ -312,6 +320,16 @@ function SWEP:AddToSettingsMenu(parent)
             { title = "ttt_deadshot_hitplayeraction_bounce",   value = HITPLAYERACT_BOUNCE },
             { title = "ttt_deadshot_hitplayeraction_continue", value = HITPLAYERACT_CONTINUE }
         }
+    })
+    form:MakeHelp({
+        label = "ttt_deadshot_shotcount_help"
+    })
+    form:MakeSlider({
+        serverConvar = "ttt_deadshot_shotcount",
+        label = "ttt_deadshot_shotcount_name",
+        min = 1,
+        max = 10,
+        decimal = 0
     })
 end
 
