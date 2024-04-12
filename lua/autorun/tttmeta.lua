@@ -2,6 +2,9 @@
 -- No longer required: if engine.ActiveGamemode() ~= "terrortown" then return end
 
 local Tag = "tttfix"
+
+require("hookextras")
+
 local emptyFunc = function() end
 
 AOWL_NO_TEAMS = true
