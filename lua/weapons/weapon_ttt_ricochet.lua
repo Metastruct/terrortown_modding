@@ -190,6 +190,8 @@ end
 function SWEP:Initialize()
     self:ResetZoom()
     self:SetClip1(cvarShotCount:GetInt())
+    self:SetMaterial("models/props/CS_militia/milceil001")
+    self:SetColor(Color(255, 100, 100, 255))
 
     return BaseClass.Initialize(self)
 end
