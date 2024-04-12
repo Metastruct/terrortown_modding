@@ -140,9 +140,16 @@ if SERVER then
 	-- Disable EasyChat indicating
 	hook.Add("ECCanIndicate", Tag, function() return false end)
 
-	-- Disable chatsounds from dead/deathmatching people
+	-- Disable chatsounds for team chat and from dead/deathmatching people
+	hook.Add("PlayerSay", Tag, function(pl, txt, teamChat)
+		pl._chatsoundsUsedTeam = teamChat
+	end)
 	hook.Add("ChatsoundsShouldNetwork", Tag, function(pl)
-		if not pl:IsTerror() then return false end
+		local usedTeam = pl._chatsoundsUsedTeam
+
+		pl._chatsoundsUsedTeam = nil
+
+		if usedTeam or (not pl:IsTerror() and CurTime() > (pl._last_death or 0) + 0.1) then return false end
 	end)
 
 	-- Disable AOWL failed/rate-limit sound for spectators/dead
