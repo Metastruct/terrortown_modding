@@ -416,7 +416,9 @@ if CLIENT then
 
     ---@type {from: Vector, to: Vector, timeStarted: number, timeEnd: number}[]
     local ricochetTrails = {}
+    local deathTime = nil
     net.Receive("ttt_ricochet_trail", function()
+        local killshot = not LocalPlayer():Alive() and (deathTime == nil or deathTime + 0.5 > CurTime())
         local count = net.ReadInt(8)
 
         for i = 1, count do
@@ -427,7 +429,10 @@ if CLIENT then
                 from = from,
                 to = to,
                 timeStarted = CurTime(),
-                timeEnd = CurTime() + cvarShotTrailTime:GetFloat()
+                timeEnd = CurTime() +
+                    (killshot and 45 or cvarShotTrailTime:GetFloat()) +
+                    i * 0.2,
+                killshot = killshot and true or nil
             })
         end
     end)
@@ -439,8 +444,10 @@ if CLIENT then
                 local s = (v.timeEnd - CurTime()) / (v.timeEnd - v.timeStarted)
 
                 render.SetColorMaterial()
-                render.SetMaterial(Material("trails/tube"))
-                render.DrawBeam(v.from, v.to, s * 16, 0, 0, COLOR_WHITE)
+                render.SetMaterial(
+                    v.killshot and Material("trails/laser") or Material("trails/smoke"))
+                render.DrawBeam(v.from, v.to, s * 16, 0, 0,
+                    v.killshot and Color(255, 0, 0, 255) or Color(200, 200, 200, 255 * s))
             end
         end
     end)
@@ -458,5 +465,19 @@ if CLIENT then
             drawviewer = wep.Zoom > 20
         }
     end)
+
+
+    hook.Add("Think", "ttt_ricochet", function()
+        if LocalPlayer():Alive() then
+            deathTime = nil
+        elseif deathTime == nil then
+            deathTime = CurTime()
+        end
+    end)
 end
 --#endregion
+
+-- Scope:
+-- Pitch indicator
+-- Yaw
+-- Warning: Reduced damage on low bounce
