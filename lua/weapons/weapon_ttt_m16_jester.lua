@@ -161,8 +161,8 @@ if SERVER then
 				LANG.Msg(traitors, "The Jester '{name}' has joined the traitors!\nThe others will be hunting them down...", { name = newOwner:Nick() }, MSG_MSTACK_ROLE)
 				LANG.Msg(others, "Kill Jester.", nil, MSG_MSTACK_PLAIN)
 
-				local screenFadeCol = newOwner:GetRoleColor() * 1
-				screenFadeCol.a = 90
+				local screenFadeCol = newOwner:GetRoleColor()
+				screenFadeCol = Color(screenFadeCol.r, screenFadeCol.g, screenFadeCol.b, 90)
 
 				newOwner:ScreenFade(SCREENFADE.IN, screenFadeCol, 3, 0)
 
