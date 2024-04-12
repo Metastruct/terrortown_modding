@@ -132,6 +132,11 @@ if SERVER then
 		end
 	end)
 
+	-- Disable sitting on weapons
+	hook.Add("OnPlayerSit", Tag, function(pl, pos, ang, parent)
+		if IsValid(parent) and parent:IsWeapon() then return false end
+	end)
+
 	-- Disable RP tapping shoulder thing - I would like to support this somewhat for funnies, but it opens opportunities for meta-gaming
 	hook.Add("PlayerUsedByPlayer", Tag, function(pl, poker)
 		return true
