@@ -44,7 +44,7 @@ if CLIENT then
     SWEP.Icon = "vgui/ttt/icon_ricochet"
     SWEP.IconLetter = "n"
 
-    LANG.AddToLanguage("en", "ttt_ricochet_name", "Deadshot Rifle")
+    LANG.AddToLanguage("en", "ttt_ricochet_name", "Ricochet Rifle")
     LANG.AddToLanguage("en", "ttt_ricochet_desc",
         "A rifle with a rubberized round that can bounce off walls, and a "
         .. "scope that can infinitely zoom and show the trajectory of the "
@@ -104,7 +104,8 @@ SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = false
 SWEP.Primary.Delay = 1.5
 SWEP.Primary.Ammo = "none"
-SWEP.Primary.Sound = Sound("Weapon_AWP.Single")
+SWEP.Primary.Sound1 = Sound("npc/sniper/echo1.wav")
+SWEP.Primary.Sound2 = Sound("npc/sniper/sniper1.wav")
 
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
@@ -208,10 +209,13 @@ function SWEP:PrimaryAttack()
     if not self:CanPrimaryAttack() then return end
 
     self:TakePrimaryAmmo(1)
-    self:EmitSound(self.Primary.Sound, 100)
+    self:EmitSound(self.Primary.Sound1, 75, 100, 1, CHAN_VOICE)
+    self:EmitSound(self.Primary.Sound2, 125, 100, 1, CHAN_VOICE2)
     self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 
     if CLIENT then return end
+
+    SuppressHostEvents(NULL)
 
     local t = calculateTrajectory(
         self:GetOwner():GetShootPos(),
@@ -238,10 +242,16 @@ function SWEP:PrimaryAttack()
 
         if trace.Hit then
             -- scorch mark
-            util.Decal("Scorch", trace.HitPos + trace.HitNormal, trace.HitPos - trace.HitNormal)
+            util.Decal("FadingScorch", trace.HitPos + trace.HitNormal, trace.HitPos - trace.HitNormal)
 
             -- bounce sound
             EmitSound(Sound("weapons/ric1.wav"), trace.HitPos)
+
+            -- sparks
+            local effectData = EffectData()
+            effectData:SetOrigin(trace.HitPos)
+            effectData:SetNormal(trace.HitNormal)
+            util.Effect("ManhackSparks", effectData)
         end
     end
 
@@ -254,6 +264,8 @@ function SWEP:PrimaryAttack()
         end
         net.Broadcast()
     end
+
+    SuppressHostEvents(self:GetOwner())
 end
 
 function SWEP:SecondaryAttack()
