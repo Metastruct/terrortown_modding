@@ -224,6 +224,8 @@ function SWEP:PrimaryAttack()
         { self:GetOwner() }
     )
 
+    self:GetOwner():LagCompensation(true)
+
     local trails = {}
 
     for i, trace in ipairs(t.traces) do
@@ -266,6 +268,7 @@ function SWEP:PrimaryAttack()
     end
 
     SuppressHostEvents(self:GetOwner())
+    self:GetOwner():LagCompensation(false)
 end
 
 function SWEP:SecondaryAttack()
