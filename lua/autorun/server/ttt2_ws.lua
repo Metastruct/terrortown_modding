@@ -21,6 +21,7 @@ local addons = {
 	"2846938449", 	-- kiss weapon
 	"1641605106", 	-- beartrap
 	"1615324913", 	-- demonic possession
+	"2807269633", 	-- Laser Phaser
 }
 
 for _, id in ipairs(addons) do
