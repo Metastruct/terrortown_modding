@@ -1,5 +1,7 @@
 -- The Jester role gains buddha to certain damage types
 
+require("hookextras")
+
 util.OnInitialize(function()
 	local buddhaDamageTypes = {
 		[DMG_BURN] = true,

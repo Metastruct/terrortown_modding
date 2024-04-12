@@ -1,6 +1,8 @@
 -- Manual SWEP tweaks
 -- Use this file to apply manual tweaks and fixes onto a weapon, without having to overwrite said weapon's entire lua file
 
+require("hookextras")
+
 util.OnInitialize(function()
 	local SWEP
 
