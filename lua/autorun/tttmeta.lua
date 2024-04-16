@@ -137,9 +137,9 @@ if SERVER then
 		end
 	end)
 
-	-- Disable sitting on weapons
+	-- Disable sitting for spectators and sitting on weapons
 	hook.Add("OnPlayerSit", Tag, function(pl, pos, ang, parent)
-		if IsValid(parent) and parent:IsWeapon() then return false end
+		if not pl:IsTerror() or (IsValid(parent) and parent:IsWeapon()) then return false end
 	end)
 
 	-- Disable RP tapping shoulder thing - I would like to support this somewhat for funnies, but it opens opportunities for meta-gaming
