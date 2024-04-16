@@ -96,6 +96,8 @@ if SERVER then
 		["push"] = true,
 		["ragdoll"] = true,
 		["ragdollize"] = true,
+		["ragmod"] = true,
+		["ragmodset"] = true,
 		["unragdoll"] = true,
 		["unragdollize"] = true,
 		["unreserve"] = true,
