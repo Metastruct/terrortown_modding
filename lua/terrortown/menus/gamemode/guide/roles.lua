@@ -8,12 +8,13 @@ CLGAMEMODESUBMENU.title = "submenu_guide_roles_title"
 local Key = Key
 local TryT = LANG.TryTranslation
 local GetPT = LANG.GetParamTranslation
--- local sin = math.sin
 local cos = math.cos
 local abs = math.abs
 
+local highlightColor = Color(0, 255, 0)
+
 local mg = 10 -- margin
-local pd = 10 -- margin
+local pd = 10 -- padding
 local iconSize = 112
 
 local specialCases = {
@@ -21,11 +22,13 @@ local specialCases = {
 	["executioner"] = function(params) return GetPT("ttt2_desc_executioner", params) end,
 	["sacrifice"] = function(params) return GetPT("ttt2_desc_sacrifice", params) end,
 }
-local teams = {
-	["nones"] = 0,
-	["innocents"] = 1,
-	["traitors"] = 2,
+local namedTeams = {
+	["nones"] = 0
 }
+
+for k,v in ipairs(roles.GetAvailableTeams()) do
+	namedTeams[v] = k
+end
 
 function CLGAMEMODESUBMENU:Populate(parent)
 	self.Parent = parent
@@ -51,8 +54,8 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 	table.sort(sortedRoles, function(a, b)
 		if a.index == currentRole then return true end
 		if b.index == currentRole then return false end
-		if teams[a.defaultTeam] == teams[b.defaultTeam] then return a.index < b.index end
-		return teams[a.defaultTeam] < teams[b.defaultTeam]
+		if namedTeams[a.defaultTeam] == namedTeams[b.defaultTeam] then return a.index < b.index end
+		return namedTeams[a.defaultTeam] < namedTeams[b.defaultTeam]
 	end)
 
 	for _, role in ipairs(sortedRoles) do
@@ -67,9 +70,9 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 			draw.RoundedBox(8, 0, 0, w, h, vskin.GetBackgroundColor())
 
 			if currentRole == role.index then
-				local speed = 6
-				local pulse = abs(cos(RealTime() * speed))
-				draw.RoundedBox(8, 0, 0, w, h, Color(0, 255, 0, 8 + 4 * pulse))
+				highlightColor.a = 8 + 4 * abs(cos(RealTime() * 6))
+
+				draw.RoundedBox(8, 0, 0, w, h, highlightColor)
 			end
 		end
 
