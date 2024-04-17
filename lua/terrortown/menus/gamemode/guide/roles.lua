@@ -22,13 +22,8 @@ local specialCases = {
 	["executioner"] = function(params) return GetPT("ttt2_desc_executioner", params) end,
 	["sacrifice"] = function(params) return GetPT("ttt2_desc_sacrifice", params) end,
 }
-local namedTeams = {
-	["nones"] = 0
-}
 
-for k,v in ipairs(roles.GetAvailableTeams()) do
-	namedTeams[v] = k
-end
+local namedTeams
 
 function CLGAMEMODESUBMENU:Populate(parent)
 	self.Parent = parent
@@ -41,6 +36,16 @@ function CLGAMEMODESUBMENU:Populate(parent)
 end
 
 function CLGAMEMODESUBMENU:CreateRoleList()
+	if not namedTeams then
+		namedTeams = {
+			["nones"] = 0
+		}
+
+		for k,v in ipairs(roles.GetAvailableTeams()) do
+			namedTeams[v] = k
+		end
+	end
+
 	local parent = self.Parent
 
 	parent:Clear()
@@ -51,6 +56,7 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 	local lply = LocalPlayer()
 	self.CurrentPlayerRole = lply:GetRole()
 	local currentRole = self.CurrentPlayerRole
+
 	table.sort(sortedRoles, function(a, b)
 		if a.index == currentRole then return true end
 		if b.index == currentRole then return false end
