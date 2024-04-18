@@ -171,6 +171,18 @@ if SERVER then
 	concommand.Add("push", emptyFunc)
 else
 	util.OnInitialize(function()
+		-- Make the top-right notifications print to console
+		if MSTACK then
+			MSTACK.AddMessageExOriginal = MSTACK.AddMessageExOriginal or MSTACK.AddMessageEx
+
+			function MSTACK:AddMessageEx(item)
+				MSTACK:AddMessageExOriginal(item)
+
+				MsgC(color_white, "[TTT2] ")
+				MsgN(item.text)
+			end
+		end
+
 		if SpecDM then
 			-- Replace Spectator Deathmatch's invasive PlayerBindPress hook to fix spectators not being able to press use on stuff
 			hook.Add("PlayerBindPress", "TTTGHOSTDMBINDS", function(ply, bind, pressed)
