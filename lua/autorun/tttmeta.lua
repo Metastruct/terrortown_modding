@@ -291,9 +291,30 @@ else
 	concommand.Add("outfitter_remount_all", outfitter_remount)
 	concommand.Add("outfitter_fix_error_models", outfitter_remount)
 
+	local reminderCount, reminderMax = 0, 3
+	local reminderDefaultColor, reminderHighlightColor = Color(255, 235, 135), Color(80, 160, 255)
+
 	-- Trigger things on TTT round hooks (eg. outfitter fixes)
 	hook.Add("TTTBeginRound", Tag, function()
 		SetPerfMode(true)
+
+		-- Reminder message for reading the role guide
+		if reminderCount < reminderMax then
+			timer.Simple(1, function()
+				local pl = LocalPlayer()
+
+				if IsValid(pl) and pl:IsTerror() and pl:GetSubRole() != ROLE_INNOCENT then
+					reminderCount = reminderCount + 1
+
+					chat.AddText(
+						reminderDefaultColor, "Not sure what your role does? Press ",
+						reminderHighlightColor, "F1",
+						reminderDefaultColor, " and check the '",
+						reminderHighlightColor, "TTT2 Guide",
+						reminderDefaultColor, "' to learn about it!")
+				end
+			end)
+		end
 	end)
 
 	hook.Add("TTTEndRound", Tag, function()
