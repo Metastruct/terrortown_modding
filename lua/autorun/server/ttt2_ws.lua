@@ -14,6 +14,7 @@ local addons = {
 	"1599710095",	-- Kamehameha
 	"2669390710",	-- Defector Role
 	"2133752484",	-- Executioner Role
+	"1361602585",	-- Vampire Role
 	"2480382394", 	-- Impostor Role
 	"2620700649", 	-- Sacrifice Role
 	"2594893673", 	-- Nova Role
