@@ -183,8 +183,8 @@ else
 			end
 		end
 
+		-- Replace Spectator Deathmatch's invasive PlayerBindPress hook to fix spectators not being able to press use on stuff
 		if SpecDM then
-			-- Replace Spectator Deathmatch's invasive PlayerBindPress hook to fix spectators not being able to press use on stuff
 			hook.Add("PlayerBindPress", "TTTGHOSTDMBINDS", function(ply, bind, pressed)
 				if not IsValid(ply) or not ply:IsSpec() or not (ply.IsGhost and ply:IsGhost()) then return end
 
@@ -251,7 +251,6 @@ else
 
 		if (want_perf and not _G.TTT_OUTFITTER_PERF) or (not want_perf and _G.TTT_OUTFITTER_PERF) then
 			outfitter.SetHighPerf(want_perf, not want_perf)
-			print("outfitter.SetHighPerf", want_perf)
 		end
 
 		_G.TTT_OUTFITTER_PERF = want_perf
@@ -303,37 +302,50 @@ else
 	concommand.Add("outfitter_remount_all", outfitter_remount)
 	concommand.Add("outfitter_fix_error_models", outfitter_remount)
 
-	local reminderCount, reminderMax = 0, 3
-	local reminderDefaultColor, reminderHighlightColor = Color(255, 235, 135), Color(80, 160, 255)
+	-- Reminder message for reading the role guide
+	local reminderCounts, reminderMax = {}, 2
+	local reminderDefaultColor, reminderHighlightColor = Color(255, 235, 135), Color(140, 190, 255)
+
+	local function showRoleGuideReminder(newRole)
+		local pl = LocalPlayer()
+
+		if IsValid(pl) and pl:IsTerror() then
+			local role = newRole or pl:GetSubRole()
+			if role == ROLE_NONE then return end
+
+			reminderCounts[role] = (reminderCounts[role] or 0) + 1
+
+			local roleData = roles.GetByIndex(role)
+
+			chat.AddText(
+				reminderDefaultColor, "Not sure how to play as ",
+				roleData.ltcolor or roleData.color, (roleData.name:gsub("^%l", string.upper)),
+				reminderDefaultColor, "? Press ",
+				reminderHighlightColor, "F1",
+				reminderDefaultColor, " and check the '",
+				reminderHighlightColor, "TTT2 Guide",
+				reminderDefaultColor, "' to learn about it!")
+		end
+	end
+
+	hook.Add("TTT2UpdateSubrole", Tag, function(pl, oldRole, newRole)
+		if oldRole == newRole
+			or (reminderCounts[newRole] or 0) >= reminderMax then return end
+
+		timer.Simple(1, function()
+			if GetRoundState() != ROUND_ACTIVE then return end
+			showRoleGuideReminder(newRole)
+		end)
+	end)
 
 	-- Trigger things on TTT round hooks (eg. outfitter fixes)
 	hook.Add("TTTBeginRound", Tag, function()
 		SetPerfMode(true)
-
-		-- Reminder message for reading the role guide
-		if reminderCount < reminderMax then
-			timer.Simple(1, function()
-				local pl = LocalPlayer()
-
-				if IsValid(pl) and pl:IsTerror() and pl:GetSubRole() != ROLE_INNOCENT then
-					reminderCount = reminderCount + 1
-
-					chat.AddText(
-						reminderDefaultColor, "Not sure what your role does? Press ",
-						reminderHighlightColor, "F1",
-						reminderDefaultColor, " and check the '",
-						reminderHighlightColor, "TTT2 Guide",
-						reminderDefaultColor, "' to learn about it!")
-				end
-			end)
-		end
 	end)
 
 	hook.Add("TTTEndRound", Tag, function()
 		SetPerfMode(false)
 	end)
-
-	--hook.Add("TTTPrepareRound", Tag, function() end)
 end
 
 -- Shared amends
