@@ -18,6 +18,7 @@ local addons = {
 	"2480382394", 	-- Impostor Role
 	"2620700649", 	-- Sacrifice Role
 	"2594893673", 	-- Nova Role
+	"2086831737", 	-- Medigun (for the Medic role)
 	"3048226332", 	-- green demon
 	"2846938449", 	-- kiss weapon
 	"1641605106", 	-- beartrap
