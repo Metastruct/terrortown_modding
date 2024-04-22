@@ -319,7 +319,7 @@ else
 
 			chat.AddText(
 				reminderDefaultColor, "Not sure how to play as ",
-				roleData.ltcolor or roleData.color, (roleData.name:gsub("^%l", string.upper)),
+				roleData.ltcolor or roleData.color, LANG.TryTranslation(roleData.name),
 				reminderDefaultColor, "? Press ",
 				reminderHighlightColor, "F1",
 				reminderDefaultColor, " and check the '",
@@ -329,7 +329,8 @@ else
 	end
 
 	hook.Add("TTT2UpdateSubrole", Tag, function(pl, oldRole, newRole)
-		if oldRole == newRole
+		if pl != LocalPlayer()
+			or oldRole == newRole
 			or (reminderCounts[newRole] or 0) >= reminderMax then return end
 
 		timer.Simple(1, function()
