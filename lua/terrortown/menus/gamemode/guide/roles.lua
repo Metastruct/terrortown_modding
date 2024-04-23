@@ -246,9 +246,10 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 			descText = string.Interpolate(descText, descTextParams)
 		else
 			-- There's no custom explanation, show the role's description text instead
-			descText = isfunction(fallbackSpecialCases[role.name])
+			descText = "(This role has no custom help written for it yet.)\n\n" ..
+				(isfunction(fallbackSpecialCases[role.name])
 				and fallbackSpecialCases[role.name](descTextParams)
-				or GetPT("info_popup_" .. role.name, descTextParams)
+				or GetPT("info_popup_" .. role.name, descTextParams))
 		end
 
 		-- Because labels have text limits, we need to split them up when appropriate - determine the split points
@@ -300,6 +301,11 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 		end
 
 		baseContainer.TeamLabel = teamDesc
+
+		-- Have the current role's box expanded by default
+		if role.index == currentRole then
+			header:Toggle()
+		end
 
 		parent.RolePanelHeaders[#parent.RolePanelHeaders + 1] = header
 	end
@@ -503,6 +509,18 @@ You are unable to buy equipment. Instead, you can sabotage lights, comms, oxygen
 ▪ You can choose where the sabotage will happen by using the Station Manager. Press [{impostorsabotagekey}] on a crewmate icon to set the sabotage spot there. You can create a new spot by pressing [{impostorsabotagekey}] on a player too.
 
 Voice chat with only the traitors using [{teamvoicekey}].]])
+
+AddCustomExplanation(ROLE_HAUNTED,
+[[You are a haunting traitor! If you are killed by someone, you will haunt their soul until you can take it over...
+Like the usual traitor, your goal is to eliminate all the innocents with the help of your traitor buddies.
+
+Being killed marks your killer with dark smoke. If they are killed, you will steal their soul and be revived at your ragdoll!
+
+Your fellow traitors should focus taking out your haunted killer. Hope that the innocents aren't protecting them.
+
+Voice chat with only the traitors using [{teamvoicekey}].
+
+Due to your haunting abilities, you get no credits and cannot buy equipment.]])
 
 AddCustomExplanation(ROLE_MEDIC,
 [[You are a medic that's been sent to provide aid to everyone in the field!
