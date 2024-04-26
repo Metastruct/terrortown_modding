@@ -420,3 +420,25 @@ util.OnInitialize(function()
 		list.Set("ChatCommands", "boxify")
 	end
 end)
+
+-- If playermodel has anim_attachment_head then use that for hat position
+-- else use head bone for hat position
+function playermodels.GetHatPosition(ply)
+    local pos, ang
+    if IsValid(ply) then
+        if(ply:LookupAttachment( "anim_attachment_head" )) > 0 then
+            data = ply:GetAttachment( ply:LookupAttachment("anim_attachment_head"))
+            pos, ang = data.Pos, data.Ang
+        else
+            local bone = ply:LookupBone("ValveBiped.Bip01_Head1")
+            if bone then
+                pos, ang = ply:GetBonePosition(bone)
+            else
+                pos, ang = ply:GetPos(), ply:GetAngles()
+                pos.z = pos.z + GetPlayerSize(ply).z
+            end
+        end
+    end
+
+    return pos, ang
+end
