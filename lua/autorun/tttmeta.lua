@@ -1,6 +1,3 @@
--- Moved from srvaddons
--- No longer required: if engine.ActiveGamemode() ~= "terrortown" then return end
-
 local Tag = "tttfix"
 
 require("hookextras")
@@ -11,59 +8,6 @@ AOWL_NO_TEAMS = true
 
 if SERVER then
 	AddCSLuaFile()
-
-	util.OnInitialize(function()
-		if crosschat then
-			crosschat.GetForcedTeam = function()
-				return 1
-			end
-		end
-
-		if aowl then
-			local function tttRevive(sourcePl, pl)
-				if IsValid(pl) and pl:IsPlayer() and not pl:IsTerror() then
-					local success = pl:SpawnForRound(true)
-
-					if success then
-						-- Devs shouldn't be doing this in real games anyway so make some noise :)
-						print(sourcePl or "CONSOLE", "forcibly revived", pl, "with tttrevive!")
-						pl:EmitSound("npc/vort/attack_shoot.wav", 100, 90)
-					end
-
-					return success
-				end
-
-				return false
-			end
-
-			aowl.AddCommand("tttrevive", "Properly revives a player in TTT as their current role", function(pl, line, target)
-				local ent = easylua.FindEntity(target)
-
-				if type(ent) == "table" then
-					if ent.get then
-						ent = ent.get()
-					end
-
-					for k, v in ipairs(ent) do
-						if IsValid(v) and v:IsPlayer() then
-							tttRevive(pl, v)
-						end
-					end
-
-					return
-				end
-
-				tttRevive(pl, ent)
-			end,
-			"developers", true)
-		end
-
-		-- Disable an obsolete engine protect hook we have if it's there - all it really does now is print a useless message in console
-		hook.Remove("EntityRemoved", "dont_remove_players")
-
-		-- Disable an engine protect hook that isn't needed at all in TTT, free up some processing time
-		hook.Remove("EntityTakeDamage", "weapon_striderbuster_anticrash")
-	end)
 
 	-- Remove these aowl commands, either because they are cheaty, annoying, or don't work with TTT
 	local badcmds = {
@@ -169,51 +113,61 @@ if SERVER then
 
 	-- Disable alternative way of using "aowl push"
 	concommand.Add("push", emptyFunc)
-else
+
+	-- Run these patches when things have initialized
 	util.OnInitialize(function()
-		-- Make the top-right notifications print to console
-		if MSTACK then
-			MSTACK.AddMessageExOriginal = MSTACK.AddMessageExOriginal or MSTACK.AddMessageEx
-
-			function MSTACK:AddMessageEx(item)
-				MSTACK:AddMessageExOriginal(item)
-
-				MsgC(color_white, "[TTT2] ")
-				MsgN(item.text)
+		if crosschat then
+			crosschat.GetForcedTeam = function()
+				return 1
 			end
 		end
 
-		-- Replace Spectator Deathmatch's invasive PlayerBindPress hook to fix spectators not being able to press use on stuff
-		if SpecDM then
-			hook.Add("PlayerBindPress", "TTTGHOSTDMBINDS", function(ply, bind, pressed)
-				if not IsValid(ply) or not ply:IsSpec() or not (ply.IsGhost and ply:IsGhost()) then return end
+		if aowl then
+			local function tttRevive(sourcePl, pl)
+				if IsValid(pl) and pl:IsPlayer() and not pl:IsTerror() then
+					local success = pl:SpawnForRound(true)
 
-				if bind == "invnext" and pressed then
-					WSWITCH:SelectNext()
-					return true
-				elseif bind == "invprev" and pressed then
-					WSWITCH:SelectPrev()
-					return true
-				elseif bind == "+attack" then
-					if WSWITCH:PreventAttack() then
-						if not pressed then
-							WSWITCH:ConfirmSelection()
-						end
+					if success then
+						-- Devs shouldn't be doing this in real games anyway so make some noise :)
+						print(sourcePl or "CONSOLE", "forcibly revived", pl, "with tttrevive!")
+						pl:EmitSound("npc/vort/attack_shoot.wav", 100, 90)
+					end
 
-						return true
-					end
-				elseif bind == "+use" and pressed then
-					-- Block pressing use as a ghost
-					return true
-				elseif bind == "+duck" and pressed then
-					if not IsValid(ply:GetObserverTarget()) then
-						GAMEMODE.ForcedMouse = true
-					end
+					return success
 				end
-			end)
-		end
-	end)
 
+				return false
+			end
+
+			aowl.AddCommand("tttrevive", "Properly revives a player in TTT as their current role", function(pl, line, target)
+				local ent = easylua.FindEntity(target)
+
+				if type(ent) == "table" then
+					if ent.get then
+						ent = ent.get()
+					end
+
+					for k, v in ipairs(ent) do
+						if IsValid(v) and v:IsPlayer() then
+							tttRevive(pl, v)
+						end
+					end
+
+					return
+				end
+
+				tttRevive(pl, ent)
+			end,
+			"developers", true)
+		end
+
+		-- Disable an obsolete engine protect hook we have if it's there - all it really does now is print a useless message in console
+		hook.Remove("EntityRemoved", "dont_remove_players")
+
+		-- Disable an engine protect hook that isn't needed at all in TTT, free up some processing time
+		hook.Remove("EntityTakeDamage", "weapon_striderbuster_anticrash")
+	end)
+else
 	-- Tell PAC to load a TTT autoload
 	hook.Add("PAC3Autoload", Tag, function(name)
 		return "autoload_ttt"
@@ -347,6 +301,51 @@ else
 	hook.Add("TTTEndRound", Tag, function()
 		SetPerfMode(false)
 	end)
+
+	-- Run these patches when things have initialized
+	util.OnInitialize(function()
+		-- Make the top-right notifications print to console
+		if MSTACK then
+			MSTACK.AddMessageExOriginal = MSTACK.AddMessageExOriginal or MSTACK.AddMessageEx
+
+			function MSTACK:AddMessageEx(item)
+				MSTACK:AddMessageExOriginal(item)
+
+				MsgC(color_white, "[TTT2] ")
+				MsgN(item.text)
+			end
+		end
+
+		-- Replace Spectator Deathmatch's invasive PlayerBindPress hook to fix spectators not being able to press use on stuff
+		if SpecDM then
+			hook.Add("PlayerBindPress", "TTTGHOSTDMBINDS", function(ply, bind, pressed)
+				if not IsValid(ply) or not ply:IsSpec() or not (ply.IsGhost and ply:IsGhost()) then return end
+
+				if bind == "invnext" and pressed then
+					WSWITCH:SelectNext()
+					return true
+				elseif bind == "invprev" and pressed then
+					WSWITCH:SelectPrev()
+					return true
+				elseif bind == "+attack" then
+					if WSWITCH:PreventAttack() then
+						if not pressed then
+							WSWITCH:ConfirmSelection()
+						end
+
+						return true
+					end
+				elseif bind == "+use" and pressed then
+					-- Block pressing use as a ghost
+					return true
+				elseif bind == "+duck" and pressed then
+					if not IsValid(ply:GetObserverTarget()) then
+						GAMEMODE.ForcedMouse = true
+					end
+				end
+			end)
+		end
+	end)
 end
 
 -- Shared amends
@@ -400,6 +399,7 @@ hook.Add("prone.CanEnter", Tag, function()
 	return false
 end)
 
+-- Run these patches when things have initialized
 util.OnInitialize(function()
 	-- Since it's being disabled, completely rip out the "boxify" code since it adds several hooks worth of bloat on both realms
 	do
@@ -419,26 +419,35 @@ util.OnInitialize(function()
 		list.Set("ChatCommands", "box")
 		list.Set("ChatCommands", "boxify")
 	end
+
+	-- If the playermodel has an anim_attachment_head attachment then use that for hat position, else do what base TTT does (use head bone etc)
+	if playermodels then
+		function playermodels.GetHatPosition(pl)
+			local pos, ang
+
+			if IsValid(pl) then
+				local headAttachId = pl:LookupAttachment("anim_attachment_head")
+
+				if headAttachId > 0 then
+					local data = pl:GetAttachment(headAttachId)
+
+					pos, ang = data.Pos, data.Ang
+				else
+					local bone = pl:LookupBone("ValveBiped.Bip01_Head1")
+
+					if bone then
+						pos, ang = pl:GetBonePosition(bone)
+					else
+						pos, ang = pl:GetPos(), pl:GetAngles()
+
+						local hullMins, hullMaxs = pl:GetHull()
+
+						pos.z = pos.z + (hullMaxs.z - hullMins.z)
+					end
+				end
+			end
+
+			return pos, ang
+		end
+	end
 end)
-
--- If playermodel has anim_attachment_head then use that for hat position
--- else use head bone for hat position
-function playermodels.GetHatPosition(ply)
-    local pos, ang
-    if IsValid(ply) then
-        if(ply:LookupAttachment( "anim_attachment_head" )) > 0 then
-            data = ply:GetAttachment( ply:LookupAttachment("anim_attachment_head"))
-            pos, ang = data.Pos, data.Ang
-        else
-            local bone = ply:LookupBone("ValveBiped.Bip01_Head1")
-            if bone then
-                pos, ang = ply:GetBonePosition(bone)
-            else
-                pos, ang = ply:GetPos(), ply:GetAngles()
-                pos.z = pos.z + GetPlayerSize(ply).z
-            end
-        end
-    end
-
-    return pos, ang
-end
