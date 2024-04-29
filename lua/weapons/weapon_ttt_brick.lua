@@ -37,7 +37,7 @@ SWEP.ThrowSound = ")weapons/tw1stal1cky/brick/throw.mp3"
 
 SWEP.detonate_timer = 3			-- Time it takes to get to full power - doesn't detonate, we're just keeping the base's naming
 SWEP.throwForceMin = 0.75		-- Base throw force (at zero power)
-SWEP.throwForceMax = 4			-- Max throw force (at full power)
+SWEP.throwForceMax = 3			-- Max throw force (at full power)
 SWEP.throwForce = SWEP.throwForceMin
 
 function SWEP:PullPin()
