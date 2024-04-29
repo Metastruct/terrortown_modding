@@ -42,10 +42,10 @@ if SERVER then
 	local weaponClassName = "weapon_ttt_brick"
 
 	ENT.DamageMin = 2
-	ENT.DamageMax = 40
+	ENT.DamageMax = 45
 
 	ENT.SpeedScaleMin = 300
-	ENT.SpeedScaleMax = 1900
+	ENT.SpeedScaleMax = 1800
 
 	ENT.ImpactSound = ")weapons/tw1stal1cky/brick/impact%s.mp3"
 	ENT.ImpactSoftSound = ")physics/concrete/rock_impact_soft%s.wav"
