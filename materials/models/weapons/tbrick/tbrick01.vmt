@@ -1,0 +1,12 @@
+VertexLitGeneric
+{
+	$basetexture "models/weapons/tbrick/tbrick01"
+	$bumpmap "models/weapons/tbrick/tbrick01_normal"
+
+	$phong 1
+	$phongfresnelranges "[0.3 0.65 1]"
+	$phongtint "[0.22 0.21 0.18]"
+	$halflambert 1
+	$phongexponent 1
+	$phongboost 1.01
+}
