@@ -39,9 +39,6 @@ do
 		data:EnableOutline()
 
 		data:SetOutlineColor(RED_COLOR)
-		data:SetTitle("FINISHER")
-		data:SetSubtitle("Press [" .. input.LookupBinding("+use", true):upper() .. "]")
-
-		data:AddDescriptionLine("Finish them off epic style!")
+		data:AddDescriptionLine("Press [" .. input.LookupBinding("+use", true):upper() .. "] to FINISH them!")
 	end)
 end
