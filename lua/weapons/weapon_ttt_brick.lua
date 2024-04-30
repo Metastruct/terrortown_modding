@@ -6,6 +6,7 @@ if SERVER then
 	resource.AddFile("materials/vgui/ttt/icon_brick.vmt")
 	resource.AddFile("models/weapons/tbrick01.mdl")
 	resource.AddFile("materials/models/weapons/tbrick/tbrick01.vmt")
+	resource.AddSingleFile("materials/models/weapons/tbrick/tbrick01_normal.vtf")
 	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/throw.mp3")
 else
 	SWEP.PrintName = "Brick"
