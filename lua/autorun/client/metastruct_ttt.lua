@@ -19,7 +19,7 @@ do
 		local tr = ply:GetEyeTrace()
 		if not elligibleForKillMove(tr.Entity) then return end
 
-		ply:ConCommand("bsmod_kick")
+		ply:ConCommand("bsmod_killmove")
 	end)
 
 	local RED_COLOR = Color(255,0,0)
