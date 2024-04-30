@@ -253,7 +253,7 @@ else
 
 	net.Receive(effectNetworkTag, function()
 		local ent = net.ReadEntity()
-		if not IsValid(ent) then return end
+		if not IsValid(ent) or ent:GetClass() != weaponClassName then return end
 
 		local pos = net.ReadVector()
 
