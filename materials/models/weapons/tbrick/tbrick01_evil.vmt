@@ -1,0 +1,19 @@
+VertexLitGeneric
+{
+	$basetexture "models/weapons/tbrick/tbrick01_evil"
+	$bumpmap "models/weapons/tbrick/tbrick01_normal"
+
+	$lightwarptexture "models/weapons/tbrick/tbrick01_warp_evil"
+
+	$phong 1
+	$phongfresnelranges "[0.12 0.56 1]"
+	$phongtint "[1 1 0]"
+	$phongdisablehalflambert 1
+	$phongexponent 450
+	$phongboost 0
+	$phongalbedoboost 0
+
+	$rimlight 1
+	$rimlightexponent 255
+	$rimlightboost 4
+}

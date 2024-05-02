@@ -1,8 +1,10 @@
+local className = "ttt_brick_proj"
 local effectNetworkTag = "TTTBrickImpactEffect"
 
 if SERVER then
 	AddCSLuaFile()
 
+	resource.AddFile("materials/tbrick/shuffle.vmt")
 	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/impact1.mp3")
 	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/impact2.mp3")
 	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/impact3.mp3")
@@ -10,17 +12,20 @@ if SERVER then
 	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/hitbody2.mp3")
 	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/hitbody3.mp3")
 	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/bonk.mp3")
+	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/evil_bonk.mp3")
+	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/evil_hitbody.mp3")
 
 	util.AddNetworkString(effectNetworkTag)
 end
 
 ENT.Type = "anim"
-ENT.Projectile = true
+ENT.ClassName = className
 
 ENT.Model = "models/weapons/tbrick01.mdl"
 
 -- Magneto-stick isn't allowed to pick this up
 ENT.CanPickup = false
+ENT.Projectile = true
 
 AccessorFunc(ENT, "thrower", "Thrower")
 
@@ -52,6 +57,9 @@ if SERVER then
 	ENT.BodyHitSound = ")weapons/tw1stal1cky/brick/hitbody%s.mp3"
 	ENT.HeadshotSound = ")weapons/tw1stal1cky/brick/bonk.mp3"
 
+	ENT.BstrdBodyHitSound = ")weapons/tw1stal1cky/brick/evil_hitbody.mp3"
+	ENT.BstrdHeadshotSound = ")weapons/tw1stal1cky/brick/evil_bonk.mp3"
+
 	function ENT:PhysicsCollide(data, phys)
 		if data.DeltaTime < 0.1 then return end
 
@@ -63,11 +71,11 @@ if SERVER then
 
 			local ent = data.HitEntity
 			local isPerson = false
+			local isHeadshot = false
+			local isBstrd = self:GetSkin() == 1
 
 			if IsValid(ent) then
 				isPerson = ent:IsPlayer() or ent:IsNPC()
-
-				local isHeadshot = false
 
 				local velocityNormal = data.OurOldVelocity:GetNormalized()
 
@@ -120,9 +128,13 @@ if SERVER then
 
 				if isHeadshot then
 					dmg:ScaleDamage(2)
-					ent:EmitSound(self.HeadshotSound, 100)
+					ent:EmitSound(isBstrd and self.BstrdHeadshotSound or self.HeadshotSound, 100)
 				elseif isFlesh then
-					self:EmitSound(string.format(self.BodyHitSound, math.random(1,3)), 85, math.random(97, 103), 0.25 + (0.75 * speedScale))
+					if isBstrd then
+						self:EmitSound(self.BstrdBodyHitSound, 85, math.random(90, 110), 0.6 + (0.3 * speedScale))
+					else
+						self:EmitSound(string.format(self.BodyHitSound, math.random(1,3)), 85, math.random(97, 103), 0.25 + (0.75 * speedScale))
+					end
 				end
 
 				if isFlesh then
@@ -136,12 +148,14 @@ if SERVER then
 			end
 
 			local pitchMin = 140 - (40 * speedScale)
+			local volume = isBstrd and isPerson and 0.4 or 0.5 + (0.5 * speedScale)
 
-			self:EmitSound(string.format(self.ImpactSound, math.random(1,3)), 80, math.random(pitchMin, pitchMin + 5), 0.5 + (0.5 * speedScale))
+			self:EmitSound(string.format(self.ImpactSound, math.random(1,3)), 80, math.random(pitchMin, pitchMin + 5), volume)
 
 			net.Start(effectNetworkTag)
 			net.WriteEntity(self)
 			net.WriteVector(data.HitPos - (data.HitNormal * 2))
+			net.WriteBool(isPerson)
 			net.SendPVS(self:GetPos())
 		else
 			speedScale = math.Clamp(accurateSpeed / self.SpeedScaleMin, 0, 1)
@@ -157,6 +171,7 @@ if SERVER then
 
 			wep:SetPos(self:GetPos())
 			wep:SetAngles(self:GetAngles())
+			wep:SetSkin(self:GetSkin())
 
 			-- Disable auto-pickup using this and the below PlayerCanPickupWeapon hook
 			wep.IsDropped = true
@@ -184,10 +199,15 @@ if SERVER then
 else
 	local particleFleck = Material("effects/fleck_cement2")
 	local particleDust = Material("particle/particle_noisesphere")
-	local particleFleckColor = Color(255, 155, 100)
-	local particleDustColor = Color(128, 64, 30)
 	local particleFleckGravity = Vector(0, 0, -400)
 	local particleDustGravity = Vector(0, 0, -120)
+	local particleFleckColor = Color(255, 155, 100)
+	local particleDustColor = Color(128, 64, 30)
+
+	local bstrdParticle = Material("tbrick/shuffle")
+	local bstrdGravity = Vector(0, 0, 25)
+	local bstrdFleckColor = Color(255, 0, 102)
+	local bstrdDustColor = Color(174, 0, 69)
 
 	local emitter
 
@@ -206,6 +226,10 @@ else
 			emitter = ParticleEmitter(pos)
 		end
 
+		local isBstrd = self:GetSkin() == 1
+		local fleckColor = isBstrd and bstrdFleckColor or particleFleckColor
+		local dustColor = isBstrd and bstrdDustColor or particleDustColor
+
 		emitter:SetPos(pos)
 
 		for i = 1, 25 do
@@ -219,7 +243,7 @@ else
 				p:SetEndSize(1.5)
 				p:SetStartAlpha(255)
 				p:SetEndAlpha(0)
-				p:SetColor(particleFleckColor.r, particleFleckColor.g, particleFleckColor.b)
+				p:SetColor(fleckColor.r, fleckColor.g, fleckColor.b)
 				p:SetLighting(true)
 
 				p:SetGravity(particleFleckGravity)
@@ -240,7 +264,7 @@ else
 				p:SetEndSize(40)
 				p:SetStartAlpha(150)
 				p:SetEndAlpha(0)
-				p:SetColor(particleDustColor.r, particleDustColor.g, particleDustColor.b)
+				p:SetColor(dustColor.r, dustColor.g, dustColor.b)
 				p:SetLighting(true)
 
 				p:SetGravity(particleDustGravity)
@@ -251,12 +275,49 @@ else
 		end
 	end
 
+	function ENT:BstrdImpactEffect(pos)
+		if self:GetSkin() != 1 then return end
+
+		pos = pos or self:GetPos()
+
+		if not IsValid(emitter) then
+			emitter = ParticleEmitter(pos)
+		end
+
+		emitter:SetPos(pos)
+
+		for i = 1, 12 do
+			local p = emitter:Add(bstrdParticle, pos + (VectorRand() * 3))
+
+			if p then
+				p:SetDieTime(2)
+				p:SetRollDelta(math.Rand(-10, 10))
+
+				p:SetStartSize(3)
+				p:SetEndSize(3)
+				p:SetStartAlpha(255)
+				p:SetEndAlpha(0)
+
+				p:SetGravity(bstrdGravity)
+				p:SetVelocity(VectorRand() * 100)
+				p:SetAirResistance(200)
+				p:SetBounce(1)
+				p:SetCollide(true)
+			end
+		end
+	end
+
 	net.Receive(effectNetworkTag, function()
 		local ent = net.ReadEntity()
-		if not IsValid(ent) or ent:GetClass() != weaponClassName then return end
+		if not IsValid(ent) or ent:GetClass() != className then return end
 
 		local pos = net.ReadVector()
+		local isPerson = net.ReadBool()
 
 		ent:ImpactEffect(pos)
+
+		if isPerson then
+			ent:BstrdImpactEffect(pos)
+		end
 	end)
 end
