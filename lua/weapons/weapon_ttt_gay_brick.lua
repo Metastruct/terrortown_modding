@@ -18,7 +18,7 @@ if CLIENT then
 end
 
 if SERVER then
-	function SWEP:CreateGrenade()
+	function SWEP:CreateGrenade(src, ang, vel, angimp, pl)
 		local gren = ents.Create("ttt_brick_proj")
 
 		if not IsValid(gren) then return end
@@ -48,13 +48,20 @@ if SERVER then
 			end
 		end)
 
-		function ENT:PhysicsUpdate(phys)
+		function gren:PhysicsUpdate(phys)
 			if phys:GetVelocity():LengthSqr() < 4 then
-				local brick = ents.Create("ttt_gay_brick")
-				brick:SetPos(self:GetPos())
-				brick:Spawn()
+				timer.Simple(0, function()
+					if not IsValid(self) then return end
 
-				self:Remove()
+					local brick = ents.Create("ttt_gay_brick")
+					brick:SetPos(self:GetPos() + Vector(0, 0, 5))
+					brick:SetAngles(self:GetAngles())
+					brick:Spawn()
+					brick:PhysWake()
+					brick.Owner = pl
+
+					self:Remove()
+				end)
 			end
 		end
 
