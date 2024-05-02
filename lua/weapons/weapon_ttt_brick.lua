@@ -6,8 +6,12 @@ if SERVER then
 	resource.AddFile("materials/vgui/ttt/icon_brick.vmt")
 	resource.AddFile("models/weapons/tbrick01.mdl")
 	resource.AddFile("materials/models/weapons/tbrick/tbrick01.vmt")
+	resource.AddFile("materials/models/weapons/tbrick/tbrick01_evil.vmt")
 	resource.AddSingleFile("materials/models/weapons/tbrick/tbrick01_normal.vtf")
+	resource.AddSingleFile("materials/models/weapons/tbrick/tbrick01_warp_evil.vtf")
+	resource.AddSingleFile("materials/tbrick/face.png")
 	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/throw.mp3")
+	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/evil_trigger.mp3")
 else
 	SWEP.PrintName = "Brick"
 	SWEP.Slot = 3
@@ -80,9 +84,7 @@ function SWEP:Think()
             self:SetPin(false)
             self:SendWeaponAnim(ACT_VM_THROW)
 
-            if SERVER then
-                pl:SetAnimation(PLAYER_ATTACK1)
-            end
+			pl:DoAnimationEvent(ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE)
         end
     elseif self:GetThrowTime() > 0 and self:GetThrowTime() < CurTime() then
         self:Throw()
@@ -100,6 +102,7 @@ function SWEP:CreateGrenade(src, ang, vel, angimp, pl)
 
     gren:SetPos(src)
     gren:SetAngles(ang)
+	gren:SetSkin(self:GetSkin())
     gren:SetOwner(pl)
     gren:SetThrower(pl)
     gren:SetElasticity(0.15)
@@ -167,10 +170,35 @@ if SERVER then
 		if IsValid(phys) then
 			phys:SetMass(25)
 		end
+
+		if math.random() <= 0.005 then
+			self:SetSkin(1)
+		end
 	end
+
+	concommand.Add("ttt_brick_bstrd", function(pl)
+		if not IsValid(pl) then return end
+
+		local wep = pl:GetActiveWeapon()
+
+		if IsValid(wep) and wep:GetClass() == className and wep:GetSkin() != 1 then
+			wep:SetSkin(1)
+
+			local rf = RecipientFilter()
+			rf:AddPlayer(pl)
+
+			pl:EmitSound("weapons/tw1stal1cky/brick/evil_trigger.mp3", 75, 100, 1, CHAN_AUTO, 0, 0, rf)
+
+			wep:CallOnClient("BstrdFace")
+		end
+	end, nil, nil, FCVAR_UNREGISTERED)
 else
     local draw = draw
     local hudTextColor = Color(255, 255, 255, 180)
+
+	local bstrdFace = Material("tbrick/face.png", "noclamp")
+	local bstrdColor = Color(255, 0, 102)
+	local bstrdStart, bstrdEnd
 
 	SWEP.ClientsideWorldModel = {
 		Pos = Vector(3.2, -3.7, -2),
@@ -241,6 +269,8 @@ else
 			self:ToggleViewModelVisibility(owner:GetViewModel(), true)
 		end
 
+		bstrdStart, bstrdEnd = nil, nil
+
 		return BaseClass.Deploy(self)
 	end
 
@@ -306,6 +336,7 @@ else
 
 		modelData.Model:SetPos(pos)
 		modelData.Model:SetAngles(ang)
+		modelData.Model:SetSkin(self:GetSkin())
 
 		modelData.Model:DrawModel()
 
@@ -345,9 +376,45 @@ else
 
 		modelData.Model:SetPos(pos)
 		modelData.Model:SetAngles(ang)
+		modelData.Model:SetSkin(self:GetSkin())
 
 		modelData.Model:DrawModel()
 
 		return true
+	end
+
+	function SWEP:DrawHUDBackground()
+		if bstrdStart then
+			local now = RealTime()
+
+			if now >= bstrdEnd then
+				bstrdStart, bstrdEnd = nil, nil
+				return
+			end
+
+			local progress = math.Clamp((now - bstrdStart) / (bstrdEnd - bstrdStart), 0, 1)
+			local sW, sH = ScrW(), ScrH()
+
+			local size = (sH - 300) + (800 * progress)
+			local x, y = (sW - size) * 0.5, (sH - size) * 0.5
+
+			surface.SetAlphaMultiplier(1 - progress)
+
+			surface.SetDrawColor(bstrdColor.r, bstrdColor.g, bstrdColor.b, 200)
+			surface.DrawRect(0, 0, sW, sH)
+
+			surface.SetMaterial(bstrdFace)
+			surface.SetDrawColor(255, 255, 255)
+			surface.DrawTexturedRect(x, y, size, size)
+
+			surface.SetAlphaMultiplier(1)
+		end
+	end
+
+	-- Bstrd = easter egg stuff shhh
+	function SWEP:BstrdFace()
+		local now = RealTime()
+
+		bstrdStart, bstrdEnd = now, now + 2
 	end
 end
