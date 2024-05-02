@@ -56,7 +56,6 @@ if SERVER then
 		for _, ent in ipairs(ents.FindInSphere(self:WorldSpaceCenter(), 400)) do
 			ent:TakeDamageInfo(dmg)
 		end
-		util.BlastDamage(self, self.Owner or self, self:WorldSpaceCenter(), 400, 1)
 
 		self:NextThink(CurTime() + 1)
 		return true
