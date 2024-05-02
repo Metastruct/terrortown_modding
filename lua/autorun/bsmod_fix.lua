@@ -22,7 +22,7 @@ if SERVER then
 		function PLY:KillMove(...)
 			if not self:IsTerror() then return end
 
-			old(self, ...)
+			PLY.old_KillMove(self, ...)
 		end
 	end)
 
