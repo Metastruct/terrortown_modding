@@ -1,3 +1,8 @@
+if SERVER then
+	AddCSLuaFile()
+	resource.AddFile("materials/vgui/ttt/icon_gay_brick.vmt")
+end
+
 DEFINE_BASECLASS("weapon_ttt_brick")
 
 SWEP.Kind = WEAPON_EQUIP
