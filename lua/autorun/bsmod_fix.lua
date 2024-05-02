@@ -1,9 +1,22 @@
+local Tag = "bsmod_integration"
+local function elligibleForKillMove(ply)
+	if not IsValid(ply) then return false end
+	if not ply:IsPlayer() then return false end
+
+	if CLIENT and ply == LocalPlayer() then return false end
+
+	if not ply:Alive() then return false end
+	if ply:Health() > GetConVar("bsmod_killmove_minhealth"):GetInt() then return false end
+
+	return true
+end
+
 if SERVER then
 	AddCSLuaFile()
 
-	hook.Add("InitPostEntity", "BSModTakeDamage_fix", function()
+	hook.Add("InitPostEntity", Tag, function()
 		local PLY = FindMetaTable("Player")
-		local old = PLY.old_KillMove or PLY.KillMove
+		PLY.old_KillMove = PLY.old_KillMove or PLY.KillMove
 		if not old then return end
 
 		function PLY:KillMove(...)
@@ -12,31 +25,19 @@ if SERVER then
 			old(self, ...)
 		end
 	end)
+
+	hook.Add("PlayerUse", Tag, function(ply, ent)
+		if not _G.KMCheck then return end
+
+		if not ply:IsTerror() then return end
+		if not elligibleForKillMove(ent) then return end
+		if not ent:IsTerror() then return end
+
+		_G.KMCheck(ply)
+	end)
 end
 
 if CLIENT then
-	local Tag = "bsmod_integration"
-
-	local function elligibleForKillMove(ply)
-		if not IsValid(ply) then return false end
-		if not ply:IsPlayer() then return false end
-		if ply == LocalPlayer() then return false end
-		if not ply:Alive() then return false end
-		if ply:Health() > GetConVar("bsmod_killmove_minhealth"):GetInt() then return false end
-
-		return true
-	end
-
-	hook.Add("PlayerBindPress", Tag, function(ply, bind)
-		if ply ~= LocalPlayer() then return end
-		if bind ~= "+use" then return end
-
-		local tr = ply:GetEyeTrace()
-		if not elligibleForKillMove(tr.Entity) then return end
-
-		ply:ConCommand("bsmod_killmove")
-	end)
-
 	local RED_COLOR = Color(255,0,0)
 	hook.Add("TTTRenderEntityInfo", Tag, function(data)
 		local ent = data:GetEntity()
