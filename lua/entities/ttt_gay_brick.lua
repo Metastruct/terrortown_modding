@@ -38,7 +38,7 @@ if SERVER then
 			end
 
 			SafeRemoveEntity(self)
-			util.BlastDamage(self, self.Owner or self, self:WorldSpaceCenter(), 200, 50)
+			util.BlastDamage(self, self.Owner or self, self:WorldSpaceCenter(), 400, 50)
 		end)
 	end
 
@@ -47,6 +47,15 @@ if SERVER then
 	end
 
 	function ENT:Think()
+		local dmg = DamageInfo()
+		dmg:SetAttacker(self.Owner or self)
+		dmg:SetInflictor(self)
+		dmg:SetDamage(2)
+		dmg:SetDamageType(DMG_RADIATION)
+
+		for _, ent in ipairs(ents.FindInSphere(self:WorldSpaceCenter(), 400)) do
+			ent:TakeDamageInfo(dmg)
+		end
 		util.BlastDamage(self, self.Owner or self, self:WorldSpaceCenter(), 400, 1)
 
 		self:NextThink(CurTime() + 1)
