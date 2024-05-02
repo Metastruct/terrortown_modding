@@ -28,10 +28,7 @@ if SERVER then
 
 	hook.Add("PlayerUse", Tag, function(ply, ent)
 		if not _G.KMCheck then return end
-
-		if not ply:IsTerror() then return end
 		if not elligibleForKillMove(ent) then return end
-		if not ent:IsTerror() then return end
 
 		_G.KMCheck(ply)
 	end)
