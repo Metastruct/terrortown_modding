@@ -17,7 +17,7 @@ if SERVER then
 	hook.Add("InitPostEntity", Tag, function()
 		local PLY = FindMetaTable("Player")
 		PLY.old_KillMove = PLY.old_KillMove or PLY.KillMove
-		if not old then return end
+		if not PLY.old_KillMove then return end
 
 		function PLY:KillMove(...)
 			if not self:IsTerror() then return end
