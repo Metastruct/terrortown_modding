@@ -10,7 +10,7 @@ ENT.CanPickup = true
 
 if SERVER then
 	function ENT:Initialize()
-		self:SetModel("models/props_junk/cinderblock01a.mdl")
+		self:SetModel("models/weapons/tbrick01.mdl")
 		self:PhysicsInit(SOLID_VPHYSICS)
 		self:SetSolid(SOLID_VPHYSICS)
 		self:StartMotionController(true)
@@ -36,8 +36,6 @@ if SERVER then
 					phys:SetVelocity(VectorRand(-1000, 1000))
 				end
 			end
-
-			self:EmitSound(")weapons/tw1stal1cky/brick/evil_bonk.mp3", 100, 100, 1)
 
 			SafeRemoveEntity(self)
 			util.BlastDamage(self, self.Owner or self, self:WorldSpaceCenter(), 200, 50)
