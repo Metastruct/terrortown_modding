@@ -40,7 +40,7 @@ if SERVER then
 			self:EmitSound(")weapons/tw1stal1cky/brick/evil_bonk.mp3", 100, 100, 1)
 
 			SafeRemoveEntity(self)
-			util.BlastDamage(self, self, self:WorldSpaceCenter(), 200, 50)
+			util.BlastDamage(self, self.Owner or self, self:WorldSpaceCenter(), 200, 50)
 		end)
 	end
 
@@ -49,7 +49,7 @@ if SERVER then
 	end
 
 	function ENT:Think()
-		util.BlastDamage(self, self, self:WorldSpaceCenter(), 400, 1)
+		util.BlastDamage(self, self.Owner or self, self:WorldSpaceCenter(), 400, 1)
 
 		self:NextThink(CurTime() + 1)
 		return true
