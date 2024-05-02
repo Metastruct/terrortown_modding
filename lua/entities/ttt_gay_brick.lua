@@ -38,7 +38,7 @@ if SERVER then
 			end
 
 			SafeRemoveEntity(self)
-			util.BlastDamage(self, self.Owner or self, self:WorldSpaceCenter(), 400, 50)
+			util.BlastDamage(self, self.Owner or self, self:WorldSpaceCenter(), 600, 50)
 		end)
 	end
 
@@ -53,7 +53,7 @@ if SERVER then
 		dmg:SetDamage(2)
 		dmg:SetDamageType(DMG_RADIATION)
 
-		for _, ent in ipairs(ents.FindInSphere(self:WorldSpaceCenter(), 400)) do
+		for _, ent in ipairs(ents.FindInSphere(self:WorldSpaceCenter(), 600)) do
 			ent:TakeDamageInfo(dmg)
 		end
 
@@ -122,7 +122,7 @@ if CLIENT then
 			dlight.b = col.b
 			dlight.brightness = 5
 			dlight.decay = 1
-			dlight.size = 800
+			dlight.size = 1000
 			dlight.dietime = CurTime() + 0.25
 		end
 	end
