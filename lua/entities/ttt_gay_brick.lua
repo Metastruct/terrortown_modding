@@ -92,7 +92,7 @@ if CLIENT then
 			if err or not IsValid(chan) then return end
 			if IsValid(self.Channel) then return end
 
-			chan:SetVolume(0.5)
+			chan:SetVolume(0.8)
 			chan:SetPos(self:GetPos())
 			chan:Play()
 
