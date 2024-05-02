@@ -46,78 +46,78 @@ SWEP.throwForceMax = 3			-- Max throw force (at full power)
 SWEP.throwForce = SWEP.throwForceMin
 
 function SWEP:PullPin()
-    if self:GetPin() then return end
+	if self:GetPin() then return end
 
-    if not IsValid(self:GetOwner()) then return end
+	if not IsValid(self:GetOwner()) then return end
 
-    self:SendWeaponAnim(ACT_VM_PULLBACK_HIGH)
+	self:SendWeaponAnim(ACT_VM_PULLBACK_HIGH)
 
-    if self.SetHoldType then
-        self:SetHoldType(self.HoldReady)
-    end
+	if self.SetHoldType then
+		self:SetHoldType(self.HoldReady)
+	end
 
-    self:SetPin(true)
-    self:SetPullTime(CurTime())
+	self:SetPin(true)
+	self:SetPullTime(CurTime())
 
-    self:SetDetTime(CurTime() + self.detonate_timer)
+	self:SetDetTime(CurTime() + self.detonate_timer)
 end
 
 function SWEP:Think()
 	-- Skip calling weapon_tttbasegrenade's Think, only call weapon_tttbase's Think :)
-    BaseClass.BaseClass.Think(self)
+	BaseClass.BaseClass.Think(self)
 
-    local pl = self:GetOwner()
+	local pl = self:GetOwner()
 
-    if not IsValid(pl) then return end
+	if not IsValid(pl) then return end
 
-    if self:GetPin() then
+	if self:GetPin() then
 		local pullTime = self:GetPullTime()
 		local powerScale = math.Clamp((CurTime() - pullTime) / (self:GetDetTime() - pullTime), 0, 1)
 
 		self.throwForce = self.throwForceMin + (self.throwForceMax - self.throwForceMin) * powerScale
 
-        -- Throw now
-        if not pl:KeyDown(IN_ATTACK) then
+		-- Throw now
+		if not pl:KeyDown(IN_ATTACK) then
 			self:EmitSound(self.ThrowSound, 70, math.random(92, 101), 0.66)
-            self:StartThrow()
+			self:StartThrow()
 
-            self:SetPin(false)
-            self:SendWeaponAnim(ACT_VM_THROW)
+			self:SetPin(false)
+			self:SendWeaponAnim(ACT_VM_THROW)
 
 			pl:DoAnimationEvent(ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE)
-        end
-    elseif self:GetThrowTime() > 0 and self:GetThrowTime() < CurTime() then
-        self:Throw()
-    end
+		end
+	elseif self:GetThrowTime() > 0 and self:GetThrowTime() < CurTime() then
+		self:Throw()
+	end
 end
 
 function SWEP:GetGrenadeName()
-    return "ttt_brick_proj"
+	return "ttt_brick_proj"
 end
 
 function SWEP:CreateGrenade(src, ang, vel, angimp, pl)
-    local gren = ents.Create(self:GetGrenadeName())
+	local gren = ents.Create(self:GetGrenadeName())
 
-    if not IsValid(gren) then return end
+	if not IsValid(gren) then return end
 
-    gren:SetPos(src)
-    gren:SetAngles(ang)
+	gren:SetPos(src)
+	gren:SetAngles(ang)
 	gren:SetSkin(self:GetSkin())
-    gren:SetOwner(pl)
-    gren:SetThrower(pl)
-    gren:SetElasticity(0.15)
+	gren:SetOwner(pl)
+	gren:SetThrower(pl)
+	gren:SetElasticity(0.15)
 
 	gren.damageScaling = self.damageScaling
 
-    gren:Spawn()
-    gren:PhysWake()
+	gren:Spawn()
+	gren:PhysWake()
 
-    local phys = gren:GetPhysicsObject()
+	local phys = gren:GetPhysicsObject()
 
-    if IsValid(phys) then
-        phys:SetVelocity(vel)
-        phys:AddAngleVelocity(angimp)
-    end
+	if IsValid(phys) then
+		phys:SetVelocity(vel)
+		phys:AddAngleVelocity(angimp)
+	end
 
 	-- Clear the owner after a short delay so it can collide with them again
 	timer.Simple(0.2, function()
@@ -126,40 +126,40 @@ function SWEP:CreateGrenade(src, ang, vel, angimp, pl)
 		end
 	end)
 
-    return gren
+	return gren
 end
 
 function SWEP:GetThrowVelocity()
-    local pl = self:GetOwner()
+	local pl = self:GetOwner()
 
-    local ang = pl:EyeAngles()
-    local src = pl:GetPos()
-        + (pl:Crouching() and pl:GetViewOffsetDucked() or pl:GetViewOffset())
-        + (ang:Forward() * 8)
-        + (ang:Right() * 10)
+	local ang = pl:EyeAngles()
+	local src = pl:GetPos()
+		+ (pl:Crouching() and pl:GetViewOffsetDucked() or pl:GetViewOffset())
+		+ (ang:Forward() * 8)
+		+ (ang:Right() * 10)
 
-    local target = pl:GetEyeTraceNoCursor().HitPos
+	local target = pl:GetEyeTraceNoCursor().HitPos
 
-    -- A target angle to actually throw the grenade to the crosshair instead of forwards
-    local tang = (target - src):Angle()
+	-- A target angle to actually throw the grenade to the crosshair instead of forwards
+	local tang = (target - src):Angle()
 
-    -- Makes the grenade go upwards
+	-- Makes the grenade go upwards
 	local upBoost = 3
 
-    if tang.p < 90 then
-        tang.p = -upBoost + tang.p * ((90 + upBoost) / 90)
-    else
-        tang.p = 360 - tang.p
-        tang.p = -upBoost + tang.p * -((90 + upBoost) / 90)
-    end
+	if tang.p < 90 then
+		tang.p = -upBoost + tang.p * ((90 + upBoost) / 90)
+	else
+		tang.p = 360 - tang.p
+		tang.p = -upBoost + tang.p * -((90 + upBoost) / 90)
+	end
 
-    -- Makes the grenade not go backwards :/
-    tang.p = math.Clamp(tang.p, -90, 90)
+	-- Makes the grenade not go backwards :/
+	tang.p = math.Clamp(tang.p, -90, 90)
 
-    local vel = math.min(800, (90 - tang.p) * 6)
-    local force = tang:Forward() * vel * self.throwForce + pl:GetVelocity()
+	local vel = math.min(800, (90 - tang.p) * 6)
+	local force = tang:Forward() * vel * self.throwForce + pl:GetVelocity()
 
-    return src, force
+	return src, force
 end
 
 if SERVER then
@@ -193,8 +193,8 @@ if SERVER then
 		end
 	end, nil, nil, FCVAR_UNREGISTERED)
 else
-    local draw = draw
-    local hudTextColor = Color(255, 255, 255, 180)
+	local draw = draw
+	local hudTextColor = Color(255, 255, 255, 180)
 
 	local bstrdFace = Material("tbrick/face.png", "noclamp")
 	local bstrdColor = Color(255, 0, 102)
@@ -212,45 +212,45 @@ else
 		Bone = "ValveBiped.Bip01_R_Hand"
 	}
 
-    function SWEP:DrawHUD()
-        if self.HUDHelp then
-            self:DrawHelp()
-        end
+	function SWEP:DrawHUD()
+		if self.HUDHelp then
+			self:DrawHelp()
+		end
 
-        local x = ScrW() * 0.5
-        local y = ScrH() * 0.5
+		local x = ScrW() * 0.5
+		local y = ScrH() * 0.5
 
-        if self:GetPin() and self:GetPullTime() > 0 then
-            local client = LocalPlayer()
+		if self:GetPin() and self:GetPullTime() > 0 then
+			local client = LocalPlayer()
 
-            y = y + (y / 3)
+			y = y + (y / 3)
 
 			local pullTime = self:GetPullTime()
 
-            local pct = math.Clamp((CurTime() - pullTime) / (self:GetDetTime() - pullTime), 0, 1)
+			local pct = math.Clamp((CurTime() - pullTime) / (self:GetDetTime() - pullTime), 0, 1)
 
-            local scale = appearance.GetGlobalScale()
-            local w, h = 100 * scale, 20 * scale
-            local drawColor = appearance.SelectFocusColor(client:GetRoleColor())
+			local scale = appearance.GetGlobalScale()
+			local w, h = 100 * scale, 20 * scale
+			local drawColor = appearance.SelectFocusColor(client:GetRoleColor())
 
-            draw.AdvancedText(
-                "POWER",
-                "PureSkinBar",
-                x - 0.5 * w,
-                y - h,
-                hudTextColor,
-                TEXT_ALIGN_LEFT,
-                TEXT_ALIGN_BOTTOM,
-                true,
-                scale
-            )
-            draw.Box(x - w / 2 + scale, y - h + scale, w * pct, h, COLOR_BLACK)
-            draw.OutlinedShadowedBox(x - w / 2, y - h, w, h, scale, drawColor)
-            draw.Box(x - w / 2, y - h, w * pct, h, drawColor)
-        else
-            self:DoDrawCrosshair(x, y, true)
-        end
-    end
+			draw.AdvancedText(
+				"POWER",
+				"PureSkinBar",
+				x - 0.5 * w,
+				y - h,
+				hudTextColor,
+				TEXT_ALIGN_LEFT,
+				TEXT_ALIGN_BOTTOM,
+				true,
+				scale
+			)
+			draw.Box(x - w / 2 + scale, y - h + scale, w * pct, h, COLOR_BLACK)
+			draw.OutlinedShadowedBox(x - w / 2, y - h, w, h, scale, drawColor)
+			draw.Box(x - w / 2, y - h, w * pct, h, drawColor)
+		else
+			self:DoDrawCrosshair(x, y, true)
+		end
+	end
 
 	function SWEP:ToggleViewModelVisibility(vm, state)
 		if not IsValid(vm) then return end

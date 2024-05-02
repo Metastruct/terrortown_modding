@@ -30,11 +30,11 @@ ENT.Projectile = true
 AccessorFunc(ENT, "thrower", "Thrower")
 
 function ENT:Initialize()
-    self:SetModel(self.Model)
+	self:SetModel(self.Model)
 
-    self:PhysicsInit(SOLID_VPHYSICS)
-    self:SetMoveType(MOVETYPE_VPHYSICS)
-    self:SetCollisionGroup(COLLISION_GROUP_PROJECTILE)
+	self:PhysicsInit(SOLID_VPHYSICS)
+	self:SetMoveType(MOVETYPE_VPHYSICS)
+	self:SetCollisionGroup(COLLISION_GROUP_PROJECTILE)
 
 	local phys = self:GetPhysicsObject()
 	if IsValid(phys) then
