@@ -53,7 +53,7 @@ if SERVER then
 
 	function ENT:Think()
 		for _, ent in ipairs(ents.FindInSphere(self:WorldSpaceCenter(), self.MaxRange)) do
-			if ent == self then return end
+			if ent == self or ent:IsWeapon() then return end
 
 			local dmg = DamageInfo()
 			dmg:SetAttacker(self:GetAttacker())
