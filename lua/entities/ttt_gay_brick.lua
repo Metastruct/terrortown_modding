@@ -62,7 +62,6 @@ if SERVER then
 			dmg:SetDamageType(DMG_RADIATION)
 
 			ent:TakeDamageInfo(dmg)
-			print(ent, dmg:GetDamage())
 		end
 
 		self:NextThink(CurTime() + 1)
