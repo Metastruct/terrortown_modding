@@ -309,7 +309,7 @@ else
 
 	net.Receive(effectNetworkTag, function()
 		local ent = net.ReadEntity()
-		if not IsValid(ent) or ent:GetClass() != className then return end
+		if not IsValid(ent) or ent:GetClass() != className or not ent.ImpactEffect then return end
 
 		local pos = net.ReadVector()
 		local isPerson = net.ReadBool()
