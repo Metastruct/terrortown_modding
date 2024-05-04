@@ -142,6 +142,19 @@ if SERVER then
 				end
 			end)
 		end
+
+		-- Nova related fixes
+		if ROLE_NOVA then
+			-- Prevent Novas from kill binding to explode instantly
+			hook.Add("CanPlayerSuicide", "TTT2NovaAntiSelfDetonate", function(pl)
+				if pl:IsTerror() and pl:GetSubRole() == ROLE_NOVA then
+					if LANG and LANG.Msg then
+						LANG.Msg(pl, "Nuh uhhh", nil, MSG_MSTACK_ROLE)
+					end
+					return false
+				end
+			end)
+		end
 	end)
 else
 	util.OnInitialize(function()
