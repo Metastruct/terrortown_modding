@@ -55,15 +55,16 @@ if SERVER then
 
 		-- Gambler related fixes
 		if ROLE_GAMBLER then
-			-- The ONLY way to apply this fix is to copy the whole snippet of code and make our own little amends :D
-			-- This means ~90% of the below code is from the Gambler addon itself
+			-- Fix Gambler's flawed equipment randomising and giving code
+			--     The ONLY way to apply this fix is to copy the whole segment of code and make our own little amends :D
+			--     This means ~90% of the below code is from the Gambler addon itself
 			local randomAmountConvar = GetConVar("ttt2_gambler_randomitems")
 
 			local function SendItemsToGambler(gambler)
 				local subrole = ROLE_TRAITOR
 				local buyCount = randomAmountConvar and randomAmountConvar:GetInt() or 3
 
-				-- gather all items buyable for role
+				-- Gather all items buyable for role
 				local roleItems = {}
 				for k, v in ipairs(items.GetList()) do
 					if v and v.CanBuy and table.HasValue(v.CanBuy, subrole) then
@@ -71,7 +72,7 @@ if SERVER then
 					end
 				end
 
-				-- gather all weapons buyable for role (exclude built-in grenades)
+				-- Gather all weapons buyable for role (excluding built-in grenades)
 				local roleWeapons = {}
 				for k, v in ipairs(weapons.GetList()) do
 					if v and not (v.builtin and v.IsGrenade) and v.CanBuy and table.HasValue(v.CanBuy, subrole) then
@@ -85,7 +86,7 @@ if SERVER then
 				local giveItems = {}
 				local giveWeapons = {}
 
-				-- collect items to give
+				-- Collect items to give
 				if randomItems > 0 then
 					for i = 1, randomItems do
 						local newItem = roleItems[math.random(#roleItems)]
@@ -98,7 +99,7 @@ if SERVER then
 					end
 				end
 
-				-- collect weapons to give
+				-- Collect weapons to give
 				if randomWeapons > 0 then
 					for i = 1, randomWeapons do
 						local newWeapon = roleWeapons[math.random(#roleWeapons)]
@@ -113,14 +114,19 @@ if SERVER then
 
 				local receivedEquipment = {}
 
-				-- give items
+				-- Give items
 				for _, i in pairs(giveItems) do
-					gambler:GiveEquipmentItem(i.id)
+					local item = gambler:GiveEquipmentItem(i.id)
+
+					-- Some items rely on their Bought function being called to work properly, so call it
+					if item and item.Bought then
+						item:Bought(gambler)
+					end
 
 					receivedEquipment[#receivedEquipment + 1] = i.name
 				end
 
-				-- give weapons
+				-- Give weapons
 				for _, w in pairs(giveWeapons) do
 					-- Use Give instead of GiveEquipmentWeapon to ignore slot limits
 					gambler:Give(w.id)
@@ -128,7 +134,7 @@ if SERVER then
 					receivedEquipment[#receivedEquipment + 1] = w.name
 				end
 
-				-- send message to client
+				-- Send message to client
 				net.Start("gambler_message")
 				net.WriteString(table.concat(receivedEquipment, ", ") .. ".")
 				net.Send(gambler)
