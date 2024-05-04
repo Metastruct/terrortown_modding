@@ -64,10 +64,20 @@ if SERVER then
 					brick:Spawn()
 					brick:PhysWake()
 					brick.Owner = pl
+					brick.Target = self.Target
 
 					self:Remove()
 				end)
 			end
+		end
+
+		local old_PhysCollide = gren.PhysicsCollide
+		function gren:PhysicsCollide(data, phys)
+			if IsValid(data.HitEntity) and data.HitEntity:IsPlayer() then
+				self.Target = data.HitEntity
+			end
+
+			old_PhysCollide(self, data, phys)
 		end
 
 		return gren
