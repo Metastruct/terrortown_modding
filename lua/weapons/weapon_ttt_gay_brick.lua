@@ -73,7 +73,7 @@ if SERVER then
 
 		local old_PhysCollide = gren.PhysicsCollide
 		function gren:PhysicsCollide(data, phys)
-			if IsValid(data.HitEntity) and data.HitEntity:IsPlayer() then
+			if IsValid(data.HitEntity) and data.HitEntity:IsPlayer() and data.HitEntity:IsTerror() then
 				self.Target = data.HitEntity
 			end
 

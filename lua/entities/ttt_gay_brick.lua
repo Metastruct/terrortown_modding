@@ -7,7 +7,7 @@ ENT.Spawnable = false
 ENT.PrintName = "Gay Brick"
 ENT.ClassName = "gay_brick"
 ENT.CanPickup = true
-ENT.MaxRange = 600
+ENT.MaxRange = 500
 
 if SERVER then
 	function ENT:Initialize()
@@ -52,6 +52,8 @@ if SERVER then
 	end
 
 	function ENT:Think()
+		if isnumber(self.NextDamage) and CurTime() < self.NextDamage then return end
+
 		for _, ent in ipairs(ents.FindInSphere(self:WorldSpaceCenter(), self.MaxRange)) do
 			if ent == self or ent:IsWeapon() then continue end
 
@@ -64,6 +66,7 @@ if SERVER then
 			ent:TakeDamageInfo(dmg)
 		end
 
+		self.NextDamage = CurTime() + 1
 		self:NextThink(CurTime() + 1)
 		return true
 	end
@@ -72,7 +75,7 @@ if SERVER then
 		phys:Wake()
 
 		local target_pos
-		if IsValid(self.Target) and self.Target:IsPlayer() and self.Target:Alive() then
+		if IsValid(self.Target) and self.Target:IsPlayer() and self.Target:IsTerror() then
 			target_pos = self.Target:EyePos() + Vector(0, 0, 30)
 		else
 			local tr = util.TraceLine({
