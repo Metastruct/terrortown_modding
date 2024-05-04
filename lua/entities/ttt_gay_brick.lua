@@ -53,13 +53,16 @@ if SERVER then
 
 	function ENT:Think()
 		for _, ent in ipairs(ents.FindInSphere(self:WorldSpaceCenter(), self.MaxRange)) do
+			if ent == self then return end
+
 			local dmg = DamageInfo()
 			dmg:SetAttacker(self:GetAttacker())
 			dmg:SetInflictor(self)
-			dmg:SetDamage(math.Round((1 - ent:GetPos():Distance(self:WorldSpaceCenter()) / self.MaxRange) * 15))
+			dmg:SetDamage(math.Round((1 - ent:GetPos():Distance(self:WorldSpaceCenter()) / self.MaxRange) * 8))
 			dmg:SetDamageType(DMG_RADIATION)
 
 			ent:TakeDamageInfo(dmg)
+			print(ent, dmg:GetDamage())
 		end
 
 		self:NextThink(CurTime() + 1)
@@ -70,8 +73,8 @@ if SERVER then
 		phys:Wake()
 
 		local target_pos
-		if IsValid(self.Target) and self.Target:IsPlayer() then
-			target_pos = self.Target:EyePos() + Vector(0, 0, 50)
+		if IsValid(self.Target) and self.Target:IsPlayer() and self.Target:Alive() then
+			target_pos = self.Target:EyePos() + Vector(0, 0, 30)
 		else
 			local tr = util.TraceLine({
 				start = self:GetPos(),
