@@ -7,6 +7,7 @@ ENT.Spawnable = false
 ENT.PrintName = "Gay Brick"
 ENT.ClassName = "gay_brick"
 ENT.CanPickup = true
+ENT.MaxRange = 600
 
 if SERVER then
 	function ENT:Initialize()
@@ -38,8 +39,12 @@ if SERVER then
 			end
 
 			SafeRemoveEntity(self)
-			util.BlastDamage(self, self.Owner or self, self:WorldSpaceCenter(), 600, 50)
+			util.BlastDamage(self, self:GetAttacker(), self:WorldSpaceCenter(), self.MaxRange, 50)
 		end)
+	end
+
+	function ENT:GetAttacker()
+		return IsValid(self.Owner) and self.Owner or self
 	end
 
 	function ENT:Use(_, caller)
@@ -47,13 +52,13 @@ if SERVER then
 	end
 
 	function ENT:Think()
-		local dmg = DamageInfo()
-		dmg:SetAttacker(self.Owner or self)
-		dmg:SetInflictor(self)
-		dmg:SetDamage(2)
-		dmg:SetDamageType(DMG_RADIATION)
+		for _, ent in ipairs(ents.FindInSphere(self:WorldSpaceCenter(), self.MaxRange)) do
+			local dmg = DamageInfo()
+			dmg:SetAttacker(self:GetAttacker())
+			dmg:SetInflictor(self)
+			dmg:SetDamage(math.Round((1 - ent:GetPos():Distance(self:WorldSpaceCenter()) / self.MaxRange) * 15))
+			dmg:SetDamageType(DMG_RADIATION)
 
-		for _, ent in ipairs(ents.FindInSphere(self:WorldSpaceCenter(), 600)) do
 			ent:TakeDamageInfo(dmg)
 		end
 
@@ -64,15 +69,22 @@ if SERVER then
 	function ENT:PhysicsSimulate(phys, delta)
 		phys:Wake()
 
-		local tr = util.TraceLine({
-			start = self:GetPos(),
-			endpos = self:GetPos() - Vector(0, 0, 100),
-			filter = self
-		})
+		local target_pos
+		if IsValid(self.Target) and self.Target:IsPlayer() then
+			target_pos = self.Target:EyePos() + Vector(0, 0, 50)
+		else
+			local tr = util.TraceLine({
+				start = self:GetPos(),
+				endpos = self:GetPos() - Vector(0, 0, 100),
+				filter = self
+			})
 
-		self.ShadowParams.secondstoarrive = 1 -- How long it takes to move to pos and rotate accordingly - only if it could move as fast as it want - damping and max speed/angular will make this invalid (Cannot be 0! Will give errors if you do)
-		self.ShadowParams.pos = tr.HitPos + Vector(0, 0, 60) -- Where you want to move to
-		self.ShadowParams.angle = self:GetAngles() + Angle(0, 15, 0) -- Angle you want to move to
+			target_pos = tr.HitPos + Vector(0, 0, 60)
+		end
+
+		self.ShadowParams.secondstoarrive = 2 -- How long it takes to move to pos and rotate accordingly - only if it could move as fast as it want - damping and max speed/angular will make this invalid (Cannot be 0! Will give errors if you do)
+		self.ShadowParams.pos = target_pos -- Where you want to move to
+		self.ShadowParams.angle = self:GetAngles() + Angle(0, 30, 0) -- Angle you want to move to
 		self.ShadowParams.maxangular = 5000 --What should be the maximal angular force applied
 		self.ShadowParams.maxangulardamp = 10000 -- At which force/speed should it start damping the rotation
 		self.ShadowParams.maxspeed = 1000000 -- Maximal linear force applied
@@ -122,7 +134,7 @@ if CLIENT then
 			dlight.b = col.b
 			dlight.brightness = 5
 			dlight.decay = 1
-			dlight.size = 1000
+			dlight.size = self.MaxRange + 400
 			dlight.dietime = CurTime() + 0.25
 		end
 	end
