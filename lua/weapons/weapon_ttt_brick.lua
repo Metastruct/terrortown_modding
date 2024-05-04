@@ -171,7 +171,7 @@ if SERVER then
 			phys:SetMass(25)
 		end
 
-		if math.random() <= 0.005 then
+		if math.random() <= 0.001 then
 			self:SetSkin(1)
 		end
 	end
