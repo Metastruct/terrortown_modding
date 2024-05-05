@@ -14,6 +14,7 @@ if SERVER then
 	resource.AddSingleFile("sound/weapons/tw1stal1cky/brick/evil_trigger.mp3")
 else
 	SWEP.PrintName = "Brick"
+	SWEP.Author = "TW1STaL1CKY"
 	SWEP.Slot = 3
 
 	SWEP.ViewModelFlip = false
@@ -45,6 +46,23 @@ SWEP.throwForceMin = 0.75		-- Base throw force (at zero power)
 SWEP.throwForceMax = 3			-- Max throw force (at full power)
 SWEP.throwForce = SWEP.throwForceMin
 
+function SWEP:Initialize()
+	BaseClass.Initialize(self)
+
+	if SERVER then
+		local phys = self:GetPhysicsObject()
+		if IsValid(phys) then
+			phys:SetMass(25)
+		end
+
+		if math.random() <= 0.001 then
+			self:SetSkin(1)
+		end
+	else
+		self:AddTTT2HUDHelp("Throw (Hold to power)", "Cancel throw")
+	end
+end
+
 function SWEP:PullPin()
 	if self:GetPin() then return end
 
@@ -62,6 +80,20 @@ function SWEP:PullPin()
 	self:SetDetTime(CurTime() + self.detonate_timer)
 end
 
+function SWEP:CancelThrow()
+	self:SetPin(false)
+	self:SetPullTime(0)
+	self:SetDetTime(0)
+
+	self:SendWeaponAnim(ACT_VM_IDLE)
+
+	if self.SetHoldType then
+		self:SetHoldType(self.HoldNormal)
+	end
+
+	self.throwForce = self.throwForceMin
+end
+
 function SWEP:Think()
 	-- Skip calling weapon_tttbasegrenade's Think, only call weapon_tttbase's Think :)
 	BaseClass.BaseClass.Think(self)
@@ -76,8 +108,9 @@ function SWEP:Think()
 
 		self.throwForce = self.throwForceMin + (self.throwForceMax - self.throwForceMin) * powerScale
 
-		-- Throw now
 		if not pl:KeyDown(IN_ATTACK) then
+			-- MOUSE1 released, throw now
+
 			self:EmitSound(self.ThrowSound, 70, math.random(92, 101), 0.66)
 			self:StartThrow()
 
@@ -85,6 +118,12 @@ function SWEP:Think()
 			self:SendWeaponAnim(ACT_VM_THROW)
 
 			pl:DoAnimationEvent(ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE)
+		elseif pl:KeyDown(IN_ATTACK2) then
+			-- MOUSE2 pressed, cancel throw
+
+			self:CancelThrow()
+
+			self:SetNextPrimaryFire(CurTime() + 0.1)
 		end
 	elseif self:GetThrowTime() > 0 and self:GetThrowTime() < CurTime() then
 		self:Throw()
@@ -107,10 +146,12 @@ function SWEP:CreateGrenade(src, ang, vel, angimp, pl)
 	gren:SetThrower(pl)
 	gren:SetElasticity(0.15)
 
-	gren.damageScaling = self.damageScaling
-
 	gren:Spawn()
 	gren:PhysWake()
+
+	-- Transfer damage scale value and stored fingerprints to the projectile entity
+	gren.damageScaling = self.damageScaling
+	gren.fingerprints = self.fingerprints
 
 	local phys = gren:GetPhysicsObject()
 
@@ -163,19 +204,6 @@ function SWEP:GetThrowVelocity()
 end
 
 if SERVER then
-	function SWEP:Initialize()
-		BaseClass.Initialize(self)
-
-		local phys = self:GetPhysicsObject()
-		if IsValid(phys) then
-			phys:SetMass(25)
-		end
-
-		if math.random() <= 0.001 then
-			self:SetSkin(1)
-		end
-	end
-
 	concommand.Add("ttt_brick_bstrd", function(pl)
 		if not IsValid(pl) then return end
 

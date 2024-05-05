@@ -438,7 +438,7 @@ if SERVER then
 	end
 
 	-- Disable pickup while delayed shot is going on, otherwise jank happens
-	hook.Add("PlayerCanPickupWeapon", className, function(pl, wep)
+	hook.Add("PlayerCanPickupWeapon", "TTTBlunderbussWeapon", function(pl, wep)
 		if wep:GetClass() == className and wep:GetDelayedShotTime() > 0 then return false end
 	end)
 else
