@@ -1,16 +1,22 @@
 local Tag = "bsmod_integration"
 
-local convarMinHealth = GetConVar("bsmod_killmove_minhealth")
+local convarMinHealth
+local function getConvarMinHealth()
+	convarMinHealth = convarMinHealth or GetConVar("bsmod_killmove_minhealth")
+	return convarMinHealth
+end
 
 local function elligibleForKillMove(ply)
 	if not IsValid(ply)
 		or not ply:IsPlayer()
 		or (CLIENT and ply == LocalPlayer())
 		or not ply:Alive()
-		or ply:Health() > convarMinHealth:GetInt()
 	then
 		return false
 	end
+
+	local convar = getConvarMinHealth()
+	if convar and ply:Health() > convar:GetInt() then return false end
 
 	return true
 end
@@ -40,7 +46,11 @@ if SERVER then
 else
 	local RED_COLOR = Color(255,0,0)
 
-	local convarGlow = GetConVar("bsmod_killmove_glow")
+	local convarGlow
+	local function getConvarGlow()
+		convarGlow = convarGlow or GetConVar("bsmod_killmove_glow")
+		return convarGlow
+	end
 
 	hook.Add("TTTRenderEntityInfo", Tag, function(data)
 		local ent = data:GetEntity()
@@ -49,14 +59,15 @@ else
 		local dist = data:GetEntityDistance()
 		if dist > 200 then return end
 
-		if convarGlow then
-			convarGlow:SetBool(false)
+		local convar = getConvarGlow()
+		if convar then
+			convar:SetBool(false)
 		end
 
 		data:EnableText()
 		data:EnableOutline()
-
 		data:SetOutlineColor(RED_COLOR)
+
 		data:AddDescriptionLine("Press [" .. input.LookupBinding("+use", true):upper() .. "] to FINISH them!")
 	end)
 end
