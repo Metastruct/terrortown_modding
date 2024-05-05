@@ -72,8 +72,28 @@ util.OnInitialize(function()
 		SWEP.Primary.NumShots = 9
 	end
 
-	-- Kiss: Make its weird heart model hidden on players
-	if CLIENT then
+	if SERVER then
+		-- Serverside only tweaks
+
+		-- All grenade projectiles: Disable air-drag for slightly better flight, following trajectory line more accurately
+		local grenadeProjectileBaseClass = "ttt_basegrenade_proj"
+
+		hook.Add("OnEntityCreated", "TTTGrenadesDisableAirdrag", function(ent)
+			if not IsValid(ent) or ent.Base != grenadeProjectileBaseClass then return end
+
+			timer.Simple(0, function()
+				if not IsValid(ent) then return end
+
+				local phys = ent:GetPhysicsObject()
+				if IsValid(phys) then
+					phys:EnableDrag(false)
+				end
+			end)
+		end)
+	else
+		-- Clientside only tweaks
+
+		-- Kiss: Hide its weird heart model on players
 		SWEP = weapons.GetStored("weapon_ttt2_kiss")
 		if SWEP then
 			function SWEP:DrawWorldModel()
