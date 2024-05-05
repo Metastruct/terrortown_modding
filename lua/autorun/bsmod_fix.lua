@@ -1,12 +1,16 @@
 local Tag = "bsmod_integration"
+
+local convarMinHealth = GetConVar("bsmod_killmove_minhealth")
+
 local function elligibleForKillMove(ply)
-	if not IsValid(ply) then return false end
-	if not ply:IsPlayer() then return false end
-
-	if CLIENT and ply == LocalPlayer() then return false end
-
-	if not ply:Alive() then return false end
-	if ply:Health() > GetConVar("bsmod_killmove_minhealth"):GetInt() then return false end
+	if not IsValid(ply)
+		or not ply:IsPlayer()
+		or (CLIENT and ply == LocalPlayer())
+		or not ply:Alive()
+		or ply:Health() > convarMinHealth:GetInt()
+	then
+		return false
+	end
 
 	return true
 end
@@ -16,6 +20,7 @@ if SERVER then
 
 	hook.Add("InitPostEntity", Tag, function()
 		local PLY = FindMetaTable("Player")
+
 		PLY.old_KillMove = PLY.old_KillMove or PLY.KillMove
 		if not PLY.old_KillMove then return end
 
@@ -32,10 +37,11 @@ if SERVER then
 
 		_G.KMCheck(ply)
 	end)
-end
-
-if CLIENT then
+else
 	local RED_COLOR = Color(255,0,0)
+
+	local convarGlow = GetConVar("bsmod_killmove_glow")
+
 	hook.Add("TTTRenderEntityInfo", Tag, function(data)
 		local ent = data:GetEntity()
 		if not elligibleForKillMove(ent) then return end
@@ -43,9 +49,8 @@ if CLIENT then
 		local dist = data:GetEntityDistance()
 		if dist > 200 then return end
 
-		local glow_cvar = GetConVar("bsmod_killmove_glow")
-		if glow_cvar then
-			glow_cvar:SetBool(false)
+		if convarGlow then
+			convarGlow:SetBool(false)
 		end
 
 		data:EnableText()
