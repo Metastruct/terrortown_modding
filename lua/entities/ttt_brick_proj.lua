@@ -39,7 +39,13 @@ function ENT:Initialize()
 	local phys = self:GetPhysicsObject()
 	if IsValid(phys) then
 		phys:AddGameFlag(FVPHYSICS_NO_IMPACT_DMG)
+
+		phys:EnableDrag(false)
 		phys:SetMass(3)
+	end
+
+	if SERVER then
+		self.ThrownTime = CurTime()
 	end
 end
 
@@ -48,6 +54,9 @@ if SERVER then
 
 	ENT.DamageMin = 2
 	ENT.DamageMax = 45
+
+	-- The amount of time the brick projectile has to exist before dealing full speed-scaled damage
+	ENT.DamageGraceTime = 0.1
 
 	ENT.SpeedScaleMin = 300
 	ENT.SpeedScaleMax = 1800
@@ -114,20 +123,32 @@ if SERVER then
 				end
 
 				local thrower = self:GetThrower()
+				local isThrowerValid = IsValid(thrower)
 
-				local dmg = DamageInfo()
-				dmg:SetAttacker(IsValid(thrower) and thrower or self)
-				dmg:SetInflictor(self)
-				dmg:SetDamage(math.ceil((self.DamageMin + (self.DamageMax - self.DamageMin) * speedScale) * (self.damageScaling or 1)))
-				dmg:SetDamageType(DMG_GENERIC)
-				dmg:SetDamagePosition(data.HitPos)
-				dmg:SetDamageForce(velocityNormal * (64 + (1024 * speedScale)))
+				local dmg
+
+				if isThrowerValid then
+					dmg = DamageInfo()
+
+					local now = CurTime()
+					local throwTimeScale = math.Clamp((now - self.ThrownTime) / self.DamageGraceTime, 0.1, 1)
+
+					dmg:SetAttacker(thrower)
+					dmg:SetInflictor(self)
+					dmg:SetDamage(math.ceil((self.DamageMin + (self.DamageMax - self.DamageMin) * speedScale * throwTimeScale) * (self.damageScaling or 1)))
+					dmg:SetDamageType(DMG_GENERIC)
+					dmg:SetDamagePosition(data.HitPos)
+					dmg:SetDamageForce(velocityNormal * (64 + (1024 * speedScale)))
+				end
 
 				local matType = isPerson and MAT_FLESH or ent:GetMaterialType()
 				local isFlesh = matType == MAT_FLESH or matType == MAT_BLOODYFLESH
 
 				if isHeadshot then
-					dmg:ScaleDamage(2)
+					if isThrowerValid then
+						dmg:ScaleDamage(2)
+					end
+
 					ent:EmitSound(isBstrd and self.BstrdHeadshotSound or self.HeadshotSound, 100)
 				elseif isFlesh then
 					if isBstrd then
@@ -140,11 +161,14 @@ if SERVER then
 				if isFlesh then
 					local ef = EffectData()
 					ef:SetOrigin(data.HitPos)
+					ef:SetNormal(-velocityNormal)
 
 					util.Effect("BloodImpact", ef, false, true)
 				end
 
-				ent:TakeDamageInfo(dmg)
+				if isThrowerValid then
+					ent:TakeDamageInfo(dmg)
+				end
 			end
 
 			local pitchMin = 140 - (40 * speedScale)
@@ -177,6 +201,9 @@ if SERVER then
 			wep.IsDropped = true
 
 			wep:Spawn()
+
+			-- Transfer stored fingerprints to the weapon entity
+			wep.fingerprints = self.fingerprints
 
 			local wepPhys = wep:GetPhysicsObject()
 			if IsValid(wepPhys) then

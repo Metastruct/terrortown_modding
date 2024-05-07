@@ -29,6 +29,7 @@ if SERVER then
 			for i = 1, math.random(4, 8) do
 				local brick = ents.Create("ttt_brick_proj")
 				brick:SetPos(self:WorldSpaceCenter() + VectorRand(-50, 50))
+				brick:SetThrower(self:GetAttacker())
 				brick:Spawn()
 
 				local phys = brick:GetPhysicsObject()
