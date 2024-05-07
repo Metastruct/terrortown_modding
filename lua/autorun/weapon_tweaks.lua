@@ -33,14 +33,14 @@ util.OnInitialize(function()
 		SWEP.HeadshotDamage = 2.9
 	end
 
-	-- SG 552: Tweak DPS by decreasing fire-rate (and headshot damage), but allow it to be a lot more viable at range
+	-- SG 552: Tweak DPS, but allow it to be a lot more viable at range
 	SWEP = weapons.GetStored("weapon_ttt_sg552")
 	if SWEP then
-		SWEP.Primary.Damage = 18
-		SWEP.Primary.Delay = 0.145
-		SWEP.Primary.Cone = 0.0085
+		SWEP.Primary.Damage = 19
+		SWEP.Primary.Delay = 0.13
+		SWEP.Primary.Cone = 0.0075
 		SWEP.Primary.Recoil = 1.05
-		SWEP.HeadshotMultiplier = 2.4
+		SWEP.HeadshotMultiplier = 2.5
 	end
 
 	-- AUG: Make it more viable at range
@@ -56,8 +56,8 @@ util.OnInitialize(function()
 		-- This damage sounds terrible on paper, but for some reason it does a lot more damage in-game so it's okay
 		SWEP.Primary.Damage = 6
 		SWEP.Primary.NumShots = 9
-		SWEP.Primary.Delay = 0.6
-		SWEP.Primary.Cone = 0.085
+		SWEP.Primary.Delay = 0.75
+		SWEP.Primary.Cone = 0.088
 
 		-- Rename it to the auto shotgun to avoid confusion
 		if CLIENT then
