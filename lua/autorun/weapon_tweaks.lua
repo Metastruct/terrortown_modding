@@ -33,14 +33,14 @@ util.OnInitialize(function()
 		SWEP.HeadshotDamage = 2.9
 	end
 
-	-- SG 552: Tweak DPS by decreasing fire-rate (and headshot damage), but allow it to be a lot more viable at range
+	-- SG 552: Tweak DPS, but allow it to be a lot more viable at range
 	SWEP = weapons.GetStored("weapon_ttt_sg552")
 	if SWEP then
-		SWEP.Primary.Damage = 18
-		SWEP.Primary.Delay = 0.145
-		SWEP.Primary.Cone = 0.0085
+		SWEP.Primary.Damage = 19
+		SWEP.Primary.Delay = 0.13
+		SWEP.Primary.Cone = 0.0075
 		SWEP.Primary.Recoil = 1.05
-		SWEP.HeadshotMultiplier = 2.4
+		SWEP.HeadshotMultiplier = 2.5
 	end
 
 	-- AUG: Make it more viable at range
@@ -56,8 +56,8 @@ util.OnInitialize(function()
 		-- This damage sounds terrible on paper, but for some reason it does a lot more damage in-game so it's okay
 		SWEP.Primary.Damage = 6
 		SWEP.Primary.NumShots = 9
-		SWEP.Primary.Delay = 0.6
-		SWEP.Primary.Cone = 0.085
+		SWEP.Primary.Delay = 0.75
+		SWEP.Primary.Cone = 0.088
 
 		-- Rename it to the auto shotgun to avoid confusion
 		if CLIENT then
@@ -72,8 +72,28 @@ util.OnInitialize(function()
 		SWEP.Primary.NumShots = 9
 	end
 
-	-- Kiss: Make its weird heart model hidden on players
-	if CLIENT then
+	if SERVER then
+		-- Serverside only tweaks
+
+		-- All grenade projectiles: Disable air-drag for slightly better flight, following trajectory line more accurately
+		local grenadeProjectileBaseClass = "ttt_basegrenade_proj"
+
+		hook.Add("OnEntityCreated", "TTTGrenadesDisableAirdrag", function(ent)
+			if not IsValid(ent) or ent.Base != grenadeProjectileBaseClass then return end
+
+			timer.Simple(0, function()
+				if not IsValid(ent) then return end
+
+				local phys = ent:GetPhysicsObject()
+				if IsValid(phys) then
+					phys:EnableDrag(false)
+				end
+			end)
+		end)
+	else
+		-- Clientside only tweaks
+
+		-- Kiss: Hide its weird heart model on players
 		SWEP = weapons.GetStored("weapon_ttt2_kiss")
 		if SWEP then
 			function SWEP:DrawWorldModel()
