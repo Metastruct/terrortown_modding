@@ -1,5 +1,6 @@
 local Tag = "bsmod_integration"
 local function elligibleForKillMove(ply)
+	if GetRoundState and GetRoundState() ~= ROUND_ACTIVE then return false end
 	if not IsValid(ply) then return false end
 	if not ply:IsPlayer() then return false end
 
@@ -20,6 +21,7 @@ if SERVER then
 		if not PLY.old_KillMove then return end
 
 		function PLY:KillMove(...)
+			if GetRoundState and GetRoundState() ~= ROUND_ACTIVE then return end
 			if not self:IsTerror() then return end
 
 			PLY.old_KillMove(self, ...)
