@@ -1,5 +1,6 @@
 local ROUND = {}
 ROUND.Name = "Survivalist"
+ROUND.Description = "Everyone has 1 health!"
 
 function ROUND:Start()
 	if SERVER then
