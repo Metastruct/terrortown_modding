@@ -19,6 +19,9 @@ local CHAOS_STATE_ROUND_START = 2
 local CHAOS_STATE_ROUND_FINISH = 3
 
 if SERVER then
+	resource.AddSingleFile("vgui/ttt/icon_chaos_round.vtf")
+	resource.AddSingleFile("vgui/ttt/icon_chaos_round.vmt")
+
 	util.AddNetworkString(TAG)
 
 	local BONUS_CHANCE_MULT = 0
@@ -126,7 +129,7 @@ if CLIENT then
 		icon:SetWide(110)
 		icon:Dock(LEFT)
 		icon:DockMargin(10, 10, 10, 10)
-		local ICON_MAT = Material("data/chaos_round_icon.png")
+		local ICON_MAT = Material("vgui/ttt/icon_chaos_round")
 		function icon:Paint(w, h)
 			paint_bg(w, h, 255, 255, 255, 255, ICON_MAT)
 		end
