@@ -1,5 +1,5 @@
 local ROUND = {}
-ROUND.Name = "Super-nova"
+ROUND.Name = "Supernova"
 ROUND.Description = "Every innocent explodes on death!"
 
 function ROUND:Start()
