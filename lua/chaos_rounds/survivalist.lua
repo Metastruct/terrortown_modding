@@ -18,3 +18,5 @@ function ROUND:Finish()
 		end
 	end
 end
+
+return ROUND
