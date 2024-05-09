@@ -3,8 +3,6 @@ NLL = {}
 
 //NetworkStrings//
 if SERVER then
-	util.AddNetworkString("nllstartview")
-	util.AddNetworkString("nllendview")
 	util.AddNetworkString("nllsendhealth")
 	util.AddNetworkString("nllplayercond")
 	util.AddNetworkString("nllupdatebuddha")
@@ -208,7 +206,6 @@ function NLL.Ragdoll( ply, pushdir, stuntype)
 end
 
 function NLL.UnRagdoll( ply )
-	if not SERVER then return end
 	local ragvalid = IsValid(ply.nllragdoll)
 	local pos
 	if ragvalid then // Sometimes the ragdoll is missing when we want to unrag, not good!
@@ -264,7 +261,6 @@ hook.Add( "PlayerUse", "NLLRagdollWakeAttempt", function( ply, ent )
         if timer.Exists("NLLUnragdoll".. plytarg:UserID()) then
             timer.Remove( "NLLUnragdoll".. plytarg:UserID())
         end
-        if not SERVER then return end
         
 	if ply:IsWalking() then // alt + e to kill instead of waking
 	    if ply.CovertBuddha == nil then ply.CovertBuddha = 0 end
@@ -314,7 +310,7 @@ function NLL.PlayerZZZ( ply, pushdir, timebefore, timedur )
 		end)
 	end)	
 end
-else
+else // clientside code
 
 function NLL_BuddhaKillUpdate(ply,cmd,args)
 	if args[1] != "0" then
