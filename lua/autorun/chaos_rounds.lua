@@ -116,6 +116,8 @@ if CLIENT then
 
 	local SHOW_SELECTION = CreateClientConVar("ttt_chaos_round_selection", "1", true, true,
 		"Shows the selection UI for chaos rounds", 0, 1)
+	local SOUND_VOLUME = CreateClientConVar("ttt_chaos_round_sound_volume", "0.5", true, false,
+		"Volume of the chaos round sounds", 0, 1)
 	local function show_selection()
 		local f
 		if SHOW_SELECTION:GetBool() then
@@ -201,33 +203,33 @@ if CLIENT then
 
 			local casino_time = false
 			sound.PlayURL(
-			"https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/elevator_source/yaykids.ogg",
+				"https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/elevator_source/yaykids.ogg",
 				"mono", function(station)
-				if not IsValid(station) then return end
+					if not IsValid(station) then return end
 
-				station:SetPos(LocalPlayer():GetPos())
-				station:SetVolume(0.5)
-				station:Play()
+					station:SetPos(LocalPlayer():GetPos())
+					station:SetVolume(SOUND_VOLUME:GetFloat())
+					station:Play()
 
-				timer.Simple(10, function()
-					sound.PlayURL(
-					"https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/capsadmin/casino2.ogg",
-						"mono", function(station2)
-						if not IsValid(station2) then return end
+					timer.Simple(10, function()
+						sound.PlayURL(
+							"https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/capsadmin/casino2.ogg",
+							"mono", function(station2)
+								if not IsValid(station2) then return end
 
-						station2:SetPos(LocalPlayer():GetPos())
-						station2:SetVolume(0.5)
-						station2:Play()
-						casino_time = true
+								station2:SetPos(LocalPlayer():GetPos())
+								station:SetVolume(SOUND_VOLUME:GetFloat())
+								station2:Play()
+								casino_time = true
 
-						timer.Simple(8, function()
-							if not IsValid(station2) then return end
+								timer.Simple(8, function()
+									if not IsValid(station2) then return end
 
-							station2:Stop()
-						end)
+									station2:Stop()
+								end)
+							end)
 					end)
 				end)
-			end)
 
 			local words = table.GetKeys(ROUNDS)
 			local friction = 0.01
