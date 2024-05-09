@@ -19,4 +19,4 @@ function ROUND:Finish()
 	end
 end
 
-return ROUND
+return RegisterChaosRound(ROUND)

@@ -4,10 +4,12 @@ local ROUNDS = {}
 
 function RegisterChaosRound(name, round)
 	if istable(name) then
+		round = name
 		name = name.Name
 	end
 
 	ROUNDS[name] = round
+	return round
 end
 
 local files, _ = file.Find("chaos_rounds/*.lua", "LUA")
