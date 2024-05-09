@@ -51,13 +51,10 @@ if SERVER then
 	local function begin_chaos_round()
 		if not ACTIVE_CHAOS_ROUND then return end
 
-		if not isfunction(ACTIVE_CHAOS_ROUND.Start) then
-			ErrorNoHalt("Chaos round \'" .. ACTIVE_CHAOS_ROUND.Name "\' had no Start function!")
-			return
-		end
-
 		network_state(ACTIVE_CHAOS_ROUND.Name, CHAOS_STATE_ROUND_START)
-		ACTIVE_CHAOS_ROUND:Start()
+		if isfunction(ACTIVE_CHAOS_ROUND.Start) then
+			ACTIVE_CHAOS_ROUND:Start()
+		end
 	end
 
 	local function end_chaos_round()
@@ -69,13 +66,10 @@ if SERVER then
 		ACTIVE_CHAOS_ROUND = nil
 		BONUS_CHANCE_MULT = 0
 
-		if not isfunction(round.Finish) then
-			ErrorNoHalt("Chaos round \'" .. round.Name "\' had no Finish function!")
-			return
-		end
-
 		network_state(round.Name, CHAOS_STATE_ROUND_FINISH)
-		round:Finish()
+		if isfunction(round.Finish) then
+			round:Finish()
+		end
 	end
 
 	hook.Add("TTTEndRound", TAG, function()
