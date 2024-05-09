@@ -14,6 +14,10 @@ for _, f in pairs(files) do
 	end
 end
 
+function RegisterChaosRound(name, round)
+	ROUNDS[name] = round
+end
+
 local CHAOS_STATE_SELECTED = 1
 local CHAOS_STATE_ROUND_START = 2
 local CHAOS_STATE_ROUND_FINISH = 3
@@ -35,9 +39,16 @@ if SERVER then
 		net.Broadcast()
 	end
 
+	local force_chaos_round = false
+	function ForceChaosRound()
+		force_chaos_round = true
+	end
+
 	local function select_chaos_round()
-		if CHAOS_ROUND_DONE then return end
-		if math.random(0, 100) > BASE_CHANCE_MULT + BONUS_CHANCE_MULT then return end
+		if not force_chaos_round then
+			if CHAOS_ROUND_DONE then return end
+			if math.random(0, 100) > BASE_CHANCE_MULT + BONUS_CHANCE_MULT then return end
+		end
 
 		local keys = table.GetKeys(ROUNDS)
 		local rand_key = keys[math.random(#keys)]

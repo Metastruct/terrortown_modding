@@ -21,7 +21,4 @@ function ROUND:Start()
 	end)
 end
 
-function ROUND:Finish()
-end
-
 return ROUND
