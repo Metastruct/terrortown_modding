@@ -17,7 +17,7 @@ function CLGAMEMODESUBMENU:Populate(parent)
 
 	local roleList = {}
 	for _, role in next, roles.roleList do
-		if role.index ~= nil and role.index ~= roles.INNOCENT and not role.notSelectable then
+		if role.index ~= nil and role.index ~= roles.INNOCENT.index and not role.notSelectable then
 			roleList[#roleList + 1] = role
 		end
 	end
@@ -31,14 +31,14 @@ function CLGAMEMODESUBMENU:Populate(parent)
 		local roleName = role.name
 		local roleIndex = role.index
 
-		form:MakeCheckBox({
-			label = roleName,
-			serverConvar = "ttt2_avoidrole_" .. roleIndex,
-		})
-
 		if not roleConvarsCreated then
 			CreateClientConVar("ttt2_avoidrole_" .. roleIndex, "0", true, true)
 		end
+
+		form:MakeCheckBox({
+			label = roleName,
+			convar = "ttt2_avoidrole_" .. roleIndex,
+		})
 	end
 
 	roleConvarsCreated = true
