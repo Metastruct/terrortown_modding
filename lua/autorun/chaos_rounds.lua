@@ -15,6 +15,10 @@ for _, f in pairs(files) do
 end
 
 function RegisterChaosRound(name, round)
+	if istable(name) then
+		name = name.Name
+	end
+
 	ROUNDS[name] = round
 end
 
