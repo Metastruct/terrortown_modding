@@ -97,7 +97,6 @@ function SWEP:PrimaryAttack(worldsnd)
         if SERVER or (CLIENT and IsFirstTimePredicted()) then
             local ent = tr.Entity
             if (not tr.HitWorld) and IsValid(ent) and ent:IsPlayer() then
-                print(dmginfo:GetDamage())
                 if tr.HitGroup == 1 then
 		    NLL.PlayerZZZ(ent,Vector(0,0,0),3,30)
 		    return
