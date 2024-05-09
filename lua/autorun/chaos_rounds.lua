@@ -112,6 +112,7 @@ if SERVER then
 end
 
 if CLIENT then
+	local COEF_W, COEF_H = ScrW() / 2560, ScrH() / 1440
 	local ACTIVE_CHAOS_ROUND
 
 	local SHOW_SELECTION = CreateClientConVar("ttt_chaos_round_selection", "1", true, true,
@@ -140,8 +141,8 @@ if CLIENT then
 			end
 
 			f = vgui.Create("DPanel")
-			f:SetSize(600, 350)
-			f:SetPos(ScrW() / 2 - 300, 200)
+			f:SetSize(600 * COEF_W, 350 * COEF_H)
+			f:SetPos(ScrW() / 2 - (600 * COEF_W) / 2, 200 * COEF_H)
 
 			function f:Paint(w, h)
 				paint_bg(w, h, 36, 36, 36, 255)
@@ -149,13 +150,13 @@ if CLIENT then
 
 			local header = f:Add("DPanel")
 			header:Dock(TOP)
-			header:SetTall(130)
+			header:SetTall(130 * COEF_H)
 			header.Paint = function() end
 
 			local icon = header:Add("DPanel")
-			icon:SetWide(110)
+			icon:SetWide(110 * COEF_W)
 			icon:Dock(LEFT)
-			icon:DockMargin(10, 10, 10, 10)
+			icon:DockMargin(10 * COEF_W, 10 * COEF_W, 10 * COEF_W, 10 * COEF_W)
 			local ICON_MAT = Material("vgui/ttt/icon_chaos_round.vtf")
 			function icon:Paint(w, h)
 				paint_bg(w, h, 255, 255, 255, 255, ICON_MAT)
@@ -164,27 +165,27 @@ if CLIENT then
 			surface.CreateFont("TTT2_ChaosRoundsFontMega", {
 				extended = true,
 				font = "Tahoma",
-				size = 60,
+				size = 60 * COEF_H,
 				weight = 300
 			})
 
 			surface.CreateFont("TTT2_ChaosRoundsFontBig", {
 				extended = true,
 				font = "Tahoma",
-				size = 40,
+				size = 40 * COEF_H,
 				weight = 300
 			})
 
 			surface.CreateFont("TTT2_ChaosRoundsFontSmall", {
 				extended = true,
 				font = "Tahoma",
-				size = 18,
+				size = 18 * COEF_H,
 				weight = 800
 			})
 
 			local text_title = header:Add("DLabel")
 			text_title:Dock(TOP)
-			text_title:SetTall(50)
+			text_title:SetTall(50 * COEF_H)
 			text_title:SetText("CHAOS ROUNDS")
 			text_title:SetFont("TTT2_ChaosRoundsFontBig")
 
@@ -192,14 +193,14 @@ if CLIENT then
 			"Chaos rounds are special rounds that apply a special condition or rule to the current round. Only one round may happen per map. Chaos rounds happen randomly, so be prepared!"
 			local text = header:Add("DLabel")
 			text:Dock(FILL)
-			text:SetTall(50)
+			text:SetTall(50 * COEF_H)
 			text:SetText(desc)
 			text:SetFont("TTT2_ChaosRoundsFontSmall")
 			text:SetWrap(true)
 
 			local body = f:Add("DPanel")
 			body:Dock(FILL)
-			body:DockMargin(15, 15, 15, 15)
+			body:DockMargin(15 * COEF_W, 15 * COEF_W, 15 * COEF_W, 15 * COEF_W)
 
 			local casino_time = false
 			sound.PlayURL(
