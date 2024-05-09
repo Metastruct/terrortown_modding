@@ -36,5 +36,4 @@ function ROUND:Finish()
 	end
 end
 
-RegisterChaosRound("World War 4", ROUND)
-return ROUND
+return RegisterChaosRound(ROUND)

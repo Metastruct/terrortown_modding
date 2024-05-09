@@ -21,4 +21,4 @@ function ROUND:Start()
 	end)
 end
 
-return ROUND
+return RegisterChaosRound(ROUND)
