@@ -218,7 +218,7 @@ if CLIENT then
 								if not IsValid(station2) then return end
 
 								station2:SetPos(LocalPlayer():GetPos())
-								station:SetVolume(SOUND_VOLUME:GetFloat())
+								station2:SetVolume(SOUND_VOLUME:GetFloat())
 								station2:Play()
 								casino_time = true
 
