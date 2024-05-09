@@ -283,7 +283,7 @@ else
 	function SWEP:ToggleViewModelVisibility(vm, state)
 		if not IsValid(vm) then return end
 
-		vm:SetMaterial(state and "debug/occlusionproxy" or nil)
+		vm:SetMaterial(state and "engine/occlusionproxy" or nil)
 
 		vm._brickHack = state
 	end
