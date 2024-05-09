@@ -25,13 +25,15 @@ function CLGAMEMODESUBMENU:Populate(parent)
 		local roleName = role[1]
 		local roleIndex = role[2]
 
-		form:MakeCheckBox({
-			label = roleName,
-			serverConvar = "ttt2_avoidrole_" .. roleIndex,
-		})
+		if roleName ~= nil and roleIndex ~= nil then
+			form:MakeCheckBox({
+				label = roleName,
+				serverConvar = "ttt2_avoidrole_" .. roleIndex,
+			})
 
-		if not roleConvarsCreated then
-			CreateClientConVar("ttt2_avoidrole_" .. roleIndex, "0", true, true)
+			if not roleConvarsCreated then
+				CreateClientConVar("ttt2_avoidrole_" .. roleIndex, "0", true, true)
+			end
 		end
 	end
 
