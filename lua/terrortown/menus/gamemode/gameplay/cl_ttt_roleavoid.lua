@@ -1,19 +1,25 @@
 CLGAMEMODESUBMENU.base = "base_gamemodesubmenu"
 
-CLGAMEMODESUBMENU.priority = 200
-CLGAMEMODESUBMENU.title = "submenu_roleavoid_title"
+CLGAMEMODESUBMENU.priority = 50
+CLGAMEMODESUBMENU.title = "Role Avoidance"
 CLGAMEMODESUBMENU.icon = Material("vgui/ttt/vskin/helpscreen/roles")
 
 local roleConvarsCreated = false
 
 ---@param parent Panel
 function CLGAMEMODESUBMENU:Populate(parent)
-	local form = vgui.CreateTTT2Form(parent, "header_roleavoid")
+	local form = vgui.CreateTTT2Form(parent, "Role Avoidance")
 
-	---@type {[1]: string, [2]: number}[]
+	form:MakeHelp({
+		label =
+		"Role Avoidance allows you to avoid being assigned a specific role. Selecting a role here will attempt to assign that role to someone else first, and only assign it to you if no one else can take it. (You'll receive a message if you're forced into a role.)"
+	})
+
 	local roleList = {}
 	for _, role in next, roles.roleList do
-		roleList[#roleList + 1] = { role.name, role.index }
+		if role.index ~= nil and role.index ~= roles.INNOCENT and not role.notSelectable then
+			roleList[#roleList + 1] = role
+		end
 	end
 
 	-- Sort the roles by name
@@ -22,18 +28,16 @@ function CLGAMEMODESUBMENU:Populate(parent)
 	end)
 
 	for _, role in ipairs(roleList) do
-		local roleName = role[1]
-		local roleIndex = role[2]
+		local roleName = role.name
+		local roleIndex = role.index
 
-		if roleName ~= nil and roleIndex ~= nil then
-			form:MakeCheckBox({
-				label = roleName,
-				serverConvar = "ttt2_avoidrole_" .. roleIndex,
-			})
+		form:MakeCheckBox({
+			label = roleName,
+			serverConvar = "ttt2_avoidrole_" .. roleIndex,
+		})
 
-			if not roleConvarsCreated then
-				CreateClientConVar("ttt2_avoidrole_" .. roleIndex, "0", true, true)
-			end
+		if not roleConvarsCreated then
+			CreateClientConVar("ttt2_avoidrole_" .. roleIndex, "0", true, true)
 		end
 	end
 
