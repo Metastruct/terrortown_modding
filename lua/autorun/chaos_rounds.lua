@@ -104,6 +104,7 @@ if CLIENT then
 
 	local SHOW_SELECTION = CreateClientConVar("ttt_chaos_round_selection", "1", true, true, "Shows the selection UI for chaos rounds", 0, 1)
 	local function show_selection()
+		local f
 		if SHOW_SELECTION:GetBool() then
 			local function paint_bg(w, h, r, g, b, alpha, mat)
 				surface.SetDrawColor(r, g, b, alpha)
@@ -123,7 +124,7 @@ if CLIENT then
 				surface.DrawRect(0, h - 2, w, 2)
 			end
 
-			local f = vgui.Create("DPanel")
+			f = vgui.Create("DPanel")
 			f:SetSize(600, 350)
 			f:SetPos(ScrW() / 2 - 300, 200)
 
@@ -265,24 +266,19 @@ if CLIENT then
 		if state == CHAOS_STATE_ROUND_START then
 			if not ACTIVE_CHAOS_ROUND then return end
 
-			if not isfunction(ACTIVE_CHAOS_ROUND.Start) then
-				ErrorNoHalt("Chaos round \'" .. ACTIVE_CHAOS_ROUND.Name "\' had no Start function!")
-				return
+			if isfunction(ACTIVE_CHAOS_ROUND.Start) then
+				ACTIVE_CHAOS_ROUND:Start()
 			end
-
-			ACTIVE_CHAOS_ROUND:Start()
 		elseif state == CHAOS_STATE_ROUND_FINISH then
 			if not ACTIVE_CHAOS_ROUND then return end
 
 			local round = ACTIVE_CHAOS_ROUND
 			ACTIVE_CHAOS_ROUND = nil
 
-			if not isfunction(round.Finish) then
-				ErrorNoHalt("Chaos round \'" .. round.Name "\' had no Finish function!")
-				return
+			if isfunction(round.Finish) then
+				round:Finish()
 			end
 
-			round:Finish()
 		elseif state == CHAOS_STATE_SELECTED then
 			ACTIVE_CHAOS_ROUND = ROUNDS[key]
 			if not ACTIVE_CHAOS_ROUND then
