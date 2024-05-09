@@ -4,16 +4,16 @@ CLGAMEMODESUBMENU.priority = 50
 CLGAMEMODESUBMENU.title = "Role Avoidance"
 CLGAMEMODESUBMENU.icon = Material("vgui/ttt/vskin/helpscreen/roles")
 
+LANG.AddToLanguage("en", "submenu_avoidrole_desc",
+	"Role Avoidance allows you to avoid being assigned a specific role. Selecting a role here will attempt to assign that role to someone else first, and only assign it to you if no one else can take it. (You'll receive a message if you're forced into a role.)")
+
 local roleConvarsCreated = false
 
 ---@param parent Panel
 function CLGAMEMODESUBMENU:Populate(parent)
 	local form = vgui.CreateTTT2Form(parent, "Role Avoidance")
 
-	form:MakeHelp({
-		label =
-		"Role Avoidance allows you to avoid being assigned a specific role. Selecting a role here will attempt to assign that role to someone else first, and only assign it to you if no one else can take it. (You'll receive a message if you're forced into a role.)"
-	})
+	form:MakeHelp({ label = "submenu_avoidrole_desc" })
 
 	local roleList = {}
 	for _, role in next, roles.roleList do
@@ -24,7 +24,7 @@ function CLGAMEMODESUBMENU:Populate(parent)
 
 	-- Sort the roles by name
 	table.sort(roleList, function(a, b)
-		return a[1] < b[1]
+		return a.name < b.name
 	end)
 
 	for _, role in ipairs(roleList) do
