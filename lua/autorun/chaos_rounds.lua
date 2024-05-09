@@ -1,6 +1,15 @@
 local TAG = "TTT_ChaosRounds"
 local BASE_CHANCE_MULT = 3
 local ROUNDS = {}
+
+function RegisterChaosRound(name, round)
+	if istable(name) then
+		name = name.Name
+	end
+
+	ROUNDS[name] = round
+end
+
 local files, _ = file.Find("chaos_rounds/*.lua", "LUA")
 for _, f in pairs(files) do
 	local path = "chaos_rounds/" .. f
@@ -14,13 +23,7 @@ for _, f in pairs(files) do
 	end
 end
 
-function RegisterChaosRound(name, round)
-	if istable(name) then
-		name = name.Name
-	end
 
-	ROUNDS[name] = round
-end
 
 local CHAOS_STATE_SELECTED = 1
 local CHAOS_STATE_ROUND_START = 2
