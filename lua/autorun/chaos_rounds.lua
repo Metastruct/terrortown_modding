@@ -98,146 +98,149 @@ end
 if CLIENT then
 	local ACTIVE_CHAOS_ROUND
 
+	local SHOW_SELECTION = CreateClientConVar("ttt_chaos_round_selection", "1", true, true, "Shows the selection UI for chaos rounds", 0, 1)
 	local function show_selection()
-		local function paint_bg(w, h, r, g, b, alpha, mat)
-			surface.SetDrawColor(r, g, b, alpha)
-			if mat then
-				surface.SetMaterial(mat)
-				surface.DrawTexturedRect(0, 0, w, h)
-			else
-				surface.DrawRect(0, 0, w, h)
+		if SHOW_SELECTION:GetBool() then
+			local function paint_bg(w, h, r, g, b, alpha, mat)
+				surface.SetDrawColor(r, g, b, alpha)
+				if mat then
+					surface.SetMaterial(mat)
+					surface.DrawTexturedRect(0, 0, w, h)
+				else
+					surface.DrawRect(0, 0, w, h)
+				end
+
+				surface.SetDrawColor(255, 255, 255, 20)
+				surface.DrawRect(0, 0, w - 2, 2)
+				surface.DrawRect(0, 2, 2, h - 2)
+
+				surface.SetDrawColor(0, 0, 0, 200)
+				surface.DrawRect(w - 2, 0, 2, h)
+				surface.DrawRect(0, h - 2, w, 2)
 			end
 
-			surface.SetDrawColor(255, 255, 255, 20)
-			surface.DrawRect(0, 0, w - 2, 2)
-			surface.DrawRect(0, 2, 2, h - 2)
+			local f = vgui.Create("DPanel")
+			f:SetSize(600, 350)
+			f:SetPos(ScrW() / 2 - 300, 200)
 
-			surface.SetDrawColor(0, 0, 0, 200)
-			surface.DrawRect(w - 2, 0, 2, h)
-			surface.DrawRect(0, h - 2, w, 2)
-		end
+			function f:Paint(w, h)
+				paint_bg(w, h, 36, 36, 36, 255)
+			end
 
-		local f = vgui.Create("DPanel")
-		f:SetSize(600, 350)
-		f:SetPos(ScrW() / 2 - 300, 200)
+			local header = f:Add("DPanel")
+			header:Dock(TOP)
+			header:SetTall(130)
+			header.Paint = function() end
 
-		function f:Paint(w, h)
-			paint_bg(w, h, 36, 36, 36, 255)
-		end
+			local icon = header:Add("DPanel")
+			icon:SetWide(110)
+			icon:Dock(LEFT)
+			icon:DockMargin(10, 10, 10, 10)
+			local ICON_MAT = Material("vgui/ttt/icon_chaos_round.vtf")
+			function icon:Paint(w, h)
+				paint_bg(w, h, 255, 255, 255, 255, ICON_MAT)
+			end
 
-		local header = f:Add("DPanel")
-		header:Dock(TOP)
-		header:SetTall(130)
-		header.Paint = function() end
+			surface.CreateFont("TTT2_ChaosRoundsFontMega", {
+				extended = true,
+				font = "Tahoma",
+				size = 60,
+				weight = 300
+			})
 
-		local icon = header:Add("DPanel")
-		icon:SetWide(110)
-		icon:Dock(LEFT)
-		icon:DockMargin(10, 10, 10, 10)
-		local ICON_MAT = Material("vgui/ttt/icon_chaos_round.vtf")
-		function icon:Paint(w, h)
-			paint_bg(w, h, 255, 255, 255, 255, ICON_MAT)
-		end
+			surface.CreateFont("TTT2_ChaosRoundsFontBig", {
+				extended = true,
+				font = "Tahoma",
+				size = 40,
+				weight = 300
+			})
 
-		surface.CreateFont("TTT2_ChaosRoundsFontMega", {
-			extended = true,
-			font = "Tahoma",
-			size = 60,
-			weight = 300
-		})
+			surface.CreateFont("TTT2_ChaosRoundsFontSmall", {
+				extended = true,
+				font = "Tahoma",
+				size = 18,
+				weight = 800
+			})
 
-		surface.CreateFont("TTT2_ChaosRoundsFontBig", {
-			extended = true,
-			font = "Tahoma",
-			size = 40,
-			weight = 300
-		})
+			local text_title = header:Add("DLabel")
+			text_title:Dock(TOP)
+			text_title:SetTall(50)
+			text_title:SetText("CHAOS ROUNDS")
+			text_title:SetFont("TTT2_ChaosRoundsFontBig")
 
-		surface.CreateFont("TTT2_ChaosRoundsFontSmall", {
-			extended = true,
-			font = "Tahoma",
-			size = 18,
-			weight = 800
-		})
+			local desc = "Chaos rounds are special rounds that apply a special condition or rule to the current round. Only one round may happen per map. Chaos rounds happen randomly, so be prepared!"
+			local text = header:Add("DLabel")
+			text:Dock(FILL)
+			text:SetTall(50)
+			text:SetText(desc)
+			text:SetFont("TTT2_ChaosRoundsFontSmall")
+			text:SetWrap(true)
 
-		local text_title = header:Add("DLabel")
-		text_title:Dock(TOP)
-		text_title:SetTall(50)
-		text_title:SetText("CHAOS ROUNDS")
-		text_title:SetFont("TTT2_ChaosRoundsFontBig")
+			local body = f:Add("DPanel")
+			body:Dock(FILL)
+			body:DockMargin(15, 15, 15, 15)
 
-		local desc = "Chaos rounds are special rounds that apply a special condition or rule to the current round. Only one round may happen per map. Chaos rounds happen randomly, so be prepared!"
-		local text = header:Add("DLabel")
-		text:Dock(FILL)
-		text:SetTall(50)
-		text:SetText(desc)
-		text:SetFont("TTT2_ChaosRoundsFontSmall")
-		text:SetWrap(true)
+			local casino_time = false
+			sound.PlayURL("https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/elevator_source/yaykids.ogg", "mono", function(station)
+				if not IsValid(station) then return end
 
-		local body = f:Add("DPanel")
-		body:Dock(FILL)
-		body:DockMargin(15, 15, 15, 15)
+				station:SetPos(LocalPlayer():GetPos())
+				station:SetVolume(0.5)
+				station:Play()
 
-		local casino_time = false
-		sound.PlayURL("https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/elevator_source/yaykids.ogg", "mono", function(station)
-			if not IsValid(station) then return end
-
-			station:SetPos(LocalPlayer():GetPos())
-			station:SetVolume(0.5)
-			station:Play()
-
-			timer.Simple(10, function()
-				sound.PlayURL("https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/capsadmin/casino2.ogg", "mono", function(station2)
-					if not IsValid(station2) then return end
-
-					station2:SetPos(LocalPlayer():GetPos())
-					station2:SetVolume(0.5)
-					station2:Play()
-					casino_time = true
-
-					timer.Simple(8, function()
+				timer.Simple(10, function()
+					sound.PlayURL("https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/capsadmin/casino2.ogg", "mono", function(station2)
 						if not IsValid(station2) then return end
 
-						station2:Stop()
+						station2:SetPos(LocalPlayer():GetPos())
+						station2:SetVolume(0.5)
+						station2:Play()
+						casino_time = true
+
+						timer.Simple(8, function()
+							if not IsValid(station2) then return end
+
+							station2:Stop()
+						end)
 					end)
 				end)
 			end)
-		end)
 
-		local words = table.GetKeys(ROUNDS)
-		local friction = 0.01
-		local next_word = 0
-		local last_word = words[math.random(#words)]
-		function body:Paint(w, h)
-			paint_bg(w, h, 0, 0, 0, 255)
+			local words = table.GetKeys(ROUNDS)
+			local friction = 0.01
+			local next_word = 0
+			local last_word = words[math.random(#words)]
+			function body:Paint(w, h)
+				paint_bg(w, h, 0, 0, 0, 255)
 
-			surface.SetFont("TTT2_ChaosRoundsFontMega")
+				surface.SetFont("TTT2_ChaosRoundsFontMega")
 
-			if casino_time then
-				local rgb = HSVToColor((CurTime() * 300) % 360, 1, 1)
-				surface.SetTextColor(rgb.r, rgb.g, rgb.b, 255)
+				if casino_time then
+					local rgb = HSVToColor((CurTime() * 300) % 360, 1, 1)
+					surface.SetTextColor(rgb.r, rgb.g, rgb.b, 255)
 
-				local word = ACTIVE_CHAOS_ROUND.Name
-				local tw, th = surface.GetTextSize(word)
+					local word = ACTIVE_CHAOS_ROUND.Name
+					local tw, th = surface.GetTextSize(word)
 
-				surface.SetTextPos(w / 2 - tw / 2, h / 2 - th / 2)
-				surface.DrawText(word)
-			else
-				surface.SetTextColor(255, 0, 0, 255)
+					surface.SetTextPos(w / 2 - tw / 2, h / 2 - th / 2)
+					surface.DrawText(word)
+				else
+					surface.SetTextColor(255, 0, 0, 255)
 
-				if next_word < SysTime() then
-					last_word = words[math.random(#words)]
-					next_word = SysTime() + friction
+					if next_word < SysTime() then
+						last_word = words[math.random(#words)]
+						next_word = SysTime() + friction
+					end
+
+					local tw, th = surface.GetTextSize(last_word)
+
+					surface.SetTextPos(w / 2 - tw / 2, h / 2 - th / 2)
+					surface.DrawText(last_word)
 				end
 
-				local tw, th = surface.GetTextSize(last_word)
 
-				surface.SetTextPos(w / 2 - tw / 2, h / 2 - th / 2)
-				surface.DrawText(last_word)
+				friction = friction + 0.0002
 			end
-
-
-			friction = friction + 0.0002
 		end
 
 		timer.Simple(30, function()
