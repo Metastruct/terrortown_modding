@@ -8,7 +8,6 @@ if SERVER then
 	util.AddNetworkString("nllsendhealth")
 	util.AddNetworkString("nllplayercond")
 	util.AddNetworkString("nllupdatebuddha")
-end
 
 net.Receive("nllupdatebuddha",function(len,ply)
 	ply.CovertBuddha = net.ReadInt(4)
@@ -31,7 +30,6 @@ end)
 
 // Handles updating the displayed health on bodies.
 hook.Add("Think", "TG_NLL", function()
-	if not SERVER then return end // this is serverside stuff, piss off client.
 	for k,v in pairs(player.GetAll()) do
 		if IsValid(v.nllragdoll) then
 			//Send new health. The normal health sending is somehow broken when ragdolled.
@@ -138,11 +136,6 @@ function NLL.PlayerInvis( ply, bool )
 	if pac and pac.TogglePartDrawing then
 		pac.TogglePartDrawing(ply, not bool)
 	end
-	/*
-	ply:SetMaterial( bool and "models/effects/vol_light001" or "" )
-	ply:SetRenderMode( bool and RENDERMODE_TRANSALPHA or RENDERMODE_NORMAL )
-	ply:Fire( "alpha", bool and 0 or 255, 0 )
-	*/
 end
 
 
@@ -150,7 +143,6 @@ end
 Deploy player ragdoll, Sleeping Variants can be woken up with E.
 */
 function NLL.Ragdoll( ply, pushdir, stuntype)
-	if not SERVER then return end
 	local plyphys = ply:GetPhysicsObject()
 	local plyvel = Vector(0,0,0)
 	if plyphys:IsValid() then
@@ -322,8 +314,7 @@ function NLL.PlayerZZZ( ply, pushdir, timebefore, timedur )
 		end)
 	end)	
 end
-
-if CLIENT then
+else
 
 function NLL_BuddhaKillUpdate(ply,cmd,args)
 	if args[1] != "0" then
@@ -339,13 +330,6 @@ end
 
 concommand.Add( "ttt_nl_buddhakill", function(ply,cmd,args) NLL_BuddhaKillUpdate(ply,cmd,args) end, nil, "If nonzero, covertly killing will instead set your victim's hp to 1", 0 )
 
-net.Receive("nllstartview", function()
-	local rag = net.ReadEntity()
-	LocalPlayer().nllviewrag = rag
-end)
-net.Receive("nllendview", function()
-	LocalPlayer().nllviewrag = nil
-end)
 net.Receive("nllplayercond", function()
 	local ply = net.ReadEntity()
 	ply.condition = net.ReadString()
