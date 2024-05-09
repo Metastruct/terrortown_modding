@@ -283,7 +283,10 @@ if CLIENT then
 				return
 			end
 
-			show_selection()
+			hook.Add("TTTPrepareRound", TAG, function()
+				hook.Remove("TTTPrepareRound", TAG)
+				show_selection()
+			end)
 		end
 	end)
 end
