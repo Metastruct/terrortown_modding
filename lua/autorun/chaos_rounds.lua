@@ -43,9 +43,17 @@ if SERVER then
 		net.Broadcast()
 	end
 
-	local force_chaos_round = false
-	function ForceChaosRound()
-		force_chaos_round = true
+	local force_chaos_round = nil
+	function ForceChaosRound(roundName)
+		if roundName == nil then
+			force_chaos_round = true
+		else
+			if not ROUNDS[roundName] then
+				ErrorNoHalt("Chaos round \'" .. roundName .. "\' does not exist on server!")
+				return
+			end
+			force_chaos_round = roundName
+		end
 	end
 
 	local function select_chaos_round()
@@ -56,6 +64,10 @@ if SERVER then
 
 		local keys = table.GetKeys(ROUNDS)
 		local rand_key = keys[math.random(#keys)]
+		if type(force_chaos_round) == "string" then
+			rand_key = force_chaos_round
+		end
+
 		if not ROUNDS[rand_key] then return end
 
 		ACTIVE_CHAOS_ROUND = ROUNDS[rand_key]
@@ -102,7 +114,8 @@ end
 if CLIENT then
 	local ACTIVE_CHAOS_ROUND
 
-	local SHOW_SELECTION = CreateClientConVar("ttt_chaos_round_selection", "1", true, true, "Shows the selection UI for chaos rounds", 0, 1)
+	local SHOW_SELECTION = CreateClientConVar("ttt_chaos_round_selection", "1", true, true,
+		"Shows the selection UI for chaos rounds", 0, 1)
 	local function show_selection()
 		local f
 		if SHOW_SELECTION:GetBool() then
@@ -173,7 +186,8 @@ if CLIENT then
 			text_title:SetText("CHAOS ROUNDS")
 			text_title:SetFont("TTT2_ChaosRoundsFontBig")
 
-			local desc = "Chaos rounds are special rounds that apply a special condition or rule to the current round. Only one round may happen per map. Chaos rounds happen randomly, so be prepared!"
+			local desc =
+			"Chaos rounds are special rounds that apply a special condition or rule to the current round. Only one round may happen per map. Chaos rounds happen randomly, so be prepared!"
 			local text = header:Add("DLabel")
 			text:Dock(FILL)
 			text:SetTall(50)
@@ -186,7 +200,9 @@ if CLIENT then
 			body:DockMargin(15, 15, 15, 15)
 
 			local casino_time = false
-			sound.PlayURL("https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/elevator_source/yaykids.ogg", "mono", function(station)
+			sound.PlayURL(
+			"https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/elevator_source/yaykids.ogg",
+				"mono", function(station)
 				if not IsValid(station) then return end
 
 				station:SetPos(LocalPlayer():GetPos())
@@ -194,7 +210,9 @@ if CLIENT then
 				station:Play()
 
 				timer.Simple(10, function()
-					sound.PlayURL("https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/capsadmin/casino2.ogg", "mono", function(station2)
+					sound.PlayURL(
+					"https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/capsadmin/casino2.ogg",
+						"mono", function(station2)
 						if not IsValid(station2) then return end
 
 						station2:SetPos(LocalPlayer():GetPos())
@@ -250,7 +268,8 @@ if CLIENT then
 
 		timer.Simple(30, function()
 			if ACTIVE_CHAOS_ROUND then
-				chat.AddText(Color(255, 0, 0), "[CHAOS ROUND] ", ACTIVE_CHAOS_ROUND.Name:upper(), ": ", ACTIVE_CHAOS_ROUND.Description or "No description provided.")
+				chat.AddText(Color(255, 0, 0), "[CHAOS ROUND] ", ACTIVE_CHAOS_ROUND.Name:upper(), ": ",
+					ACTIVE_CHAOS_ROUND.Description or "No description provided.")
 			end
 
 			if not IsValid(f) then return end
@@ -278,7 +297,6 @@ if CLIENT then
 			if isfunction(round.Finish) then
 				round:Finish()
 			end
-
 		elseif state == CHAOS_STATE_SELECTED then
 			ACTIVE_CHAOS_ROUND = ROUNDS[key]
 			if not ACTIVE_CHAOS_ROUND then
