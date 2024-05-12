@@ -35,8 +35,8 @@ local CHAOS_STATE_ROUND_START = 2
 local CHAOS_STATE_ROUND_FINISH = 3
 
 if SERVER then
-	resource.AddFile("vgui/ttt/icon_chaos_round.vtf")
-	resource.AddFile("vgui/ttt/icon_chaos_round.vmt")
+	resource.AddFile("materials/vgui/ttt/icon_chaos_round.vtf")
+	resource.AddFile("materials/vgui/ttt/icon_chaos_round.vmt")
 
 	util.AddNetworkString(TAG)
 
