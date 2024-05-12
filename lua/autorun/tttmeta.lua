@@ -342,10 +342,38 @@ else
 			MSTACK.AddMessageExOriginal = MSTACK.AddMessageExOriginal or MSTACK.AddMessageEx
 
 			function MSTACK:AddMessageEx(item)
-				MSTACK:AddMessageExOriginal(item)
+				self:AddMessageExOriginal(item)
 
 				MsgC(color_white, "[TTT2] ")
 				MsgN(item.text)
+			end
+		end
+
+		-- Make the centered notifications print to console
+		if EPOP then
+			EPOP.ActivateMessageOriginal = EPOP.ActivateMessageOriginal or EPOP.ActivateMessage
+
+			function EPOP:ActivateMessage()
+				self:ActivateMessageOriginal()
+
+				local item = self.messageQueue[1]
+				if not item then return end
+
+				local text = ""
+				if item.title and item.title.text != "" then
+					text = item.title.text
+				end
+
+				if item.subtitle and item.subtitle.text != "" then
+					if text != "" then
+						text = text .. " / "
+					end
+
+					text = text .. item.subtitle.text
+				end
+
+				MsgC(color_white, "[TTT2] ")
+				MsgN(text)
 			end
 		end
 
