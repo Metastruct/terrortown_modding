@@ -4,7 +4,7 @@ local GetPT = LANG.GetParamTranslation
 local cos = math.cos
 local abs = math.abs
 
-local function BindKey(bindName)
+local function TTTKey(bindName)
 	local binding = tonumber(bind.Find(bindName))
 
 	if binding and binding != KEY_NONE then
@@ -70,11 +70,11 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 	local descTextParams = {
 		menukey = Key("+menu_context", "C"),
 		scorekey = Key("+showscores", "TAB"),
-		teamvoicekey = BindKey("ttt2_voice_team"),
-		vampirebatkey = BindKey("vamptranstoggle"),
-		impostorkillkey = BindKey("ImpostorSendInstantKillRequest"),
-		impostorcyclekey = BindKey("ImpostorSabotageCycle"),
-		impostorsabotagekey = BindKey("ImpostorSendSabotageRequest"),
+		teamvoicekey = TTTKey("ttt2_voice_team"),
+		vampirebatkey = TTTKey("vamptranstoggle"),
+		impostorkillkey = TTTKey("ImpostorSendInstantKillRequest"),
+		impostorcyclekey = TTTKey("ImpostorSabotageCycle"),
+		impostorsabotagekey = TTTKey("ImpostorSendSabotageRequest"),
 	}
 
 	local sortedRoles = roles.GetList()
