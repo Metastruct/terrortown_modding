@@ -16,7 +16,7 @@ function CLGAMEMODESUBMENU:Populate(parent)
 	form:MakeHelp({ label = "submenu_avoidrole_desc" })
 
 	local roleList = {}
-	for _, role in next, roles.roleList do
+	for _, role in pairs(roles.roleList) do
 		if role.index ~= nil and role.index ~= roles.INNOCENT.index and not role.notSelectable then
 			roleList[#roleList + 1] = role
 		end
@@ -29,15 +29,14 @@ function CLGAMEMODESUBMENU:Populate(parent)
 
 	for _, role in ipairs(roleList) do
 		local roleName = role.name
-		local roleIndex = role.index
 
 		if not roleConvarsCreated then
-			CreateClientConVar("ttt2_avoidrole_" .. roleIndex, "0", true, true)
+			CreateClientConVar("ttt2_avoidrole_" .. roleName, "0", true, true)
 		end
 
 		form:MakeCheckBox({
 			label = roleName,
-			convar = "ttt2_avoidrole_" .. roleIndex,
+			convar = "ttt2_avoidrole_" .. roleName,
 		})
 	end
 

@@ -1,8 +1,8 @@
 ---@param ply Player
----@param role number
+---@param roleName string
 ---@return boolean
-local function getPlayerAvoidsRole(ply, role)
-	return ply:GetInfoNum("ttt2_avoidrole_" .. role, 0) == 1
+local function getPlayerAvoidsRole(ply, roleName)
+	return ply:GetInfoNum("ttt2_avoidrole_" .. roleName, 0) == 1
 end
 
 ---@param roleMap {[Player]: number}
@@ -14,7 +14,7 @@ local function ReallocateRoles(roleMap)
 	local players = {}
 	---@type number[]
 	local availableRoles = {}
-	for ply, v in next, roleMap do
+	for ply, v in pairs(roleMap) do
 		if v ~= roles.INNOCENT.id then
 			availableRoles[#availableRoles + 1] = v
 		end
@@ -23,15 +23,15 @@ local function ReallocateRoles(roleMap)
 	end
 
 	-- Assign roles to players
-	for _, role in next, availableRoles do
+	for _, role in pairs(availableRoles) do
 		local roleName = roles.GetByIndex(role).name
 		local forced = false
 
 		-- Get a list of players that can be assigned this role
 		---@type Player[]
 		local validPlayers = {}
-		for _, ply in next, players do
-			if not getPlayerAvoidsRole(ply, role) and roleMap[ply] == NO_ROLE_ASSIGNED then
+		for _, ply in pairs(players) do
+			if not getPlayerAvoidsRole(ply, roleName) and roleMap[ply] == NO_ROLE_ASSIGNED then
 				validPlayers[#validPlayers + 1] = ply
 			end
 		end
@@ -58,7 +58,7 @@ local function ReallocateRoles(roleMap)
 	end
 
 	-- Everyone that wasn't assigned a role is now an innocent
-	for _, ply in next, players do
+	for _, ply in pairs(players) do
 		if roleMap[ply] == NO_ROLE_ASSIGNED then
 			roleMap[ply] = roles.INNOCENT.id
 		end
