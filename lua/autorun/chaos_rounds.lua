@@ -2,6 +2,9 @@ local TAG = "TTT_ChaosRounds"
 local BASE_CHANCE_MULT = 3
 local ROUNDS = {}
 
+local cvarChance = CreateConVar("ttt_chaos_chance", "0.02", { FCVAR_NOTIFY, FCVAR_ARCHIVE },
+	"Chance for a chaos round to occur")
+
 function RegisterChaosRound(name, round)
 	if istable(name) then
 		round = name
@@ -37,7 +40,6 @@ if SERVER then
 
 	util.AddNetworkString(TAG)
 
-	local BONUS_CHANCE_MULT = 0
 	local ACTIVE_CHAOS_ROUND
 	local CHAOS_ROUND_DONE = false -- once per map
 
@@ -64,7 +66,7 @@ if SERVER then
 	local function select_chaos_round()
 		if not force_chaos_round then
 			if CHAOS_ROUND_DONE then return end
-			if math.random(0, 100) > BASE_CHANCE_MULT + BONUS_CHANCE_MULT then return end
+			if math.random() > cvarChance:GetFloat() then return end
 		end
 
 		local keys = table.GetKeys(ROUNDS)
@@ -96,7 +98,6 @@ if SERVER then
 
 		CHAOS_ROUND_DONE = true
 		ACTIVE_CHAOS_ROUND = nil
-		BONUS_CHANCE_MULT = 0
 
 		network_state(round.Name, CHAOS_STATE_ROUND_FINISH)
 		if isfunction(round.Finish) then
@@ -106,9 +107,6 @@ if SERVER then
 
 	hook.Add("TTTEndRound", TAG, function()
 		end_chaos_round()
-
-		-- add 10% every round, but cap it to 75% overall
-		BONUS_CHANCE_MULT = math.min(72, BONUS_CHANCE_MULT + 10)
 
 		timer.Simple(0, select_chaos_round)
 	end)
@@ -145,6 +143,7 @@ if CLIENT then
 				surface.DrawRect(0, h - 2, w, 2)
 			end
 
+			---@class DPanel
 			f = vgui.Create("DPanel")
 			f:SetSize(600 * COEF_W, 350 * COEF_H)
 			f:SetPos(ScrW() / 2 - (600 * COEF_W) / 2, 200 * COEF_H)
