@@ -95,8 +95,8 @@ end
 
 SWEP.HoldType = "ar2"
 
-SWEP.ViewModel = "models/weapons/cstrike/c_snip_awp.mdl"
-SWEP.WorldModel = "models/weapons/w_snip_awp.mdl"
+SWEP.ViewModel = "models/weapons/cstrike/c_snip_scout.mdl"
+SWEP.WorldModel = "models/weapons/w_snip_scout.mdl"
 
 SWEP.Primary.Damage = 1000
 SWEP.Primary.ClipSize = 1
@@ -190,8 +190,6 @@ end
 function SWEP:Initialize()
     self:ResetZoom()
     self:SetClip1(cvarShotCount:GetInt())
-    self:SetMaterial("models/props/CS_militia/milceil001")
-    self:SetColor(Color(255, 100, 100, 255))
 
     return BaseClass.Initialize(self)
 end
