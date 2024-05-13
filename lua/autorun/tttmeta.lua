@@ -395,7 +395,7 @@ else
 			end
 		end
 
-		-- Make the centered notifications print to console
+		-- Make the centered notifications print to chat
 		if EPOP then
 			EPOP.ActivateMessageOriginal = EPOP.ActivateMessageOriginal or EPOP.ActivateMessage
 
@@ -418,8 +418,7 @@ else
 					text = text .. item.subtitle.text
 				end
 
-				MsgC(color_white, "[TTT2] ")
-				MsgN(text)
+				chat.AddText(color_white, text)
 			end
 		end
 
