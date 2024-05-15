@@ -78,6 +78,13 @@ if SERVER then
 		ACTIVE_CHAOS_ROUND = ROUNDS[rand_key]
 
 		network_state(ACTIVE_CHAOS_ROUND.Name, CHAOS_STATE_SELECTED)
+		hook.Add("TTTPrepareRound", TAG, function()
+			if isfunction(ACTIVE_CHAOS_ROUND.OnPrepare) then
+				ACTIVE_CHAOS_ROUND:OnPrepare()
+			end
+
+			hook.Remove("TTTPrepareRound", TAG)
+		end)
 	end
 
 	local function begin_chaos_round()
@@ -310,6 +317,10 @@ if CLIENT then
 			end
 
 			hook.Add("TTTPrepareRound", TAG, function()
+				if isfunction(round.OnPrepare) then
+					round:OnPrepare()
+				end
+
 				hook.Remove("TTTPrepareRound", TAG)
 				show_selection()
 			end)
