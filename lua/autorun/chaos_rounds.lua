@@ -18,8 +18,9 @@ local files, _ = file.Find("chaos_rounds/*.lua", "LUA")
 for _, f in pairs(files) do
 	local path = "chaos_rounds/" .. f
 	local r = include(path)
-	r.Name = isstring(r.Name) and r.Name or f:gsub("%.lua$", "")
+	if not istable(r) then continue end
 
+	r.Name = isstring(r.Name) and r.Name or f:gsub("%.lua$", "")
 	ROUNDS[r.Name] = r
 
 	if SERVER then

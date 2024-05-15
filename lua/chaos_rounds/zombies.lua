@@ -14,7 +14,11 @@ if SERVER then
 		ply:SetRole(ROLE_ZOMBIE)
 		ply:StripWeapons()
 
-		ply:Give("weapon_ttt_zombie")
+		timer.Simple(0, function()
+			if not IsValid(ply) then return end
+			ply:Give("weapon_ttt_zombie")
+		end)
+
 		ply:SetMaxHealth(50)
 		ply:SetHealth(50)
 		ply:SetArmor(0)
@@ -27,10 +31,9 @@ if SERVER then
 
 	function ROUND:Start()
 		local end_time = CurTime() + 60 * 5
-		SetRoundEnd(end_time)
 
 		timer.Simple(1, function()
-			SetRoundEnd(CurTime())
+			SetRoundEnd(end_time)
 
 			for _, ply in ipairs(player.GetAll()) do
 				if ply:GetRole() == ROLE_TRAITOR and ply:IsTerror() then
@@ -40,20 +43,35 @@ if SERVER then
 		end)
 
 		hook.Add("PlayerLoadout", TAG, function(ply)
-			return true
+			if ply:GetRole() == ROLE_ZOMBIE then
+				ply:Give("weapon_ttt_zombie")
+				return true
+			end
 		end)
 
 		hook.Add("TTT2PostPlayerDeath", TAG, function(victim, _, attacker)
-			SetRoundEnd(end_time) -- dont deviate from original round end
+			-- fixate the round end timer
+			timer.Simple(0, function()
+				if GetRoundState() == ROUND_ACTIVE then
+					SetRoundEnd(end_time)
+				end
+			end)
 
 			if victim:GetRole() == ROLE_ZOMBIE then
-				victim:Revive(15)
+				victim:Revive(15, function(ply)
+					if not IsValid(ply) then return end
+					make_zombie(ply)
+				end)
+
 				return
 			end
 
 			if victim:GetRole() ~= ROLE_ZOMBIE and IsValid(attacker) and attacker:IsPlayer() and attacker:GetRole() == ROLE_ZOMBIE then
 				victim:Revive(15, function(ply)
-					make_zombie(ply)
+					timer.Simple(0, function()
+						if not IsValid(ply) then return end
+						make_zombie(ply)
+					end)
 				end)
 			end
 		end)
@@ -69,14 +87,13 @@ if SERVER then
 		hook.Add("TTTCheckForWin", TAG, function()
 			local survivors = 0
 			for _, ply in ipairs(player.GetAll()) do
-				if not ply:IsTerror() then continue end
-				if ply:GetRole() ~= ROLE_TRAITOR then
+				if ply:GetRole() ~= ROLE_ZOMBIE and ply:IsTerror() then
 					survivors = survivors + 1
 				end
 			end
 
-			if CurTime() > end_time and survivors > 0 then return WIN_INNOCENT end
-			if end_time < CurTime() and survivors < 1 then return WIN_TRAITOR end
+			if survivors <= 0 and CurTime() < end_time then return WIN_TRAITOR end
+			if CurTime() >= end_time and survivors > 0 then return WIN_INNOCENT end
 
 			return WIN_NONE
 		end)
@@ -105,4 +122,4 @@ if CLIENT then
 end
 
 
-return RegisterChaosRound(ROUND)
+--return RegisterChaosRound(ROUND)
