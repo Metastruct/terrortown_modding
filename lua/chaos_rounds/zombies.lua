@@ -11,13 +11,19 @@ if SERVER then
 		if not IsValid(ply) then return end
 		if not ply:IsPlayer() then return end
 
-		ply:SetRole(ROLE_ZOMBIE)
-		ply:StripWeapons()
+		if ply:GetRole() ~= ROLE_ZOMBIE then
+			ply:SetRole(ROLE_ZOMBIE)
+		end
 
-		timer.Simple(0, function()
-			if not IsValid(ply) then return end
+		if not ply:HasWeapon("weapon_ttt_zombie") then
 			ply:Give("weapon_ttt_zombie")
-		end)
+		end
+
+		for _, w in ipairs(ply:GetWeapons()) do
+			if w:GetClass() ~= "weapon_ttt_zombie" then
+				w:Remove()
+			end
+		end
 
 		ply:SetMaxHealth(50)
 		ply:SetHealth(50)
@@ -27,6 +33,20 @@ if SERVER then
 		net.Start(TAG)
 		net.WriteEntity(ply)
 		net.Broadcast()
+	end
+
+	local function revive_zombie(ply)
+		ply:Revive(15, function()
+			timer.Simple(0, function()
+				if not IsValid(ply) then return end
+				ply:Spawn()
+
+				timer.Simple(1, function()
+					if not IsValid(ply) then return end
+					make_zombie(ply)
+				end)
+			end)
+		end)
 	end
 
 	function ROUND:Start()
@@ -42,13 +62,6 @@ if SERVER then
 			end
 		end)
 
-		hook.Add("PlayerLoadout", TAG, function(ply)
-			if ply:GetRole() == ROLE_ZOMBIE then
-				ply:Give("weapon_ttt_zombie")
-				return true
-			end
-		end)
-
 		hook.Add("TTT2PostPlayerDeath", TAG, function(victim, _, attacker)
 			-- fixate the round end timer
 			timer.Simple(0, function()
@@ -58,30 +71,25 @@ if SERVER then
 			end)
 
 			if victim:GetRole() == ROLE_ZOMBIE then
-				victim:Revive(15, function(ply)
-					if not IsValid(ply) then return end
-					make_zombie(ply)
-				end)
-
+				revive_zombie(victim)
 				return
 			end
 
 			if victim:GetRole() ~= ROLE_ZOMBIE and IsValid(attacker) and attacker:IsPlayer() and attacker:GetRole() == ROLE_ZOMBIE then
-				victim:Revive(15, function(ply)
-					timer.Simple(0, function()
-						if not IsValid(ply) then return end
-						make_zombie(ply)
-					end)
-				end)
+				revive_zombie(victim)
 			end
 		end)
 
-		hook.Add("PlayerCanPickupWeapon", TAG, function(ply)
-			if ply:GetRole() == ROLE_ZOMBIE then return false end
-		end)
+		hook.Add("WeaponEquip", TAG, function(wep, owner)
+			if not owner:IsTerror() then return end
+			if owner:GetRole() ~= ROLE_ZOMBIE then return end
+			if wep:GetClass() == "weapon_ttt_zombie" then return end
 
-		hook.Add("PlayerCanPickupItem", TAG, function(ply)
-			if ply:GetRole() == ROLE_ZOMBIE then return false end
+			wep:Remove()
+
+			if not owner:HasWeapon("weapon_ttt_zombie") then
+				owner:Give("weapon_ttt_zombie")
+			end
 		end)
 
 		hook.Add("TTTCheckForWin", TAG, function()
@@ -100,10 +108,8 @@ if SERVER then
 	end
 
 	function ROUND:Finish()
-		hook.Remove("PlayerLoadout", TAG)
 		hook.Remove("TTT2PostPlayerDeath", TAG)
-		hook.Remove("PlayerCanPickupWeapon", TAG)
-		hook.Remove("PlayerCanPickupItem", TAG)
+		hook.Remove("WeaponEquip", TAG)
 		hook.Remove("TTTCheckForWin", TAG)
 
 		for _, ply in ipairs(player.GetAll()) do
@@ -121,5 +127,4 @@ if CLIENT then
 	end)
 end
 
-
---return RegisterChaosRound(ROUND)
+return RegisterChaosRound(ROUND)

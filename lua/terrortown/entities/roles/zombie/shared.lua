@@ -1,6 +1,13 @@
 if SERVER then
 	AddCSLuaFile()
+
+	resource.AddFile("materials/vgui/ttt/dynamic/roles/icon_zombie.vmt")
 end
+
+roles.InitCustomTeam(ROLE.name, {
+	icon = "vgui/ttt/dynamic/roles/icon_zombie",
+	color = Color(165, 209, 78)
+})
 
 function ROLE:PreInitialize()
 	self.color = Color(165, 209, 78)
