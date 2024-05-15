@@ -7,7 +7,7 @@ if SERVER then
 		hook.Add("TTT2ModifyFinalRoles", TAG, function(role_map)
 			for ply, role in pairs(role_map) do
 				if ply:GetTeam() == "innocents" then
-					role_map[ply] = ROLE_NOVA
+					role_map[ply] = roles.NOVA.id
 				end
 			end
 		end)
