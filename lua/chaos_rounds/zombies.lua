@@ -49,6 +49,16 @@ if SERVER then
 		end)
 	end
 
+	function ROUND:OnPrepare()
+		hook.Add("TTT2ModifyFinalRoles", TAG, function(role_map)
+			for ply, role in pairs(role_map) do
+				if ply:GetTeam() == "traitors" then
+					role_map[ply] = ROLE_ZOMBIE
+				end
+			end
+		end)
+	end
+
 	function ROUND:Start()
 		local end_time = CurTime() + 60 * 5
 
@@ -56,7 +66,7 @@ if SERVER then
 			SetRoundEnd(end_time)
 
 			for _, ply in ipairs(player.GetAll()) do
-				if ply:GetRole() == ROLE_TRAITOR and ply:IsTerror() then
+				if ply:GetRole() == ROLE_ZOMBIE and ply:IsTerror() then
 					make_zombie(ply)
 				end
 			end
