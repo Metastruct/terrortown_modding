@@ -50,7 +50,7 @@ if SERVER then
 	end
 
 	function ROUND:OnPrepare()
-		hook.Add("TTT2ModifyFinalRoles", TAG, function(role_map)
+		hook.Add("TTT2MetaModifyFinalRoles", TAG, function(role_map)
 			for ply, role in pairs(role_map) do
 				if ply:GetTeam() == "traitors" then
 					role_map[ply] = roles.ZOMBIE.id

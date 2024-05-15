@@ -63,6 +63,9 @@ local function ReallocateRoles(roleMap)
 			roleMap[ply] = roles.INNOCENT.id
 		end
 	end
+
+	-- we want to use the meta version not to break anything
+	hook.Run("TTT2MetaModifyFinalRoles", roleMap)
 end
 
 hook.Add("TTT2ModifyFinalRoles", "meta_avoid_roles", ReallocateRoles)
