@@ -1,5 +1,4 @@
 local TAG = "TTT_ChaosRounds"
-local BASE_CHANCE_MULT = 3
 local ROUNDS = {}
 
 local cvarChance = CreateConVar("ttt_chaos_chance", "0.02", { FCVAR_NOTIFY, FCVAR_ARCHIVE },
@@ -27,8 +26,6 @@ for _, f in pairs(files) do
 		AddCSLuaFile(path)
 	end
 end
-
-
 
 local CHAOS_STATE_SELECTED = 1
 local CHAOS_STATE_ROUND_START = 2
