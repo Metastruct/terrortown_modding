@@ -6,11 +6,11 @@ end
 
 roles.InitCustomTeam(ROLE.name, {
 	icon = "vgui/ttt/dynamic/roles/icon_zombie",
-	color = Color(165, 209, 78)
+	color = Color(133, 78, 209)
 })
 
 function ROLE:PreInitialize()
-	self.color = Color(165, 209, 78)
+	self.color = Color(133, 78, 209)
 	self.abbr = "zombie"
 	self.surviveBonus = 0
 	self.score.killsMultiplier = 2

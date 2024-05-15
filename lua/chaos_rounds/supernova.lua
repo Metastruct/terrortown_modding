@@ -5,8 +5,9 @@ ROUND.Description = "Every innocent explodes on death!"
 if SERVER then
 	function ROUND:OnPrepare()
 		hook.Add("TTT2MetaModifyFinalRoles", TAG, function(role_map)
-			for ply, role in pairs(role_map) do
-				if ply:GetTeam() == "innocents" then
+			for ply, role_id in pairs(role_map) do
+				local role = roles.GetByIndex(role_id)
+				if role and role.defaultTeam == "innocents" and roles.NOVA then
 					role_map[ply] = roles.NOVA.id
 				end
 			end

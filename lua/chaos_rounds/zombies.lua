@@ -11,9 +11,7 @@ if SERVER then
 		if not IsValid(ply) then return end
 		if not ply:IsPlayer() then return end
 
-		if ply:GetRole() ~= ROLE_ZOMBIE then
-			ply:SetRole(ROLE_ZOMBIE)
-		end
+		ply:SetRole(ROLE_ZOMBIE)
 
 		if not ply:HasWeapon("weapon_ttt_zombie") then
 			ply:Give("weapon_ttt_zombie")
@@ -51,8 +49,9 @@ if SERVER then
 
 	function ROUND:OnPrepare()
 		hook.Add("TTT2MetaModifyFinalRoles", TAG, function(role_map)
-			for ply, role in pairs(role_map) do
-				if ply:GetTeam() == "traitors" then
+			for ply, role_id in pairs(role_map) do
+				local role = roles.GetByIndex(role_id)
+				if role and role.defaultTeam == "traitors" and roles.ZOMBIE then
 					role_map[ply] = roles.ZOMBIE.id
 				end
 			end
@@ -66,7 +65,7 @@ if SERVER then
 			SetRoundEnd(end_time)
 
 			for _, ply in ipairs(player.GetAll()) do
-				if ply:GetRole() == ROLE_ZOMBIE and ply:IsTerror() then
+				if ply:GetTeam() == "traitors" and ply:IsTerror() then
 					make_zombie(ply)
 				end
 			end
