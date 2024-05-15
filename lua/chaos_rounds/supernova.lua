@@ -15,4 +15,12 @@ if SERVER then
 	end
 end
 
+if CLIENT then
+	function ROUND:Start()
+		if LocalPlayer():GetTeam() == "innocents" then
+			LocalPlayer():SetRole(ROLE_NOVA)
+		end
+	end
+end
+
 return RegisterChaosRound(ROUND)
