@@ -46,6 +46,12 @@ SWEP.throwForceMin = 0.75		-- Base throw force (at zero power)
 SWEP.throwForceMax = 3			-- Max throw force (at full power)
 SWEP.throwForce = SWEP.throwForceMin
 
+function SWEP:SetupDataTables()
+	BaseClass.SetupDataTables(self)
+
+	self:NetworkVar("Bool", "InFlight")
+end
+
 function SWEP:Initialize()
 	BaseClass.Initialize(self)
 
@@ -127,6 +133,40 @@ function SWEP:Think()
 		end
 	elseif self:GetThrowTime() > 0 and self:GetThrowTime() < CurTime() then
 		self:Throw()
+	end
+end
+
+function SWEP:Throw()
+	if CLIENT then
+		self:SetThrowTime(0)
+	elseif SERVER then
+		if self.was_thrown then return end
+
+		local pl = self:GetOwner()
+		if not IsValid(pl) then return end
+
+		self.was_thrown = true
+
+		local src, force = self:GetThrowVelocity()
+
+		local gren = self:CreateGrenade(
+			src,
+			Angle(0, 0, 0),
+			force,
+			Vector(600, math.random(-1200, 1200), 0),
+			pl)
+
+		gren.WeaponEnt = self
+
+		self:SetInFlight(true)
+		self:SetThrowTime(0)
+
+		pl:DropWeapon(self, nil, vector_origin)
+
+		self:SetParent(gren)
+		self:SetLocalPos(vector_origin)
+		self:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+		self:DrawShadow(false)
 	end
 end
 
@@ -222,6 +262,7 @@ if SERVER then
 	end, nil, nil, FCVAR_UNREGISTERED)
 else
 	local draw = draw
+
 	local hudTextColor = Color(255, 255, 255, 180)
 
 	local bstrdFace = Material("tbrick/face.png", "noclamp")
@@ -296,6 +337,8 @@ else
 
 			self:ToggleViewModelVisibility(owner:GetViewModel(), true)
 		end
+
+		self.throwForce = self.throwForceMin
 
 		bstrdStart, bstrdEnd = nil, nil
 
@@ -378,6 +421,8 @@ else
 	end
 
 	function SWEP:TryDrawWorldModel()
+		if self:GetInFlight() then return true end
+
 		local owner = self:GetOwner()
 
 		if not IsValid(owner) then return false end

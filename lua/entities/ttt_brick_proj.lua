@@ -51,12 +51,21 @@ end
 
 if SERVER then
 	local weaponClassName = "weapon_ttt_brick"
+	local funcBreakableClassName = "func_breakable"
+	local funcBreakableSurfClassName = "func_breakable_surf"
+
+	local breakableFuncEnts = {
+		[funcBreakableClassName] = true,
+		[funcBreakableSurfClassName] = true
+	}
+
+	local utilTraceLine = util.TraceLine
 
 	ENT.DamageMin = 2
 	ENT.DamageMax = 45
 
 	-- The amount of time the brick projectile has to exist before dealing full speed-scaled damage
-	ENT.DamageGraceTime = 0.1
+	ENT.DamageGraceTime = 0.09
 
 	ENT.SpeedScaleMin = 300
 	ENT.SpeedScaleMax = 1800
@@ -68,6 +77,10 @@ if SERVER then
 
 	ENT.BstrdBodyHitSound = ")weapons/tw1stal1cky/brick/evil_hitbody.mp3"
 	ENT.BstrdHeadshotSound = ")weapons/tw1stal1cky/brick/evil_bonk.mp3"
+
+	local function CalculateDamage(self, speedScale, throwTimeScale)
+		return math.ceil((self.DamageMin + (self.DamageMax - self.DamageMin) * speedScale * throwTimeScale) * (self.damageScaling or 1))
+	end
 
 	function ENT:PhysicsCollide(data, phys)
 		if data.DeltaTime < 0.1 then return end
@@ -84,14 +97,14 @@ if SERVER then
 			local isBstrd = self:GetSkin() == 1
 
 			if IsValid(ent) then
-				isPerson = ent:IsPlayer() or ent:IsNPC()
-
 				local velocityNormal = data.OurOldVelocity:GetNormalized()
+
+				isPerson = ent:IsPlayer() or ent:IsNPC()
 
 				if isPerson then
 					local pos = data.HitPos
 
-					local tr = util.TraceLine({
+					local tr = utilTraceLine({
 						start = pos,
 						endpos = pos + (velocityNormal * 32),
 						mask = MASK_SHOT
@@ -134,9 +147,9 @@ if SERVER then
 					local throwTimeScale = math.Clamp((now - self.ThrownTime) / self.DamageGraceTime, 0.1, 1)
 
 					dmg:SetAttacker(thrower)
-					dmg:SetInflictor(self)
-					dmg:SetDamage(math.ceil((self.DamageMin + (self.DamageMax - self.DamageMin) * speedScale * throwTimeScale) * (self.damageScaling or 1)))
-					dmg:SetDamageType(DMG_GENERIC)
+					dmg:SetInflictor(IsValid(self.WeaponEnt) and self.WeaponEnt or self)
+					dmg:SetDamage(CalculateDamage(self, speedScale, throwTimeScale))
+					dmg:SetDamageType(DMG_CLUB)
 					dmg:SetDamagePosition(data.HitPos)
 					dmg:SetDamageForce(velocityNormal * (64 + (1024 * speedScale)))
 				end
@@ -189,29 +202,87 @@ if SERVER then
 	end
 
 	function ENT:PhysicsUpdate(phys)
-		if phys:GetVelocity():LengthSqr() < 4 then
-			-- Replace ent with the weapon version of the ent so it can be picked up
-			local wep = ents.Create(weaponClassName)
+		local velocitySqr = phys:GetVelocity():LengthSqr()
 
-			wep:SetPos(self:GetPos())
-			wep:SetAngles(self:GetAngles())
-			wep:SetSkin(self:GetSkin())
+		if velocitySqr < 4 then
+			local pos = self:GetPos()
+
+			-- Only continue if we're resting on something, not still in the air
+			local tr = utilTraceLine({
+				start = pos,
+				endpos = pos - (vector_up * 10),
+				filter = self,
+				mask = MASK_SOLID
+			})
+
+			if not tr.Hit then return end
+
+			-- Replace ent with the weapon version of the ent so it can be picked up
+			local wep
+
+			if IsValid(self.WeaponEnt) then
+				wep = self.WeaponEnt
+
+				wep:SetParent()
+				wep:SetCollisionGroup(COLLISION_GROUP_WEAPON)
+				wep:DrawShadow(true)
+
+				wep:SetPos(pos)
+				wep:SetAngles(self:GetAngles())
+
+				wep:SetInFlight(false)
+
+				wep.was_thrown = nil
+			else
+				wep = ents.Create(weaponClassName)
+
+				wep:SetPos(pos)
+				wep:SetAngles(self:GetAngles())
+				wep:SetSkin(self:GetSkin())
+
+				wep:Spawn()
+			end
+
+			self:Remove()
 
 			-- Disable auto-pickup using this and the below PlayerCanPickupWeapon hook
 			wep.IsDropped = true
 
-			wep:Spawn()
-
-			-- Transfer stored fingerprints to the weapon entity
+			-- Ensure the stored fingerprints are transferred to the weapon entity
 			wep.fingerprints = self.fingerprints
 
 			local wepPhys = wep:GetPhysicsObject()
 			if IsValid(wepPhys) then
 				wepPhys:Wake()
+				wepPhys:SetVelocityInstantaneous(phys:GetVelocity())
 				wepPhys:SetAngleVelocityInstantaneous(phys:GetAngleVelocity())
 			end
+		elseif velocitySqr >= self.SpeedScaleMin * self.SpeedScaleMin then
+			local pos = phys:GetPos()
+			local velocity = phys:GetVelocity()
+			local velocityNormal = velocity:GetNormalized()
 
-			self:Remove()
+			local tr = utilTraceLine({
+				start = pos,
+				endpos = pos + (velocityNormal * math.max(velocity:Length() * FrameTime() * 1.2, 12)),
+				filter = self,
+				mask = MASK_SOLID
+			})
+
+			if IsValid(tr.Entity) then
+				local entClassName = tr.Entity:GetClass()
+
+				-- If this is a breakable GLASS brush (eg. a window), we need to break through it
+				if breakableFuncEnts[entClassName] and (entClassName != funcBreakableClassName or tr.Entity:GetInternalVariable("material") == 0) then
+					local dmg = DamageInfo()
+					dmg:SetInflictor(self)
+					dmg:SetAttacker(self)
+					dmg:SetDamage(20)
+					dmg:SetDamageType(DMG_CLUB)
+
+					tr.Entity:DispatchTraceAttack(dmg, tr, velocityNormal)
+				end
+			end
 		end
 	end
 
