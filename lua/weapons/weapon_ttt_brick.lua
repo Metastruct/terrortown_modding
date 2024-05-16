@@ -165,7 +165,9 @@ function SWEP:Throw()
 
 		self:SetParent(gren)
 		self:SetLocalPos(vector_origin)
+		self:SetTransmitWithParent(false)
 		self:SetCollisionGroup(COLLISION_GROUP_IN_VEHICLE)
+
 		self:DrawShadow(false)
 	end
 end
