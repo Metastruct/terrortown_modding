@@ -104,7 +104,7 @@ if SERVER then
 			return true
 		end
 	end)
-	hook.Add("TTTPrepareRound", Tag .. "OOC", function()
+	hook.Add("TTTBeginRound", Tag .. "OOC", function()
 		-- Clear this flag so the warning can appear again next round
 		for k, v in ipairs(player.GetAll()) do
 			v.oocHasBody = nil
@@ -405,20 +405,23 @@ else
 				local item = self.messageQueue[1]
 				if not item then return end
 
-				local text = ""
+				local args = {}
 				if item.title and item.title.text != "" then
-					text = item.title.text
+					args[1] = item.title.color or color_white
+					args[2] = item.title.text
 				end
 
 				if item.subtitle and item.subtitle.text != "" then
-					if text != "" then
-						text = text .. " / "
+					if #args > 0 then
+						-- Spacing between title and subtitle
+						args[#args + 1] = " "
 					end
 
-					text = text .. item.subtitle.text
+					args[#args + 1] = item.subtitle.color or color_white
+					args[#args + 1] = item.subtitle.text
 				end
 
-				chat.AddText(color_white, text)
+				chat.AddText(unpack(args))
 			end
 		end
 
