@@ -66,7 +66,8 @@ SWEP.MaxPropSize = 72
 
 SWEP.EntityClassWhitelist = {
 	prop_physics = true,
-	prop_physics_multiplayer = true
+	prop_physics_multiplayer = true,
+	prop_physics_respawnable = true
 }
 
 local convarBreatheDelay = CreateConVar(convarBreatheDelayName, 45, {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED})
