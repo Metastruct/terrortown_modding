@@ -557,10 +557,8 @@ If one lover is a traitor, the other non-traitor lover will help them as their c
 
 Once you have used up your crossbow, you will act as an ordinary innocent.]])
 
-AddCustomExplanation(ROLE_NOVA,
-[[You are an innocent about to blow. You'll explode at a random time. Unless you're killed, then you'll explode right away!
-
-Avoid hanging near crowds of people if you don't want to lose a ton of karma!
+AddCustomExplanation(ROLE_BOMBER,
+[[You are an innocent armed with a rigged c4. You'll leave a c4 about to explode on death.
 
 If you suspect someone is a traitor and don't want to risk losing a gunfight to them, you can try sticking to them.]])
 

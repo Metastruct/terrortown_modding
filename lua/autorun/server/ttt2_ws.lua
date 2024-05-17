@@ -19,7 +19,6 @@ local addons = {
 	"2620700649", 	-- Sacrifice Role
 	"2652339426", 	-- Pure Role
 	"1959850321", 	-- Occultist Role
-	"2594893673", 	-- Nova Role
 	"2086831737", 	-- Medigun (for the Medic role)
 	"3048226332", 	-- green demon
 	"2846938449", 	-- kiss weapon
