@@ -17,7 +17,6 @@ local addons = {
 	"1361602585",	-- Vampire Role
 	"2480382394", 	-- Impostor Role
 	"2620700649", 	-- Sacrifice Role
-	"2652339426", 	-- Pure Role
 	"1959850321", 	-- Occultist Role
 	"2086831737", 	-- Medigun (for the Medic role)
 	"3048226332", 	-- green demon
