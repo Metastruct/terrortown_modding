@@ -31,6 +31,7 @@ end
 function ROUND:Finish()
 	if CLIENT then
 		hook.Remove("SetupWorldFog", "ttt_chaos_veryquiethill")
+		hook.Remove("SetupSkyboxFog", "ttt_chaos_veryquiethill")
 	end
 end
 
