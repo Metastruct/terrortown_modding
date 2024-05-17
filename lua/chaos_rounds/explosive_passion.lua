@@ -5,27 +5,23 @@ ROUND.Description = "Everyone has been given a rigged c4. If anyone dies, their 
 local TAG = "ChaosRoundExplosivePassion"
 
 if SERVER then
-	function ROUND:OnPrepare()
-		hook.Add("TTT2MetaModifyFinalRoles", TAG, function(role_map)
-			for ply, role_id in pairs(role_map) do
-				local role = roles.GetByIndex(role_id)
-				if role and role.defaultTeam == "innocents" and roles.BOMBER then
-					role_map[ply] = roles.BOMBER.id
-				end
-			end
+	function ROUND:Start()
+		hook.Add("TTT2PostPlayerDeath", TAG, function(ply)
+			local c4 = ents.Create("ttt_c4")
+			c4:SetPos(ply:EyePos() + Vector(0, 0, 10))
+			c4:Spawn()
+			c4:DropToFloor()
+
+			c4:Arm(ply, 5) -- 5 seconds
+			c4:SetRadius(300) -- reduce radius
+			c4:SetRadiusInner(150)
+
+			function c4:Defusable() return false end -- no defuse
 		end)
 	end
 
 	function ROUND:Finish()
-		hook.Remove("TTT2MetaModifyFinalRoles", TAG)
-	end
-end
-
-if CLIENT then
-	function ROUND:Start()
-		if LocalPlayer():GetTeam() == "innocents" then
-			LocalPlayer():SetRole(ROLE_BOMBER)
-		end
+		hook.Remove("TTT2PostPlayerDeath", TAG)
 	end
 end
 
