@@ -27,6 +27,8 @@ local cvarHitPlayerAction = CreateConVar("ttt_ricochet_hitplayeraction",
 local cvarShotCount = CreateConVar("ttt_ricochet_shotcount",
     tostring(3), { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 
+local cvarScopeWarning = CreateClientConVar("ttt_ricochet_scopewarning",
+    tostring(1), true, false)
 --#endregion
 
 DEFINE_BASECLASS("weapon_tttbase")
@@ -467,7 +469,7 @@ if CLIENT then
             TEXT_ALIGN_CENTER
         )
 
-        if #self.LastTraces < 2 then
+        if #self.LastTraces < 2 and cvarScopeWarning:GetBool() then
             surface.SetDrawColor(223, 203, 63)
             surface.SetMaterial(mat_scope_warning)
             surface.DrawTexturedRect(x, y, 1024, 1024)
