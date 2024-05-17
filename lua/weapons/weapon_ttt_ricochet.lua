@@ -1,6 +1,11 @@
 if SERVER then
     AddCSLuaFile()
     resource.AddFile("materials/vgui/ttt/icon_ricochet.vmt")
+    resource.AddFile("materials/ttt_ricochet_rifle/scope_base.png")
+    resource.AddFile("materials/ttt_ricochet_rifle/scope_reticle.png")
+    resource.AddFile("materials/ttt_ricochet_rifle/scope_slits.png")
+    resource.AddFile("materials/ttt_ricochet_rifle/scope_tick.png")
+    resource.AddFile("materials/ttt_ricochet_rifle/scope_warning.png")
 
     util.AddNetworkString("ttt_ricochet_trail")
 end
@@ -12,15 +17,15 @@ local HITPLAYERACT_BOUNCE = 1
 local HITPLAYERACT_CONTINUE = 2
 
 local cvarNonbounceDamage = CreateConVar("ttt_ricochet_nonbouncedamage",
-    25, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
+    tostring(25), { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 local cvarMaxBounces = CreateConVar("ttt_ricochet_maxbounces",
-    20, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
+    tostring(20), { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 local cvarShotTrailTime = CreateConVar("ttt_ricochet_shottrail",
-    1.5, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
+    tostring(1.5), { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 local cvarHitPlayerAction = CreateConVar("ttt_ricochet_hitplayeraction",
-    HITPLAYERACT_CONTINUE, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
+    tostring(HITPLAYERACT_CONTINUE), { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 local cvarShotCount = CreateConVar("ttt_ricochet_shotcount",
-    3, { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
+    tostring(3), { FCVAR_NOTIFY, FCVAR_ARCHIVE, FCVAR_REPLICATED })
 
 --#endregion
 
@@ -85,11 +90,9 @@ if CLIENT then
         "The number of shots the Deadshot Rifle spawns with.")
 
     language.Add("ttt_ricochet_scopeinfo",
-        "Zoom: %du\n" ..
-        "Bounces: %d / %d\n" ..
-        "\n" ..
-        "Scroll the mouse to zoom in and out.\n" ..
-        "Zoom into a wall to follow the trajectory of the bounced round."
+        "<font=TargetIDSmall><color=255,100,100>WARNING</color>: Ricochet Rifle deals minimal damage before bouncing off a wall!\n"
+        .. "\n"
+        .. "Scroll the mouse wheel to zoom into a wall and see the trajectory of the round."
     )
 end
 
@@ -213,7 +216,11 @@ function SWEP:PrimaryAttack()
     self:EmitSound(self.Primary.Sound2, 125, 100, 1, CHAN_VOICE2)
     self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 
-    if CLIENT then return end
+    if CLIENT then
+        self.ScopeShotExtraSpin = 720
+        self.ScopeLastShotTime = CurTime()
+        return
+    end
 
     SuppressHostEvents(NULL)
 
@@ -356,27 +363,125 @@ function SWEP:AddToSettingsMenu(parent)
     })
 end
 
-function SWEP:DrawHUD()
-    if not self:GetIronsights() then return end
+if CLIENT then
+    local mat_scope_base = Material("ttt_ricochet_rifle/scope_base.png")
+    local mat_scope_reticle = Material("ttt_ricochet_rifle/scope_reticle.png")
+    local mat_scope_slits = Material("ttt_ricochet_rifle/scope_slits.png")
+    local mat_scope_tick = Material("ttt_ricochet_rifle/scope_tick.png")
+    local mat_scope_warning = Material("ttt_ricochet_rifle/scope_warning.png")
 
-    local w = ScrW()
-    local h = ScrH()
-    local scope = surface.GetTextureID("sprites/scope")
+    local scope_markup = markup.Parse(
+        language.GetPhrase("ttt_ricochet_scopeinfo"),
+        368
+    )
 
-    surface.SetDrawColor(0, 0, 0, 255)
-    surface.DrawLine(0, h / 2, w, h / 2)
-    surface.DrawLine(w / 2, 0, w / 2, h)
-    surface.DrawRect(0, 0, (w - h) / 2, h)
-    surface.DrawRect((w + h) / 2, 0, (w - h) / 2, h)
+    function SWEP:DrawHUD()
+        if not self:GetIronsights() or not self.LastTraces then
+            self.ScopeStartTime = nil
+            return
+        end
+        self.ScopeStartTime = self.ScopeStartTime or CurTime()
+        local t = math.Clamp(
+            CurTime() - self.ScopeStartTime,
+            0,
+            1
+        )
+        local isInShotCooldown = self.ScopeLastShotTime and CurTime() - self.ScopeLastShotTime < self.Primary.Delay
 
-    surface.SetTexture(scope)
-    surface.SetDrawColor(255, 255, 255, 255)
-    surface.DrawTexturedRect((w - h) / 2, 0, h, h)
+        self.ScopeShotExtraSpin = self.ScopeShotExtraSpin or 0
+        self.ScopeShotExtraSpin = self.ScopeShotExtraSpin - self.ScopeShotExtraSpin * FrameTime()
 
-    local bounces = self.LastTraces and #self.LastTraces - 1 or 0
-    local text = language.GetPhrase("ttt_ricochet_scopeinfo"):format(self.ZoomDisplay, bounces, cvarMaxBounces:GetInt())
-    draw.DrawText(text, "HudDefault", w / 2 + 22, h / 2 + 22, Color(0, 0, 0, 255))
-    draw.DrawText(text, "HudDefault", w / 2 + 20, h / 2 + 20, COLOR_WHITE)
+        local x = ScrW() / 2 - 512
+        local y = ScrH() / 2 - 512
+
+        -- Black letterbox / columns
+        surface.SetDrawColor(0, 0, 0, 255)
+        surface.DrawRect(0, 0, x, ScrH())
+        surface.DrawRect(x + 1024, 0, ScrW() - x + 1024, ScrH())
+        surface.DrawRect(0, 0, ScrW(), y)
+        surface.DrawRect(0, y + 1024, ScrW(), ScrH() - y + 1024)
+
+        surface.SetDrawColor(255, 255, 255)
+        surface.SetMaterial(mat_scope_base)
+        surface.DrawTexturedRect(x, y, 1024, 1024)
+
+        if isInShotCooldown then
+            surface.SetDrawColor(0, 0, 0, 0)
+        elseif #self.LastTraces > 1 then
+            surface.SetDrawColor(60, 166, 229, 255 * t)
+        else
+            surface.SetDrawColor(200, 50, 50, 255 * t)
+        end
+        surface.SetMaterial(mat_scope_reticle)
+        surface.DrawTexturedRect(x, y, 1024, 1024)
+
+        surface.SetDrawColor(255, 255, 255, 255 * t ^ 3)
+        surface.SetMaterial(mat_scope_slits)
+        surface.DrawTexturedRectRotated(x + 512, y + 512, 1024, 1024,
+            self.ZoomDisplay / -5 + 90 * t ^ 3 + self.ScopeShotExtraSpin)
+
+        surface.SetDrawColor(0, 0, 0, 100)
+        surface.DrawRect(x + 511, y + 500, 3, 24)
+        surface.DrawRect(x + 500, y + 511, 24, 3)
+        surface.SetDrawColor(255, 255, 255)
+        surface.DrawRect(x + 512, y + 500, 1, 24)
+        surface.DrawRect(x + 500, y + 512, 24, 1)
+
+        local pitch = self:GetOwner():EyeAngles().p
+        if -17 < pitch and pitch < 17 then
+            surface.SetDrawColor(255, 255, 255)
+            surface.SetMaterial(mat_scope_tick)
+            surface.DrawTexturedRectRotated(x + 512, y + 512, 1024, 1024, pitch + 90)
+        end
+
+        local yaw = (self:GetOwner():EyeAngles().y + 45) % 90 - 45
+        if -17 < yaw and yaw < 17 then
+            surface.SetDrawColor(255, 255, 255)
+            surface.SetMaterial(mat_scope_tick)
+            surface.DrawTexturedRectRotated(x + 512, y + 512, 1024, 1024, yaw)
+        end
+
+        yaw = (self:GetOwner():EyeAngles().y) % 90 - 45
+        if -17 < yaw and yaw < 17 then
+            surface.SetDrawColor(255, 255, 255, 100)
+            surface.SetMaterial(mat_scope_tick)
+            surface.DrawTexturedRectRotated(x + 512, y + 512, 1024, 1024, yaw)
+        end
+
+        draw.SimpleText(
+            #self.LastTraces - 1 .. " / " .. (cvarMaxBounces:GetInt() - 1),
+            "HudDefault",
+            x + 880,
+            y + 480,
+            Color(255, 255, 255, 255),
+            TEXT_ALIGN_RIGHT,
+            TEXT_ALIGN_CENTER
+        )
+        draw.SimpleText(
+            math.floor(self.ZoomDisplay),
+            "HudDefault",
+            x + 880,
+            y + 544,
+            Color(255, 255, 255, 255),
+            TEXT_ALIGN_RIGHT,
+            TEXT_ALIGN_CENTER
+        )
+
+        if #self.LastTraces < 2 then
+            surface.SetDrawColor(223, 203, 63)
+            surface.SetMaterial(mat_scope_warning)
+            surface.DrawTexturedRect(x, y, 1024, 1024)
+
+            scope_markup:Draw(
+                x + 512,
+                y + 772,
+                TEXT_ALIGN_CENTER,
+                TEXT_ALIGN_CENTER,
+                255,
+                TEXT_ALIGN_CENTER
+            )
+        end
+    end
 end
 
 --#endregion
@@ -460,7 +565,7 @@ if CLIENT then
 
         -- Needs to be in hook to allow for rendering player model
         local wep = ply:GetActiveWeapon()
-        local t = calculateTrajectory(origin, angles, wep.Zoom, { ply })
+        local t = calculateTrajectory(origin, angles, wep.ZoomDisplay, { ply })
         wep.LastTraces = t.traces
         return {
             origin = t.pos,
@@ -479,8 +584,3 @@ if CLIENT then
     end)
 end
 --#endregion
-
--- Scope:
--- Pitch indicator
--- Yaw
--- Warning: Reduced damage on low bounce
