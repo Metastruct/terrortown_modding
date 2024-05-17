@@ -29,6 +29,8 @@ local cvarShotCount = CreateConVar("ttt_ricochet_shotcount",
 
 local cvarScopeWarning = CreateClientConVar("ttt_ricochet_scopewarning",
     tostring(1), true, false)
+local cvarScopeWalkModifier = CreateClientConVar("ttt_ricochet_scopewalkmodifier",
+    tostring(3), true, false)
 --#endregion
 
 DEFINE_BASECLASS("weapon_tttbase")
@@ -508,10 +510,15 @@ if CLIENT then
 
         wep.Zoom = wep.Zoom or 0
 
+        local diff = 20
+        if cmd:KeyDown(IN_WALK) then
+            diff = diff * cvarScopeWalkModifier:GetFloat()
+        end
+
         if cmd:GetMouseWheel() > 0 then
-            wep.Zoom = wep.Zoom + 20
+            wep.Zoom = wep.Zoom + diff
         elseif cmd:GetMouseWheel() < 0 then
-            wep.Zoom = math.max(0, wep.Zoom - 20)
+            wep.Zoom = math.max(0, wep.Zoom - diff)
         end
     end)
 
