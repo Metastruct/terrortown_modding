@@ -558,6 +558,15 @@ if CLIENT then
                     v.killshot and Color(255, 0, 0, 255) or Color(200, 200, 200, 255 * s))
             end
         end
+
+        if not playerIsHoldingZoomedDeadshot(LocalPlayer()) then return end
+        local wep = LocalPlayer():GetActiveWeapon()
+        if not wep.LastTraces or #wep.LastTraces < 2 or not wep.LastTracesLaser then return end
+        for _, trace in ipairs(wep.LastTracesLaser) do
+            render.SetColorMaterial()
+            render.SetMaterial(Material("trails/laser"))
+            render.DrawBeam(trace.StartPos, trace.HitPos, 16, 0, 0, Color(60, 166, 229, 255))
+        end
     end)
 
     hook.Add("CalcView", "ttt_ricochet", function(ply, origin, angles)
@@ -567,6 +576,8 @@ if CLIENT then
         local wep = ply:GetActiveWeapon()
         local t = calculateTrajectory(origin, angles, wep.ZoomDisplay, { ply })
         wep.LastTraces = t.traces
+        local tLaser = calculateTrajectory(origin, angles, wep.ZoomDisplay + 1000, { ply })
+        wep.LastTracesLaser = tLaser.traces
         return {
             origin = t.pos,
             angles = t.ang,
