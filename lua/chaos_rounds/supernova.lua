@@ -2,6 +2,8 @@ local ROUND = {}
 ROUND.Name = "Supernova"
 ROUND.Description = "Every innocent explodes on death!"
 
+local TAG = "ChaosRoundSupernova"
+
 if SERVER then
 	function ROUND:OnPrepare()
 		hook.Add("TTT2MetaModifyFinalRoles", TAG, function(role_map)
@@ -12,6 +14,10 @@ if SERVER then
 				end
 			end
 		end)
+	end
+
+	function ROUND:Finish()
+		hook.Remove("TTT2MetaModifyFinalRoles", TAG)
 	end
 end
 
