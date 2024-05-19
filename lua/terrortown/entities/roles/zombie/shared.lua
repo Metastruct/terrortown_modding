@@ -20,7 +20,7 @@ function ROLE:PreInitialize()
 	self.preventKillCredits = true
 	self.preventTraitorAloneCredits = true
 	self.preventWin = false
-	self.unknownTeam = false
+	self.unknownTeam = true
 	self.defaultTeam = TEAM_TRAITOR
 
 	self.conVarData = {
