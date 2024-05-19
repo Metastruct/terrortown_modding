@@ -27,7 +27,7 @@ function ROLE:PreInitialize()
 
 	self.preventTraitorAloneCredits = true
 	self.preventWin = false
-	self.unknownTeam = false
+	self.unknownTeam = true
 	self.defaultTeam = TEAM_INNOCENT
 
 	self.karma = {
