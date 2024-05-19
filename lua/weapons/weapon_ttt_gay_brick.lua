@@ -11,10 +11,10 @@ SWEP.LimitedStock = true
 SWEP.AutoSpawnable = false
 
 if CLIENT then
-	SWEP.PrintName = "Gay Brick"
+	SWEP.PrintName = "Rainbow Brick"
 
 	SWEP.EquipMenuData = {
-		name = "Gay Brick",
+		name = "Rainbow Brick",
 		desc = "A brick imbued with the power of the rainbow!",
 		type = "item_weapon"
 	}
