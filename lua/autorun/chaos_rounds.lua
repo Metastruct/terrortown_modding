@@ -298,7 +298,14 @@ if CLIENT then
 			called = true
 
 			if ACTIVE_CHAOS_ROUND then
-				chat.AddText(Color(255, 0, 0), "[CHAOS ROUND] ", ACTIVE_CHAOS_ROUND.Name:upper(), ": ", ACTIVE_CHAOS_ROUND.Description or "No description provided.")
+				if _G.EPOP then
+					_G.EPOP:AddMessage({
+						text = ("[CHAOS ROUND] %s: %s"):format(ACTIVE_CHAOS_ROUND.Name:upper(), ACTIVE_CHAOS_ROUND.Description or "???"),
+						color = COLOR_RED
+					}, nil, 10)
+				else
+					chat.AddText(Color(255, 0, 0), "[CHAOS ROUND] ", ACTIVE_CHAOS_ROUND.Name:upper(), ": ", ACTIVE_CHAOS_ROUND.Description or "???")
+				end
 
 				if isfunction(ACTIVE_CHAOS_ROUND.OnPostSelection) then
 					ACTIVE_CHAOS_ROUND:OnPostSelection()
