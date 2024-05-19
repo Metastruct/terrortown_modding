@@ -54,7 +54,7 @@ end
 
 if SERVER then
 	hook.Add("TTT2PostPlayerDeath", "ttt_role_bomber", function(ply)
-		if ply:GetRole() == roles.BOMBER.id then
+		if ply:GetSubRole() == roles.BOMBER.id then
 			local c4 = ents.Create("ttt_c4")
 			c4:SetPos(ply:EyePos() + Vector(0, 0, 10))
 			c4:Spawn()
