@@ -65,7 +65,7 @@ if CLIENT then
 		return convarGlow
 	end
 
-	local RELOAD_BIND = input.LookupBinding("+use", true) or "unknown"
+	local RELOAD_BIND = input.LookupBinding("+reload", true) or "unknown"
 	hook.Add("TTTRenderEntityInfo", TAG, function(data)
 		local ent = data:GetEntity()
 		if not elligibleForKillMove(ent) then return end
