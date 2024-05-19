@@ -31,29 +31,6 @@ if SERVER then
 			PLY.old_KillMove(self, ...)
 		end
 	end)
-
-	local plys_pressing = {}
-	net.Receive(TAG, function(_, ply)
-		plys_pressing[ply] = true
-		timer.Create(TAG, 1, 1, function()
-			plys_pressing[ply] = nil
-		end)
-	end)
-
-	hook.Add("Think", TAG, function()
-		if not _G.KMCheck then return end
-		for ply, _ in pairs(plys_pressing) do
-			if not IsValid(ply) then
-				plys_pressing[ply] = nil
-				continue
-			end
-
-			local tr = ply:GetEyeTrace()
-			if elligibleForKillMove(tr.Entity) then
-				_G.KMCheck(ply)
-			end
-		end
-	end)
 end
 
 if CLIENT then
@@ -65,7 +42,13 @@ if CLIENT then
 		return convarGlow
 	end
 
-	local RELOAD_BIND = input.LookupBinding("+reload", true) or "unknown"
+	local RELOAD_BIND = input.LookupBinding("bsmod_killmove")
+	if not RELOAD_BIND then
+		RELOAD_BIND = "\'bsmod_killmove\' IS NOT BOUND"
+	else
+		RELOAD_BIND = RELOAD_BIND:upper()
+	end
+
 	hook.Add("TTTRenderEntityInfo", TAG, function(data)
 		local ent = data:GetEntity()
 		if not elligibleForKillMove(ent) then return end
@@ -81,13 +64,6 @@ if CLIENT then
 		data:EnableText()
 		data:EnableOutline()
 		data:SetOutlineColor(RED_COLOR)
-		data:AddDescriptionLine("Press [" .. RELOAD_BIND:upper() .. "] to FINISH them!")
-	end)
-
-	hook.Add("PlayerBindPress", TAG, function(_, bind)
-		if bind ~= "+reload" then return end
-
-		net.Start(TAG, true)
-		net.SendToServer()
+		data:AddDescriptionLine("Press [" .. RELOAD_BIND .. "] to FINISH them!")
 	end)
 end
