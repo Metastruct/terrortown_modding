@@ -79,19 +79,19 @@ if SERVER then
 				end
 			end)
 
-			if victim:GetRole() == ROLE_ZOMBIE then
+			if victim:GetSubRole() == ROLE_ZOMBIE then
 				revive_zombie(victim)
 				return
 			end
 
-			if victim:GetRole() ~= ROLE_ZOMBIE and IsValid(attacker) and attacker:IsPlayer() and attacker:GetRole() == ROLE_ZOMBIE then
+			if victim:GetSubRole() ~= ROLE_ZOMBIE and IsValid(attacker) and attacker:IsPlayer() and attacker:GetSubRole() == ROLE_ZOMBIE then
 				revive_zombie(victim)
 			end
 		end)
 
 		hook.Add("WeaponEquip", TAG, function(wep, owner)
 			if not owner:IsTerror() then return end
-			if owner:GetRole() ~= ROLE_ZOMBIE then return end
+			if owner:GetSubRole() ~= ROLE_ZOMBIE then return end
 			if wep:GetClass() == "weapon_ttt_zombie" then return end
 
 			wep:Remove()
@@ -104,7 +104,7 @@ if SERVER then
 		hook.Add("TTTCheckForWin", TAG, function()
 			local survivors = 0
 			for _, ply in ipairs(player.GetAll()) do
-				if ply:GetRole() ~= ROLE_ZOMBIE and ply:IsTerror() then
+				if ply:GetSubRole() ~= ROLE_ZOMBIE and ply:IsTerror() then
 					survivors = survivors + 1
 				end
 			end
@@ -122,7 +122,7 @@ if SERVER then
 		hook.Remove("TTTCheckForWin", TAG)
 
 		for _, ply in ipairs(player.GetAll()) do
-			if ply:GetRole() == ROLE_ZOMBIE then
+			if ply:GetSubRole() == ROLE_ZOMBIE then
 				ply:SetMaxHealth(100)
 			end
 		end
