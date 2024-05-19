@@ -48,6 +48,10 @@ function ROLE:PreInitialize()
 	}
 end
 
+function ROLE:Initialize()
+	roles.SetBaseRole(self, ROLE_INNOCENT)
+end
+
 if SERVER then
 	hook.Add("TTT2PostPlayerDeath", "ttt_role_bomber", function(ply)
 		if ply:GetRole() == roles.BOMBER.id then
