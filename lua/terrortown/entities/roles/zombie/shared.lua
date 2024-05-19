@@ -33,3 +33,7 @@ function ROLE:PreInitialize()
 		random = 33
 	}
 end
+
+function ROLE:Initialize()
+	roles.SetBaseRole(self, ROLE_TRAITOR)
+end
