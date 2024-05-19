@@ -18,6 +18,7 @@ end
 
 if SERVER then
 	AddCSLuaFile()
+	util.AddNetworkString(TAG)
 
 	hook.Add("InitPostEntity", TAG, function()
 		local PLY = FindMetaTable("Player")
