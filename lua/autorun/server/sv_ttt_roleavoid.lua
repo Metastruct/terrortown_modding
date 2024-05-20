@@ -1,8 +1,8 @@
 ---@param ply Player
 ---@param roleName string
----@return boolean
-local function getPlayerAvoidsRole(ply, roleName)
-	return ply:GetInfoNum("ttt2_avoidrole_" .. roleName, 0) == 1
+---@return number preference Between 0 and 1, inclusive
+local function getPlayerRolePreference(ply, roleName)
+	return math.Clamp(ply:GetInfoNum("ttt2_rolepreference_" .. roleName, 1), 0, 1)
 end
 
 ---@param roleMap {[Player]: number}
@@ -27,24 +27,45 @@ local function ReallocateRoles(roleMap)
 		local roleName = roles.GetByIndex(role).name
 		local forced = false
 
-		-- Get a list of players that can be assigned this role
-		---@type Player[]
-		local validPlayers = {}
+		-- Get a list of players and the cumulative preference for each player
+		local preferenceSum = 0
+		---@type {[1]: Player, [2]: number}[]
+		local plyPreferences = {}
 		for _, ply in pairs(players) do
-			if not getPlayerAvoidsRole(ply, roleName) and roleMap[ply] == NO_ROLE_ASSIGNED then
-				validPlayers[#validPlayers + 1] = ply
+			local preference = getPlayerRolePreference(ply, roleName)
+			if preference > 0 and roleMap[ply] == NO_ROLE_ASSIGNED then
+				preferenceSum = preferenceSum + preference
+				plyPreferences[#plyPreferences + 1] = { ply, preference }
 			end
 		end
 
-		-- If there are no players that can be assigned this role, consider
-		-- everyone and send a message to them
-		if #validPlayers == 0 then
-			validPlayers = players
+		---@type Player
+		local ply = nil
+
+		if preferenceSum == 0 then
+			-- If there are no players that can be assigned this role, consider
+			-- everyone and send a message to them
 			forced = true
+			ply = players[math.random(#players)]
+		else
+			-- Assign the role to a random player
+			local choice = math.random() * preferenceSum
+			for _, plyPreference in pairs(plyPreferences) do
+				local potentialPly = plyPreference[1]
+				local preference = plyPreference[2]
+				if choice <= preference then
+					ply = potentialPly
+					break
+				else
+					choice = choice - preference
+				end
+			end
+			if ply == nil then
+				ErrorNoHalt("Failed to assign role " .. roleName .. " to a player ERROR")
+				ply = plyPreferences[#plyPreferences][1]
+			end
 		end
 
-		-- Assign the role to a random player
-		local ply = validPlayers[math.random(#validPlayers)]
 		print("Giving role " ..
 			roleName ..
 			" to " .. ply:Nick() .. " (forced: " .. tostring(forced) .. ") (candidates: " .. #validPlayers .. ")")
