@@ -13,10 +13,27 @@ if SERVER then
 else
 	local ragdollClassName = "prop_ragdoll"
 
+	local outfitterRagdollList = {}
+
 	local function HideBaseRagdoll(rag)
-		rag:SetNoDraw(true)
-		rag:SetModel("models/player/kleiner.mdl")
 		rag:SetLOD(4)
+		rag:SetModel("models/player/kleiner.mdl")
+	end
+
+	local function ForceHideBaseRagdoll(rag)
+		HideBaseRagdoll(rag)
+
+		local timerId = tag .. tostring(rag:EntIndex())
+
+		-- Sorry, there doesn't seem to be a proper way of detecting if the base ragdoll has successfully been hidden
+		-- And it may be ping dependent, so we can only spam it... very epic!
+		timer.Create(timerId, 0.03, 10, function()
+			if not IsValid(rag) then
+				timer.Remove(timerId)
+			end
+
+			HideBaseRagdoll(rag)
+		end)
 	end
 
 	local function CreateOutfitterRagdoll(pl, rag)
@@ -35,36 +52,41 @@ else
 		mdl:AddEffects(EF_BONEMERGE_FASTCULL)
 
 		mdl:SetNoDraw(false)
-		mdl:DrawShadow(true)
 
-		mdl.RagdollParent = rag
+		mdl.outfitterRagdollParent = rag
+		rag.outfitterChildMdl = mdl
 
-		HideBaseRagdoll(rag)
+		outfitterRagdollList[#outfitterRagdollList + 1] = mdl
+
+		ForceHideBaseRagdoll(rag)
 
 		function mdl:RenderOverride()
-			local rag = self.RagdollParent
+			local rag = self.outfitterRagdollParent
 
 			if not IsValid(rag) then
 				self:Remove()
 				return
 			end
 
-			if not rag:IsDormant() and self:GetParent() != rag then
-				self:SetParent(rag)
-				self:SetLocalPos(vector_origin)
-
-				HideBaseRagdoll(rag)
+			if self:GetParent() == rag then
+				self:DrawModel()
+				self:CreateShadow()
 			end
-
-			self:DrawModel()
-			self:CreateShadow()
 		end
+
+		function rag:RenderOverride() end
+
+		rag:CallOnRemove(tag, function(ent)
+			if IsValid(ent.outfitterChildMdl) then
+				ent.outfitterChildMdl:Remove()
+			end
+		end)
 	end
 
 	-- Sometimes the client is told about corpses they aren't aware of yet - catch when they appear and apply the outfitter model
 	local pendingOutfitterRagdolls = {}
 
-	hook.Add("OnEntityCreated", tag, function(ent)
+	hook.Add("NetworkEntityCreated", tag, function(ent)
 		local entId = IsValid(ent) and ent:EntIndex() or nil
 
 		if pendingOutfitterRagdolls[entId] then
@@ -78,9 +100,28 @@ else
 		end
 	end)
 
+	hook.Add("NotifyShouldTransmit", tag, function(ent, transmit)
+		if not transmit then return end
+
+		if IsValid(ent) and ent:GetClass() == ragdollClassName and IsValid(ent.outfitterChildMdl) then
+			ent.outfitterChildMdl:SetParent(ent)
+			ent.outfitterChildMdl:SetLocalPos(vector_origin)
+
+			ForceHideBaseRagdoll(ent)
+		end
+	end)
+
 	-- Clear out the pending table when the round changes
 	hook.Add("TTTPrepareRound", tag, function()
 		pendingOutfitterRagdolls = {}
+
+		for k, v in pairs(outfitterRagdollList) do
+			if IsValid(v) then
+				v:Remove()
+			end
+		end
+
+		outfitterRagdollList = {}
 	end)
 
 	-- A corpse has been created - if the player has an outfitter model, try applying it to their corpse
