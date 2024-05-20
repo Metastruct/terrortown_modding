@@ -11,7 +11,7 @@ LANG.AddToLanguage("en", "submenu_rolepreference_desc",
 function CLGAMEMODESUBMENU:Populate(parent)
 	local form = vgui.CreateTTT2Form(parent, "Role Avoidance")
 
-	form:MakeHelp({ label = "submenu_avoidrole_desc" })
+	form:MakeHelp({ label = "submenu_rolepreference_desc" })
 
 	local roleList = {}
 	for _, role in pairs(roles.roleList) do
@@ -28,7 +28,7 @@ function CLGAMEMODESUBMENU:Populate(parent)
 	for _, role in ipairs(roleList) do
 		local roleName = role.name
 
-		form:MarkSlider({
+		form:MakeSlider({
 			label = roleName,
 			conv = "ttt2_rolepreference_" .. roleName,
 			min = 0,

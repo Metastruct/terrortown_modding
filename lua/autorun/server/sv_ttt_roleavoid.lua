@@ -68,7 +68,7 @@ local function ReallocateRoles(roleMap)
 
 		print("Giving role " ..
 			roleName ..
-			" to " .. ply:Nick() .. " (forced: " .. tostring(forced) .. ") (candidates: " .. #validPlayers .. ")")
+			" to " .. ply:Nick() .. " (forced: " .. tostring(forced) .. ")")
 		roleMap[ply] = role
 
 		-- Send a message to the player if they were forced into the role
