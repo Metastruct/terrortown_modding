@@ -1,11 +1,11 @@
 CLGAMEMODESUBMENU.base = "base_gamemodesubmenu"
 
 CLGAMEMODESUBMENU.priority = 50
-CLGAMEMODESUBMENU.title = "Role Avoidance"
+CLGAMEMODESUBMENU.title = "Role Preferences"
 CLGAMEMODESUBMENU.icon = Material("vgui/ttt/vskin/helpscreen/roles")
 
-LANG.AddToLanguage("en", "submenu_avoidrole_desc",
-	"Role Avoidance allows you to avoid being assigned a specific role. Selecting a role here will attempt to assign that role to someone else first, and only assign it to you if no one else can take it. (You'll receive a message if you're forced into a role.)")
+LANG.AddToLanguage("en", "submenu_rolepreference_desc",
+	"Role Preferences allow you to choose how likely you are to be assigned a specific role, or to avoid being assigned a specific role entirely.")
 
 ---@param parent Panel
 function CLGAMEMODESUBMENU:Populate(parent)
@@ -28,9 +28,12 @@ function CLGAMEMODESUBMENU:Populate(parent)
 	for _, role in ipairs(roleList) do
 		local roleName = role.name
 
-		form:MakeCheckBox({
+		form:MarkSlider({
 			label = roleName,
-			convar = "ttt2_avoidrole_" .. roleName,
+			conv = "ttt2_rolepreference_" .. roleName,
+			min = 0,
+			max = 1,
+			decimal = 2
 		})
 	end
 end
