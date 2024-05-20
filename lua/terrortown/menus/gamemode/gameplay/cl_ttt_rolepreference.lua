@@ -30,10 +30,11 @@ function CLGAMEMODESUBMENU:Populate(parent)
 
 		form:MakeSlider({
 			label = roleName,
-			conv = "ttt2_rolepreference_" .. roleName,
+			convar = "ttt2_rolepreference_" .. roleName,
 			min = 0,
 			max = 1,
-			decimal = 2
+			decimal = 2,
+			default = 1,
 		})
 	end
 end
