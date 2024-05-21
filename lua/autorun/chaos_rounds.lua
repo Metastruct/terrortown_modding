@@ -127,7 +127,7 @@ if SERVER then
 
 	hook.Add("TTTEndRound", TAG, function()
 		end_chaos_round()
-		timer.Simple(0, select_chaos_round)
+		select_chaos_round()
 	end)
 
 	hook.Add("TTTBeginRound", TAG, begin_chaos_round)
