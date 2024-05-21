@@ -30,6 +30,7 @@ else
 		timer.Create(timerId, 0.03, 10, function()
 			if not IsValid(rag) then
 				timer.Remove(timerId)
+				return
 			end
 
 			HideBaseRagdoll(rag)
