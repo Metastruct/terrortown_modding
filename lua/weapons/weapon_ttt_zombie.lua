@@ -93,13 +93,6 @@ function SWEP:Think()
 			return
 		end
 
-		if not pl:GetModel():lower():find("zombie", 1, true) then
-			pl:ChatPrint("Grundley was replaced with " .. pl:GetModel() .. " (clear pac?)")
-			self:Remove()
-
-			return
-		end
-
 		if not self:GetOwner():KeyDown(IN_ATTACK) then
 			self:GetOwner():SetDTInt(2, 0)
 		end
@@ -142,10 +135,10 @@ function SWEP:Think()
 			info = DamageInfo()
 			info:SetAttacker(self:GetOwner())
 			info:SetInflictor(self)
-			info:SetDamage(3)
+			info:SetDamage(20)
 			info:SetDamageType(bit.bor(DMG_SLASH, DMG_CLUB))
 			info:SetDamagePosition(tr2.HitPos)
-			info:SetMaxDamage(3)
+			info:SetMaxDamage(20)
 			info:SetDamageForce(tr2.Normal * 16)
 			tr2.Entity:TakeDamageInfo(info)
 			tr2.Entity:TakePhysicsDamage(info)
@@ -182,20 +175,11 @@ end
 function SWEP:Deploy()
 	local own = self:GetOwner()
 
-	if (own.pac_player_size and own.pac_player_size ~= 1) or own.pac_url_playermodel or (own.OutfitInfo and own:OutfitInfo()) then
-		if SERVER then
-			self:Remove()
-			own:ChatPrint"Remove your pac/outfitter outfit to become mr grundley"
-		end
-
-		return false
-	end
-
 	if SERVER then
 		own.pac_last_modifier_model = false
 		self:GetOwner():SetModel("models/Zombie/Fast.mdl")
 		self:GetOwner():DrawWorldModel(false)
-		gamemode.Call("SetPlayerSpeed", self:GetOwner(), 55, 218)
+		--gamemode.Call("SetPlayerSpeed", self:GetOwner(), 55, 218)
 	end
 
 	return true
@@ -205,7 +189,7 @@ function SWEP:Holster()
 	if SERVER then
 		gamemode.Call("PlayerSetModel", self:GetOwner())
 		self:GetOwner():DrawWorldModel(true)
-		gamemode.Call("SetPlayerSpeed", self:GetOwner(), 250, 500)
+		--gamemode.Call("SetPlayerSpeed", self:GetOwner(), 250, 500)
 	end
 
 	return true

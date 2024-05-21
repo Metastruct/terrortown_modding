@@ -120,6 +120,7 @@ if SERVER then
 		hook.Remove("TTT2PostPlayerDeath", TAG)
 		hook.Remove("WeaponEquip", TAG)
 		hook.Remove("TTTCheckForWin", TAG)
+		hook.Remove("TTT2MetaModifyFinalRoles", TAG)
 
 		for _, ply in ipairs(player.GetAll()) do
 			if ply:GetSubRole() == ROLE_ZOMBIE then
