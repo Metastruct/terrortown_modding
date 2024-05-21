@@ -3,13 +3,12 @@ local TAG = "use_voice_goddamnit"
 if CLIENT then
 	local VOICE_ENABLE = GetConVar("voice_enable")
 	local VOLUME = GetConVar("volume")
+	local VOICE_SCALE = GetConVar("voice_scale")
 	local RED_COLOR = Color(255, 0, 0, 255)
 
 	local function has_voice_enabled()
-		if not VOICE_ENABLE then return true end --- uuuhhhh
-		if not VOLUME then return true end --- uuuhhhh
-
-		if VOICE_ENABLE:GetBool() and VOLUME:GetFloat() > 0 then return true end -- good boy :)
+		if not VOICE_ENABLE or not VOLUME or not VOICE_SCALE then return true end --- uuuhhhh
+		if VOICE_ENABLE:GetBool() and VOLUME:GetFloat() > 0 and VOICE_SCALE:GetFloat() > 0 then return true end -- good boy :)
 
 		return false
 	end
@@ -34,12 +33,17 @@ if CLIENT then
 	end
 
 	local voice_state = nil
+	local next_check = 0
 	hook.Add("Think", "use_voice_goddamnit", function()
+		if CurTime() < next_check then return end
+
 		local cur_voice_state = has_voice_enabled()
 		if cur_voice_state ~= voice_state then
 			voice_state = cur_voice_state
 			on_voice_state_update(voice_state)
 		end
+
+		next_check = CurTime() + 2
 	end)
 end
 
