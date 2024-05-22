@@ -73,7 +73,7 @@ function SWEP:SecondaryAttack()
 	owner:SetVelocity(owner:GetAimVector() * 1250)
 	owner:EmitSound("npc/fast_zombie/fz_scream1.wav", 80, math.random(95, 105))
 
-	self:SetNextSecondaryFire(CurTime() + 1)
+	self:SetNextSecondaryFire(CurTime() + 5)
 end
 
 local phys_pushscale = GetConVar("phys_pushscale")
