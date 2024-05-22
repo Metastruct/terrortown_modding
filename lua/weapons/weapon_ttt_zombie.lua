@@ -148,7 +148,7 @@ function SWEP:OnDrop()
 	self:Remove()
 
 	-- force zombie back
-	timer.Simple(0, function()
+	timer.Simple(1, function()
 		if not IsValid(owner) then return end
 		if owner:GetSubRole() ~= ROLE_ZOMBIE then return end
 
@@ -157,7 +157,6 @@ function SWEP:OnDrop()
 end
 
 local SPEED_CV = GetConVar("sv_defaultdeployspeed")
-
 function SWEP:Deploy()
 	local speed = SPEED_CV:GetFloat()
 	local vm = self:GetOwner():GetViewModel()
