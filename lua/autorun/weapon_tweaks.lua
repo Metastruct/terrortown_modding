@@ -72,6 +72,12 @@ util.OnInitialize(function()
 		SWEP.Primary.NumShots = 9
 	end
 
+	-- S&W 500: Set accuracy to 100%
+	SWEP = weapons.GetStored("weapon_ttt_revolver")
+	if SWEP then
+		SWEP.Primary.Cone = 0
+	end
+
 	if SERVER then
 		-- Serverside only tweaks
 
