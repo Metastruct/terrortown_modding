@@ -151,7 +151,17 @@ if SERVER then
 end
 
 if CLIENT then
+	local function get_bind(name)
+		local bind = input.LookupBinding(name)
+		if not bind then return "UNBOUND" end
+
+		return bind:upper()
+	end
+
+	local PRIMARY_ATTACK_BIND = get_bind("+attack")
+	local SECONDARY_ATTACK_BIND = get_bind("+attack2")
 	function ROUND:Start()
+		local warned = true
 		hook.Add("Think", TAG, function()
 			local ply = LocalPlayer()
 			if ply:GetSubRole() ~= ROLE_ZOMBIE then return end
@@ -161,6 +171,11 @@ if CLIENT then
 			local target_wep = ply:GetWeapon("weapon_ttt_zombie")
 			if (not IsValid(wep) or wep:GetClass() ~= WEAPON_CLASS) and IsValid(target_wep) then
 				input.SelectWeapon(target_wep)
+				if not warned then
+					local role_color = roles.GetByIndex(ply:GetSubRole()).color
+					chat.AddText(role_color, ("[INFO] You are a zombie! You can attack [%s] or jump [%s]."):format(PRIMARY_ATTACK_BIND, SECONDARY_ATTACK_BIND))
+					warned = true
+				end
 			end
 		end)
 
