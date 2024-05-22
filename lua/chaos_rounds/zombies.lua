@@ -3,6 +3,7 @@ ROUND.Name = "Zombies"
 ROUND.Description = "A virus spreads, kills claimed by traitors will be revived as zombies. Survive for 5 minutes!"
 
 local TAG = "ChaosRoundsZombie"
+local WEAPON_CLASS = "weapon_ttt_zombie"
 
 if SERVER then
 	util.AddNetworkString(TAG)
@@ -13,12 +14,12 @@ if SERVER then
 
 		ply:SetRole(ROLE_ZOMBIE)
 
-		if not ply:HasWeapon("weapon_ttt_zombie") then
-			ply:Give("weapon_ttt_zombie")
+		if not ply:HasWeapon(WEAPON_CLASS) then
+			ply:Give(WEAPON_CLASS)
 		end
 
 		for _, w in ipairs(ply:GetWeapons()) do
-			if w:GetClass() ~= "weapon_ttt_zombie" then
+			if w:GetClass() ~= WEAPON_CLASS then
 				w:Remove()
 			end
 		end
@@ -26,6 +27,7 @@ if SERVER then
 		ply:SetMaxHealth(50)
 		ply:SetHealth(50)
 		ply:SetArmor(0)
+		ply:SetWalkSpeed(400)
 		ply:SetRunSpeed(400)
 
 		net.Start(TAG)
@@ -92,12 +94,12 @@ if SERVER then
 		hook.Add("WeaponEquip", TAG, function(wep, owner)
 			if not owner:IsTerror() then return end
 			if owner:GetSubRole() ~= ROLE_ZOMBIE then return end
-			if wep:GetClass() == "weapon_ttt_zombie" then return end
+			if wep:GetClass() == WEAPON_CLASS then return end
 
 			wep:Remove()
 
-			if not owner:HasWeapon("weapon_ttt_zombie") then
-				owner:Give("weapon_ttt_zombie")
+			if not owner:HasWeapon(WEAPON_CLASS) then
+				owner:Give(WEAPON_CLASS)
 			end
 		end)
 
@@ -125,6 +127,8 @@ if SERVER then
 		for _, ply in ipairs(player.GetAll()) do
 			if ply:GetSubRole() == ROLE_ZOMBIE then
 				ply:SetMaxHealth(100)
+				ply:SetWalkSpeed(220)
+				ply:SetRunSpeed(220)
 			end
 		end
 	end
@@ -137,4 +141,4 @@ if CLIENT then
 	end)
 end
 
---return RegisterChaosRound(ROUND)
+return RegisterChaosRound(ROUND)
