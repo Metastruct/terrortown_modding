@@ -13,6 +13,7 @@ if SERVER then
 		if not ply:IsPlayer() then return end
 
 		ply:SetRole(ROLE_ZOMBIE)
+		ply:GiveEquipmentItem("item_ttt_radar")
 
 		if not ply:HasWeapon(WEAPON_CLASS) then
 			ply:Give(WEAPON_CLASS)
@@ -101,6 +102,8 @@ if SERVER then
 			if not owner:HasWeapon(WEAPON_CLASS) then
 				owner:Give(WEAPON_CLASS)
 			end
+
+			owner:GiveEquipmentItem("item_ttt_radar")
 		end)
 
 		hook.Add("TTTCheckForWin", TAG, function()

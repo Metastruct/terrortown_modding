@@ -58,8 +58,9 @@ function SWEP:PrimaryAttack(right)
 	self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
 	self:EmitSound(SWING_SOUND)
 
-	self:UpdateNextIdle()
+	self:DealDamage()
 
+	self:UpdateNextIdle()
 	self:SetNextMeleeAttack(CurTime() + 0.2)
 	self:SetNextPrimaryFire(CurTime() + 0.2)
 	self:SetNextSecondaryFire(CurTime() + 0.2)
@@ -110,7 +111,7 @@ function SWEP:DealDamage()
 
 		dmg_info:SetAttacker(attacker)
 		dmg_info:SetInflictor(self)
-		dmg_info:SetDamage(math.random(8, 12))
+		dmg_info:SetDamage(24)
 
 		if anim == "fists_left" then
 			dmg_info:SetDamageForce(self:GetOwner():GetRight() * 4912 * scale + self:GetOwner():GetForward() * 9998 * scale) -- Yes we need those specific numbers
@@ -118,7 +119,7 @@ function SWEP:DealDamage()
 			dmg_info:SetDamageForce(self:GetOwner():GetRight() * -4912 * scale + self:GetOwner():GetForward() * 9989 * scale)
 		elseif anim == "fists_uppercut" then
 			dmg_info:SetDamageForce(self:GetOwner():GetUp() * 5158 * scale + self:GetOwner():GetForward() * 10012 * scale)
-			dmg_info:SetDamage(math.random(12, 24))
+			dmg_info:SetDamage(48)
 		else
 			dmg_info:SetDamageForce(self:GetOwner():GetForward() * 14910 * scale) -- Yes we need those specific numbers
 		end
@@ -177,16 +178,9 @@ end
 
 function SWEP:Think()
 	local idle_time = self:GetNextIdle()
-
 	if idle_time > 0 and CurTime() > idle_time then
 		self:SendWeaponAnim(ACT_VM_IDLE)
 		self:UpdateNextIdle()
-	end
-
-	local melee_time = self:GetNextMeleeAttack()
-	if melee_time > 0 and CurTime() > melee_time then
-		self:DealDamage()
-		self:SetNextMeleeAttack(CurTime() + 0.2)
 	end
 
 	if SERVER and CurTime() > self:GetNextPrimaryFire() + 0.1 then
