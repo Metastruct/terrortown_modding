@@ -163,10 +163,16 @@ if CLIENT then
 				input.SelectWeapon(target_wep)
 			end
 		end)
+
+		hook.Add("PlayerFootstep", TAG, function(ply)
+			ply:EmitSound("npc/fast_zombie/foot" .. math.random(1,4) .. ".wav")
+			return true
+		end)
 	end
 
 	function ROUND:Finish()
 		hook.Remove("Think", TAG)
+		hook.Remove("PlayerFootstep", TAG)
 	end
 
 	net.Receive(TAG, function()
