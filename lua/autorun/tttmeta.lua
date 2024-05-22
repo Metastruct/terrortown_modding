@@ -98,6 +98,11 @@ if SERVER then
 		if not ply:IsTerror() then return false end
 	end)
 
+	-- Disable PMs (no funny meta gaming!)
+	hook.Add("AllowPrivateMessaging", Tag, function(tbl)
+		return false
+	end)
+
 	-- Disable alternative way of using "aowl push"
 	concommand.Add("push", emptyFunc)
 
