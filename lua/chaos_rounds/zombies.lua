@@ -161,7 +161,7 @@ if CLIENT then
 	local PRIMARY_ATTACK_BIND = get_bind("+attack")
 	local SECONDARY_ATTACK_BIND = get_bind("+attack2")
 	function ROUND:Start()
-		local warned = true
+		local warned = false
 		hook.Add("Think", TAG, function()
 			local ply = LocalPlayer()
 			if ply:GetSubRole() ~= ROLE_ZOMBIE then return end
