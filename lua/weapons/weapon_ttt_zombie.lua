@@ -63,11 +63,17 @@ function SWEP:PrimaryAttack(right)
 	self:UpdateNextIdle()
 	self:SetNextMeleeAttack(CurTime() + 0.2)
 	self:SetNextPrimaryFire(CurTime() + 0.2)
-	self:SetNextSecondaryFire(CurTime() + 0.2)
 end
 
 function SWEP:SecondaryAttack()
-	self:PrimaryAttack(true)
+	local owner = self:GetOwner()
+	if not IsValid(owner) then return end
+	if self:GetGroundEntity() == NULL then return end -- in the air
+
+	owner:SetVelocity(ply:GetAimVector() * 1250)
+	owner:EmitSound("", 80, math.random(95, 105))
+
+	self:SetNextSecondaryFire(CurTime() + 1)
 end
 
 local phys_pushscale = GetConVar("phys_pushscale")
