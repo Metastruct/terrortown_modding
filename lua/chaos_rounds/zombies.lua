@@ -30,6 +30,8 @@ if SERVER then
 		ply:SetArmor(0)
 		ply:SetWalkSpeed(400)
 		ply:SetRunSpeed(400)
+		ply:SetLadderClimbSpeed(400)
+		ply:SetJumpPower(300)
 
 		net.Start(TAG)
 		net.WriteEntity(ply)
@@ -119,6 +121,13 @@ if SERVER then
 
 			return WIN_NONE
 		end)
+
+		-- remove fall damage for zombies
+		hook.Add("EntityTakeDamage", TAG, function(ent, dmg_info)
+			if ent:IsPlayer() and ent:GetSubRole() == ROLE_ZOMBIE and dmg_info:IsFallDamage() then
+				return true
+			end
+		end)
 	end
 
 	function ROUND:Finish()
@@ -126,13 +135,14 @@ if SERVER then
 		hook.Remove("WeaponEquip", TAG)
 		hook.Remove("TTTCheckForWin", TAG)
 		hook.Remove("TTT2MetaModifyFinalRoles", TAG)
+		hook.Remove("EntityTakeDamage", TAG)
 
 		for _, ply in ipairs(player.GetAll()) do
-			if ply:GetSubRole() == ROLE_ZOMBIE then
-				ply:SetMaxHealth(100)
-				ply:SetWalkSpeed(220)
-				ply:SetRunSpeed(220)
-			end
+			ply:SetMaxHealth(100)
+			ply:SetWalkSpeed(220)
+			ply:SetRunSpeed(220)
+			ply:SetLadderClimbSpeed(200)
+			ply:SetJumpPower(160)
 		end
 	end
 end
