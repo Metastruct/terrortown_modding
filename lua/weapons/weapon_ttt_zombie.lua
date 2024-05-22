@@ -57,7 +57,9 @@ function SWEP:PrimaryAttack(right)
 	self:GetOwner():SetAnimation(PLAYER_ATTACK1)
 	self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
 	self:EmitSound(SWING_SOUND)
+
 	self:UpdateNextIdle()
+
 	self:SetNextMeleeAttack(CurTime() + 0.2)
 	self:SetNextPrimaryFire(CurTime() + 0.2)
 	self:SetNextSecondaryFire(CurTime() + 0.2)
@@ -184,7 +186,7 @@ function SWEP:Think()
 	local melee_time = self:GetNextMeleeAttack()
 	if melee_time > 0 and CurTime() > melee_time then
 		self:DealDamage()
-		self:SetNextMeleeAttack(0)
+		self:SetNextMeleeAttack(CurTime() + 0.2)
 	end
 
 	if SERVER and CurTime() > self:GetNextPrimaryFire() + 0.1 then
