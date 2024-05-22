@@ -9,6 +9,9 @@ if SERVER then
 	util.AddNetworkString(TAG)
 
 	local function make_zombie(ply)
+		-- this can be called if you are the lat person revived
+		if GetRoundState() ~= ROUND_ACTIVE then return end
+
 		if not IsValid(ply) then return end
 		if not ply:IsPlayer() then return end
 
@@ -152,10 +155,11 @@ if CLIENT then
 		hook.Add("Think", TAG, function()
 			local ply = LocalPlayer()
 			if ply:GetSubRole() ~= ROLE_ZOMBIE then return end
+			if not ply:Alive() then return end
 
 			local wep = ply:GetActiveWeapon()
 			local target_wep = ply:GetWeapon("weapon_ttt_zombie")
-			if not IsValid(wep) or wep:GetClass() ~= WEAPON_CLASS and IsValid(target_wep) then
+			if (not IsValid(wep) or wep:GetClass() ~= WEAPON_CLASS) and IsValid(target_wep) then
 				input.SelectWeapon(target_wep)
 			end
 		end)
