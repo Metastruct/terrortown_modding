@@ -111,18 +111,7 @@ function SWEP:DealDamage()
 
 		dmg_info:SetAttacker(attacker)
 		dmg_info:SetInflictor(self)
-		dmg_info:SetDamage(24)
-
-		if anim == "fists_left" then
-			dmg_info:SetDamageForce(self:GetOwner():GetRight() * 4912 * scale + self:GetOwner():GetForward() * 9998 * scale) -- Yes we need those specific numbers
-		elseif anim == "fists_right" then
-			dmg_info:SetDamageForce(self:GetOwner():GetRight() * -4912 * scale + self:GetOwner():GetForward() * 9989 * scale)
-		elseif anim == "fists_uppercut" then
-			dmg_info:SetDamageForce(self:GetOwner():GetUp() * 5158 * scale + self:GetOwner():GetForward() * 10012 * scale)
-			dmg_info:SetDamage(48)
-		else
-			dmg_info:SetDamageForce(self:GetOwner():GetForward() * 14910 * scale) -- Yes we need those specific numbers
-		end
+		dmg_info:SetDamage(15)
 
 		SuppressHostEvents(NULL) -- Let the breakable gibs spawn in multiplayer on client
 		tr.Entity:TakeDamageInfo(dmg_info)
