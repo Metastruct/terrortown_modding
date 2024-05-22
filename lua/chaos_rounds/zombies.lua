@@ -165,7 +165,9 @@ if CLIENT then
 		end)
 
 		hook.Add("PlayerFootstep", TAG, function(ply)
-			ply:EmitSound("npc/fast_zombie/foot" .. math.random(1,4) .. ".wav")
+			if ply:GetSubRole() ~= ROLE_ZOMBIE then return end
+
+			ply:EmitSound("npc/fast_zombie/foot" .. math.random(1,4) .. ".wav", 120)
 			return true
 		end)
 	end
