@@ -156,36 +156,6 @@ if SERVER then
 			"developers", true)
 		end
 
-		if RTV then
-			-- Print RTVs in chat and make a little chime (overwrite the whole function)
-			RTV.AddVote = function(pl)
-				if RTV.CanVote(pl) then
-					RTV.TotalVotes = RTV.TotalVotes + 1
-					pl.RTVoted = true
-
-					local players = player.GetAll()
-
-					local requiredAmount = math.Round(#players * 0.66)
-					local sndPitch = 90 + math.ceil((RTV.TotalVotes / requiredAmount) * 40)
-
-					local msg = string.format("%s has RTV'd! (%s / %s)", pl:Nick(), RTV.TotalVotes, requiredAmount)
-
-					MsgN(msg)
-
-					for k, v in ipairs(players) do
-						v:ChatPrint(msg)
-					end
-
-					local filter = RecipientFilter()
-					filter:AddAllPlayers()
-
-					EmitSound("friends/friend_join.wav", vector_origin, -2, CHAN_AUTO, 0.8, 0, 0, sndPitch, 0, filter)
-
-					if RTV.ShouldChange() then RTV.Start() end
-				end
-			end
-		end
-
 		-- Disable an obsolete engine protect hook we have if it's there - all it really does now is print a useless message in console
 		hook.Remove("EntityRemoved", "dont_remove_players")
 
