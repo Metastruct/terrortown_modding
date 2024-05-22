@@ -2,6 +2,8 @@
 ---@param roleName string
 ---@return number preference Between 0 and 1, inclusive
 local function getPlayerRolePreference(ply, roleName)
+	-- Bots always return 0 for GetInfoNum, no matter what the default value is
+	if ply:IsBot() then return 1 end
 	return math.Clamp(ply:GetInfoNum("ttt2_rolepreference_" .. roleName, 1), 0, 1)
 end
 
