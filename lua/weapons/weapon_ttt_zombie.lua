@@ -68,10 +68,10 @@ end
 function SWEP:SecondaryAttack()
 	local owner = self:GetOwner()
 	if not IsValid(owner) then return end
-	if self:GetGroundEntity() == NULL then return end -- in the air
+	if owner:GetGroundEntity() == NULL then return end -- in the air
 
 	owner:SetVelocity(ply:GetAimVector() * 1250)
-	owner:EmitSound("", 80, math.random(95, 105))
+	owner:EmitSound("npc/fast_zombie/fz_scream1.wav", 80, math.random(95, 105))
 
 	self:SetNextSecondaryFire(CurTime() + 1)
 end
@@ -144,7 +144,16 @@ function SWEP:DealDamage()
 end
 
 function SWEP:OnDrop()
-	self:Remove() -- You can't drop fists
+	local owner = self:GetOwner()
+	self:Remove()
+
+	-- force zombie back
+	timer.Simple(0, function()
+		if not IsValid(owner) then return end
+		if owner:GetSubRole() ~= ROLE_ZOMBIE then return end
+
+		owner:Give("weapon_ttt_zombie")
+	end)
 end
 
 local SPEED_CV = GetConVar("sv_defaultdeployspeed")
