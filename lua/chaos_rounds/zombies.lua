@@ -148,6 +148,23 @@ if SERVER then
 end
 
 if CLIENT then
+	function ROUND:Start()
+		hook.Add("Think", TAG, function()
+			local ply = LocalPlayer()
+			if ply:GetSubRole() ~= ROLE_ZOMBIE then return end
+
+			local wep = ply:GetActiveWeapon()
+			local target_wep = ply:GetWeapon("weapon_ttt_zombie")
+			if not IsValid(wep) or wep:GetClass() ~= WEAPON_CLASS and IsValid(target_wep) then
+				input.SelectWeapon(target_wep)
+			end
+		end)
+	end
+
+	function ROUND:Finish()
+		hook.Remove("Think", TAG)
+	end
+
 	net.Receive(TAG, function()
 		local ply = net.ReadEntity()
 		ply:SetRole(ROLE_ZOMBIE)
