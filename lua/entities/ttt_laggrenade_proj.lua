@@ -22,6 +22,8 @@ local droneSound = Sound("ambient/levels/citadel/portal_beam_loop1.wav")
 
 function ENT:Initialize()
     self:SetColor(Color(255, 0, 0, 255))
+    ---@type {[Player]: Vector}
+    self.PlayerPositions = {}
     if BaseClass then
         return BaseClass.Initialize(self)
     end
@@ -46,6 +48,7 @@ function ENT:Explode(tr)
     effectData:SetOrigin(pos)
     util.Effect("Explosion", effectData, true, true)
     util.Effect("cball_explode", effectData, true, true)
+    self.NextJumpTick = CurTime()
 
     timer.Simple(cvarDuration:GetFloat(), function()
         if IsValid(self) then
@@ -53,6 +56,25 @@ function ENT:Explode(tr)
         end
         SafeRemoveEntity(self)
     end)
+end
+
+function ENT:Think()
+    self.BaseClass.Think(self)
+    if self.NextJumpTick and self.NextJumpTick < CurTime() then
+        for _, ply in ipairs(player.GetAll()) do
+            local pos = ply:GetPos()
+            if pos:Distance(self:GetPos()) < cvarRadius:GetFloat() then
+                local savedPos = self.PlayerPositions[ply]
+                if not savedPos or math.random() < 0.2 then
+                    self.PlayerPositions[ply] = pos
+                else
+                    ply:SetPos(savedPos)
+                end
+            end
+        end
+        self.NextJumpTick = CurTime() + math.random() * 0.6 + 0.2
+    end
+    if CLIENT then return end
 end
 
 if SERVER then
