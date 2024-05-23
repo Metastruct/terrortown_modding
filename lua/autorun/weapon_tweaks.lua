@@ -12,6 +12,24 @@ util.OnInitialize(function()
 		SWEP.dropAngleThreshold = 0.925
 	end
 
+	-- FAMAS: Change to intermediate ammo
+	SWEP = weapons.GetStored("weapon_ttt_famas")
+	if SWEP then
+		SWEP.Primary.Ammo = "smg1"
+	end
+
+	-- M-16: Change to intermediate ammo
+	SWEP = weapons.GetStored("weapon_ttt_m16")
+	if SWEP then
+		SWEP.Primary.Ammo = "smg1"
+	end
+
+	-- MAC-10: Change to pistol ammo
+	SWEP = weapons.GetStored("weapon_zm_mac10")
+	if SWEP then
+		SWEP.Primary.Ammo = "pistol"
+	end
+
 	-- H.U.G.E-249: Buff DPS while trading a little bit of recoil for accuracy
 	SWEP = weapons.GetStored("weapon_zm_sledge")
 	if SWEP then
@@ -93,7 +111,7 @@ util.OnInitialize(function()
 			self:EmitSound("weapons/jihad_bomb/big_explosion.wav", 400, math.random(100, 125))
 
 			-- change body to a random charred body
-			local model = "models/humans/charple0" .. math.random(1,4) .. ".mdl"
+			local model = "models/humans/charple0" .. math.random(1, 4) .. ".mdl"
 			self:GetOwner():SetModel(model)
 
 			-- explosion damage
