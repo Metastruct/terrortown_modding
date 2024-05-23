@@ -95,7 +95,7 @@ else
 		if not cvarLocalVoiceEnable:GetBool() then
 			if resetIfDisabled then
 				for k, v in ipairs(player.GetAll()) do
-					v:SetVoiceVolumeScale(1)
+					v:SetVoiceVolumeScale_Original(1)
 				end
 
 				resetIfDisabled = false
@@ -122,7 +122,7 @@ else
 					and 1
 					or VoiceScale(plPos, v:GetPos())
 
-				v:SetVoiceVolumeScale(scale)
+				v:SetVoiceVolumeScale_Original(scale)
 
 				v.VoiceChatNextTick = now + 0.2
 			end
