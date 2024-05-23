@@ -15,6 +15,7 @@ if SERVER then
 		["box"] = true,
 		["boxify"] = true,
 		["cheats"] = true,
+		["drop"] = true,
 		["dropcoin"] = true,
 		["dropcoins"] = true,
 		["economy"] = true,
