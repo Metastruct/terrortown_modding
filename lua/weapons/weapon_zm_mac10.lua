@@ -29,7 +29,7 @@ SWEP.Primary.ClipSize = 30
 SWEP.Primary.ClipMax = 60
 SWEP.Primary.DefaultClip = 30
 SWEP.Primary.Automatic = true
-SWEP.Primary.Ammo = "SMG1"
+SWEP.Primary.Ammo = "Pistol"
 SWEP.Primary.Recoil = 1.15
 SWEP.Primary.Sound = Sound("Weapon_mac10.Single")
 

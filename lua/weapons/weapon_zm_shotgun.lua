@@ -7,7 +7,7 @@ DEFINE_BASECLASS("weapon_tttbase")
 SWEP.HoldType = "shotgun"
 
 if CLIENT then
-	SWEP.PrintName = "shotgun_name"
+	SWEP.PrintName = "Auto Shotgun"
 	SWEP.Slot = 2
 
 	SWEP.ViewModelFlip = false
@@ -25,14 +25,14 @@ SWEP.builtin = true
 SWEP.spawnType = WEAPON_TYPE_SHOTGUN
 
 SWEP.Primary.Ammo = "Buckshot"
-SWEP.Primary.Damage = 11
-SWEP.Primary.Cone = 0.082
-SWEP.Primary.Delay = 0.8
+SWEP.Primary.Damage = 6
+SWEP.Primary.Cone = 0.088
+SWEP.Primary.Delay = 0.75
 SWEP.Primary.ClipSize = 8
 SWEP.Primary.ClipMax = 24
 SWEP.Primary.DefaultClip = 8
 SWEP.Primary.Automatic = true
-SWEP.Primary.NumShots = 8
+SWEP.Primary.NumShots = 9
 SWEP.Primary.Sound = Sound("Weapon_XM1014.Single")
 SWEP.Primary.Recoil = 7
 
