@@ -34,7 +34,7 @@ SWEP.Primary.Recoil = 1.15
 SWEP.Primary.Sound = Sound("Weapon_mac10.Single")
 
 SWEP.AutoSpawnable = true
-SWEP.AmmoEnt = "item_ammo_smg1_ttt"
+SWEP.AmmoEnt = "item_ammo_pistol_ttt"
 
 SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/cstrike/c_smg_mac10.mdl"

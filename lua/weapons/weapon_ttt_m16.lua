@@ -37,7 +37,7 @@ SWEP.Primary.Sound = Sound("Weapon_M4A1.Single")
 
 SWEP.AutoSpawnable = true
 SWEP.Spawnable = true
-SWEP.AmmoEnt = "item_ammo_pistol_ttt"
+SWEP.AmmoEnt = "item_ammo_smg1_ttt"
 
 SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/cstrike/c_rif_m4a1.mdl"

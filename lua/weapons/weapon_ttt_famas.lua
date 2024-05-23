@@ -33,7 +33,7 @@ SWEP.IronSightsPos = Vector(-6.24, -2.757, 1.36)
 
 SWEP.Kind = WEAPON_HEAVY
 SWEP.AutoSpawnable = true
-SWEP.AmmoEnt = "item_ammo_pistol_ttt"
+SWEP.AmmoEnt = "item_ammo_smg1_ttt"
 SWEP.InLoadoutFor = { nil }
 SWEP.AllowDrop = true
 SWEP.IsSilent = false
