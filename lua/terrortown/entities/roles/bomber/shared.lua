@@ -65,6 +65,8 @@ if SERVER then
 			c4:SetRadiusInner(150)
 
 			function c4:Defusable() return false end -- no defuse
+			function c4:Disarm() return false end
+			function c4:ShowC4Config() return false end
 		end
 	end)
 end
