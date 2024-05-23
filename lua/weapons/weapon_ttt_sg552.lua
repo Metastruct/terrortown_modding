@@ -11,16 +11,17 @@ SWEP.Base = "weapon_tttbase"
 SWEP.HoldType = "ar2"
 
 SWEP.Primary.Ammo = "SMG1"
-SWEP.Primary.Delay = 0.11
-SWEP.Primary.Recoil = 1.04
-SWEP.Primary.Cone = 0.025
-SWEP.Primary.Damage = 18
+SWEP.Primary.Delay = 0.13
+SWEP.Primary.Recoil = 1.05
+SWEP.Primary.Cone = 0.0075
+SWEP.Primary.Damage = 19
 SWEP.Primary.Automatic = true
 SWEP.Primary.ClipSize = 30
 SWEP.Primary.ClipMax = 60
 SWEP.Primary.DefaultClip = 30
 SWEP.Primary.Sound = Sound("Weapon_SG552.Single")
 SWEP.Secondary.Sound = Sound("Default.Zoom")
+SWEP.HeadshotMultiplier = 2.5
 
 SWEP.UseHands = true
 SWEP.ViewModelFlip = false
