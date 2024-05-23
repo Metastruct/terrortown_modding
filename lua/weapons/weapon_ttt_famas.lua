@@ -1,5 +1,7 @@
 AddCSLuaFile()
 
+local BaseClass = baseclass.Get("weapon_tttbase")
+
 if CLIENT then
     SWEP.PrintName = "FAMAS"
     SWEP.Slot = 2
@@ -13,15 +15,17 @@ SWEP.Base = "weapon_tttbase"
 SWEP.HoldType = "ar2"
 
 SWEP.Primary.Ammo = "SMG1"
-SWEP.Primary.Delay = 0.08
+SWEP.Primary.Delay = 0.075
 SWEP.Primary.Recoil = 0.8
-SWEP.Primary.Cone = 0.025
-SWEP.Primary.Damage = 17
+SWEP.Primary.Cone = 0.02
+SWEP.Primary.Damage = 19
 SWEP.Primary.Automatic = true
 SWEP.Primary.ClipSize = 30
 SWEP.Primary.ClipMax = 60
 SWEP.Primary.DefaultClip = 30
 SWEP.Primary.Sound = Sound("Weapon_FAMAS.Single")
+SWEP.Primary.BurstCount = 3
+SWEP.Primary.BurstCooldown = 0.25
 
 SWEP.UseHands = true
 SWEP.ViewModelFlip = false
@@ -38,3 +42,40 @@ SWEP.InLoadoutFor = { nil }
 SWEP.AllowDrop = true
 SWEP.IsSilent = false
 SWEP.NoSights = false
+
+function SWEP:SetupDataTables()
+    self:NetworkVar("Float", 10, "NextManualFire")
+    self:NetworkVar("Int", 10, "BurstsLeft")
+    return BaseClass.SetupDataTables(self)
+end
+
+function SWEP:Initialize()
+    self:SetBurstsLeft(0)
+    self:SetNextManualFire(0)
+    return BaseClass.Initialize(self)
+end
+
+function SWEP:Think()
+    if self:GetBurstsLeft() > 0 then
+        if self:CanPrimaryAttack() then
+            if self:GetNextPrimaryFire() <= CurTime() then
+                self:SetBurstsLeft(self:GetBurstsLeft() - 1)
+                self:PrimaryAttack_Shoot()
+            end
+        else
+            self:SetBurstsLeft(0)
+            self:SetNextManualFire(CurTime() + 0.1)
+        end
+    end
+    return BaseClass.Think(self)
+end
+
+SWEP.PrimaryAttack_Shoot = BaseClass.PrimaryAttack
+
+function SWEP:PrimaryAttack()
+    if not self:CanPrimaryAttack() then return end
+    if self:GetNextManualFire() > CurTime() then return end
+
+    self:SetNextManualFire(CurTime() + self.Primary.Delay * self.Primary.BurstCount + self.Primary.BurstCooldown)
+    self:SetBurstsLeft(self.Primary.BurstCount)
+end
