@@ -32,6 +32,7 @@ SWEP.LimitedStock = true
 
 function SWEP:PrimaryAttack()
 	if not self:HasAmmo() then return end
+	if not self:CanPrimaryAttack() then return end
 
 	local owner = self:GetOwner()
 	if not IsValid(owner) then return end
@@ -46,10 +47,11 @@ function SWEP:PrimaryAttack()
 			timer.Create(timer_name, 90, 1, function()
 				tr.Entity:SetNWBool("TTTDartGunTracked", false)
 			end)
+
+			self:TakePrimaryAmmo(1)
 		end
 	end
 
-	self:TakePrimaryAmmo(1)
 	self:SetNextPrimaryFire(CurTime() + 2)
 end
 
