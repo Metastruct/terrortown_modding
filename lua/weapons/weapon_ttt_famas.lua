@@ -38,20 +38,24 @@ SWEP.IronSightsPos = Vector(-6.24, -2.757, 1.36)
 SWEP.Kind = WEAPON_HEAVY
 SWEP.AutoSpawnable = true
 SWEP.AmmoEnt = "item_ammo_smg1_ttt"
-SWEP.InLoadoutFor = { nil }
+SWEP.InLoadoutFor = {}
 SWEP.AllowDrop = true
 SWEP.IsSilent = false
 SWEP.NoSights = false
 
+SWEP.PrimaryAttack_Shoot = BaseClass.PrimaryAttack
+
 function SWEP:SetupDataTables()
-    self:NetworkVar("Float", 10, "NextManualFire")
-    self:NetworkVar("Int", 10, "BurstsLeft")
+    self:NetworkVar("Float", "NextManualFire")
+    self:NetworkVar("Int", "BurstsLeft")
+
     return BaseClass.SetupDataTables(self)
 end
 
 function SWEP:Initialize()
     self:SetBurstsLeft(0)
     self:SetNextManualFire(0)
+
     return BaseClass.Initialize(self)
 end
 
@@ -67,14 +71,12 @@ function SWEP:Think()
             self:SetNextManualFire(CurTime() + 0.1)
         end
     end
+
     return BaseClass.Think(self)
 end
 
-SWEP.PrimaryAttack_Shoot = BaseClass.PrimaryAttack
-
 function SWEP:PrimaryAttack()
-    if not self:CanPrimaryAttack() then return end
-    if self:GetNextManualFire() > CurTime() then return end
+    if not self:CanPrimaryAttack() or self:GetNextManualFire() > CurTime() then return end
 
     self:SetNextManualFire(CurTime() + self.Primary.Delay * self.Primary.BurstCount + self.Primary.BurstCooldown)
     self:SetBurstsLeft(self.Primary.BurstCount)
