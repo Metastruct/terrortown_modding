@@ -3,8 +3,14 @@ local tag = "TTTOutfitterRagdoll"
 if SERVER then
 	util.AddNetworkString(tag)
 
+	local function IsModelCharple(mdl)
+		return (mdl:find("charple")) != nil
+	end
+
 	-- Tell clients there is a corpse being created
 	hook.Add("TTTOnCorpseCreated", tag, function(rag, pl)
+		if not IsValid(rag) or IsModelCharple(rag:GetModel()) then return end
+
 		net.Start(tag)
 		net.WritePlayer(pl)
 		net.WriteUInt(rag:EntIndex(), 13)
@@ -15,13 +21,13 @@ else
 
 	local outfitterRagdollList = {}
 
-	local function HideBaseRagdoll(rag)
+	local function NormaliseBaseRagdoll(rag)
 		rag:SetLOD(4)
 		rag:SetModel("models/player/kleiner.mdl")
 	end
 
-	local function ForceHideBaseRagdoll(rag)
-		HideBaseRagdoll(rag)
+	local function ForceNormaliseBaseRagdoll(rag)
+		NormaliseBaseRagdoll(rag)
 
 		local timerId = tag .. tostring(rag:EntIndex())
 
@@ -33,7 +39,7 @@ else
 				return
 			end
 
-			HideBaseRagdoll(rag)
+			NormaliseBaseRagdoll(rag)
 		end)
 	end
 
@@ -59,7 +65,7 @@ else
 
 		outfitterRagdollList[#outfitterRagdollList + 1] = mdl
 
-		ForceHideBaseRagdoll(rag)
+		ForceNormaliseBaseRagdoll(rag)
 
 		function mdl:RenderOverride()
 			local rag = self.outfitterRagdollParent
@@ -75,7 +81,12 @@ else
 			end
 		end
 
-		function rag:RenderOverride() end
+		function rag:RenderOverride()
+			if not IsValid(self.outfitterChildMdl) then
+				self:DrawModel()
+				self:CreateShadow()
+			end
+		end
 
 		rag:CallOnRemove(tag, function(ent)
 			if IsValid(ent.outfitterChildMdl) then
@@ -108,7 +119,7 @@ else
 			ent.outfitterChildMdl:SetParent(ent)
 			ent.outfitterChildMdl:SetLocalPos(vector_origin)
 
-			ForceHideBaseRagdoll(ent)
+			ForceNormaliseBaseRagdoll(ent)
 		end
 	end)
 
