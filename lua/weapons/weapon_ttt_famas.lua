@@ -43,8 +43,6 @@ SWEP.AllowDrop = true
 SWEP.IsSilent = false
 SWEP.NoSights = false
 
-SWEP.PrimaryAttack_Shoot = BaseClass.PrimaryAttack
-
 function SWEP:SetupDataTables()
     self:NetworkVar("Float", "NextManualFire")
     self:NetworkVar("Int", "BurstsLeft")
@@ -55,6 +53,8 @@ end
 function SWEP:Initialize()
     self:SetBurstsLeft(0)
     self:SetNextManualFire(0)
+
+    self.PrimaryAttack_Shoot = BaseClass.PrimaryAttack
 
     return BaseClass.Initialize(self)
 end
