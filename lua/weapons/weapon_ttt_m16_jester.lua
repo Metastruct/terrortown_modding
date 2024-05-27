@@ -9,7 +9,7 @@ else
 
 	SWEP.EquipMenuData = {
 		type = "item_weapon",
-		desc = "A Jester variant of the M16 rifle. It deals zero damage to terrorists, allowing you to mimic Jesters.\n\nInfinite ammo.\n\nIf a Jester is given this weapon, they will \"claim it\" and become bloodthirsty..."
+		desc = "A Jester variant of the M16 rifle. It deals zero damage to terrorists and holding it saves you from a fatal blow, allowing you to mimic a Jester.\n\nInfinite ammo.\n\nIf a Jester is given this weapon, they will \"claim it\" and become bloodthirsty..."
 	}
 
 	SWEP.Icon = "vgui/ttt/icon_m16_jester"
@@ -19,11 +19,8 @@ DEFINE_BASECLASS("weapon_ttt_m16")
 
 SWEP.ClassName = className
 
-SWEP.Primary.JesterDelay = 0.135
-SWEP.Primary.JesterRecoil = 1
-
--- This has to be manually set so ammo entities can see it
-SWEP.AmmoEnt = BaseClass.AmmoEnt
+SWEP.Primary.JesterDelay = 0.15
+SWEP.Primary.JesterRecoil = 1.4
 
 SWEP.Kind = WEAPON_EQUIP
 SWEP.CanBuy = {ROLE_TRAITOR}
@@ -34,6 +31,13 @@ function SWEP:SetupDataTables()
 
 	self:NetworkVar("Entity", "JesterOwner")
 	self:NetworkVar("Bool", "Reloading")
+end
+
+function SWEP:Initialize()
+	-- This has to be manually set so ammo entities can see it
+	self.AmmoEnt = BaseClass.AmmoEnt
+
+	BaseClass.Initialize(self)
 end
 
 function SWEP:IsWorthyOfPower(pl)
@@ -166,21 +170,42 @@ if SERVER then
 
 				newOwner:ScreenFade(SCREENFADE.IN, screenFadeCol, 3, 0)
 
+				roles.JESTER.SpawnJesterConfetti(newOwner)
+
 				self:CallOnClient("OnBecomeJesterOwner")
 			end
 		end
 	end
 
 	hook.Add("PlayerTakeDamage", hookName, function(pl, infl, attacker, dmgAmt, dmgInfo)
-		if not dmgInfo:IsDamageType(DMG_BULLET)
-		or not IsValid(attacker)
-		or not attacker:IsPlayer() then return end
+		if not IsValid(attacker) or not attacker:IsPlayer() then return end
 
 		local wep = infl == attacker and attacker:GetActiveWeapon() or infl
 
-		if IsValid(wep) and wep:GetClass() == className and wep:GetJesterOwner() != attacker then
+		if dmgInfo:IsDamageType(DMG_BULLET)
+		and IsValid(wep)
+		and wep:GetClass() == className
+		and wep:GetJesterOwner() != attacker then
+			-- Nullify Jester M16 damage (except when the turned jester uses it)
 			dmgInfo:ScaleDamage(0)
 			dmgInfo:SetDamage(0)
+		else
+			-- If someone holding the Jester M16 about to be killed (except the turned jester), consume the M16 and let them live
+			wep = pl:GetActiveWeapon()
+
+			if IsValid(wep) and wep:GetClass() == className and wep:GetJesterOwner() != pl then
+				local dmgScaled = dmgInfo:GetDamage() * attacker:GetDamageFactor()
+
+				-- If the victim is about to die from the shot, give them HP to negate it and handle everything
+				if math.ceil(dmgScaled) >= pl:Health() then
+					pl:SetHealth(math.floor(30 + dmgScaled))
+
+					wep:Remove()
+
+					roles.JESTER.SpawnJesterConfetti(pl)
+					LANG.Msg(pl, "The Jester M16 popped in your hands and kept you alive!", nil, MSG_MSTACK_ROLE)
+				end
+			end
 		end
 	end)
 else
