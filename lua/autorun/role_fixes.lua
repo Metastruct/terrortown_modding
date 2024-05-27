@@ -112,6 +112,8 @@ if SERVER then
 					end
 				end
 
+				gambler.GamblerEquipmentList = {}
+
 				local receivedEquipment = {}
 
 				-- Give items
@@ -119,8 +121,12 @@ if SERVER then
 					local item = gambler:GiveEquipmentItem(i.id)
 
 					-- Some items rely on their Bought function being called to work properly, so call it
-					if item and item.Bought then
-						item:Bought(gambler)
+					if item then
+						gambler.GamblerEquipmentList[#gambler.GamblerEquipmentList + 1] = i.id
+
+						if isfunction(item.Bought) then
+							item:Bought(gambler)
+						end
 					end
 
 					receivedEquipment[#receivedEquipment + 1] = i.name
@@ -129,7 +135,15 @@ if SERVER then
 				-- Give weapons
 				for _, w in pairs(giveWeapons) do
 					-- Use Give instead of GiveEquipmentWeapon to ignore slot limits
-					gambler:Give(w.id)
+					local wep = gambler:Give(w.id)
+
+					if wep then
+						gambler.GamblerEquipmentList[#gambler.GamblerEquipmentList + 1] = wep
+
+						if isfunction(wep.WasBought) then
+							wep:WasBought(gambler)
+						end
+					end
 
 					receivedEquipment[#receivedEquipment + 1] = w.name
 				end
@@ -140,13 +154,41 @@ if SERVER then
 				net.Send(gambler)
 			end
 
-			hook.Add("TTTBeginRound", "TTT2GamblerPostReceiveCustomClasses", function()
-				for _, p in ipairs(player.GetAll()) do
-					if p:IsActive() and p:GetSubRole() == ROLE_GAMBLER then
-						SendItemsToGambler(p)
+			local function RemoveGamblerEquipment(gambler)
+				if not gambler.GamblerEquipmentList then return end
+
+				for k, v in ipairs(gambler.GamblerEquipmentList) do
+					if isentity(v) then
+						if IsValid(v)
+						and v:IsWeapon()
+						and v:GetOwner() == gambler then
+							v:Remove()
+						end
+					else
+						gambler:RemoveEquipmentItem(v)
 					end
 				end
+
+				gambler.GamblerEquipmentList = nil
+			end
+
+			hook.Add("TTTPrepareRound", "TTT2GamblerReset", function()
+				for _, p in ipairs(player.GetAll()) do
+					p.GamblerEquipmentList = nil
+				end
 			end)
+
+			-- Remove the hook created by the original Gambler code that distributes items - we have a better way
+			hook.Remove("TTTBeginRound", "TTT2GamblerPostReceiveCustomClasses")
+
+			local ROLE = roles.GetStored("gambler")
+			if ROLE then
+				--  Give random equipment to new gamblers, after ensuring any gambler equipment perviously given to them has been removed
+				function ROLE:GiveRoleLoadout(pl, isRoleChange)
+					RemoveGamblerEquipment(pl)
+					SendItemsToGambler(pl)
+				end
+			end
 		end
 	end)
 else
