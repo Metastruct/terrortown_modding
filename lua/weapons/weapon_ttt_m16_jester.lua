@@ -1,5 +1,6 @@
 local className = "weapon_ttt_m16_jester"
 local hookName = "TTTJesterGun"
+local convarReviveHealthName = "ttt_jesterm16_revivehp"
 
 if SERVER then
 	AddCSLuaFile()
@@ -25,6 +26,8 @@ SWEP.Primary.JesterRecoil = 1.4
 SWEP.Kind = WEAPON_EQUIP
 SWEP.CanBuy = {ROLE_TRAITOR}
 SWEP.LimitedStock = true
+
+local convarReviveHealth = CreateConVar(convarReviveHealthName, 30, {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED})
 
 function SWEP:SetupDataTables()
 	BaseClass.SetupDataTables(self)
@@ -198,7 +201,7 @@ if SERVER then
 
 				-- If the victim is about to die from the shot, give them HP to negate it and handle everything
 				if math.ceil(dmgScaled) >= pl:Health() then
-					pl:SetHealth(math.floor(30 + dmgScaled))
+					pl:SetHealth(math.floor(convarReviveHealth:GetInt() + dmgScaled))
 
 					wep:Remove()
 
@@ -233,5 +236,17 @@ else
 		LANG.Msg("You picked up a {name} - it strips your Jester powers and supercharges itself in your hands! It's yours and yours only.", { name = self.PrintName }, MSG_MSTACK_ROLE)
 
 		self.PrintName = self.PrintName .. " (Yours)"
+	end
+
+	function SWEP:AddToSettingsMenu(parent)
+		local form = vgui.CreateTTT2Form(parent, "header_equipment_additional")
+
+		form:MakeSlider({
+			serverConvar = convarReviveHealthName,
+			label = "Player HP after their Jester M16 pops",
+			min = 1,
+			max = 100,
+			decimal = 0
+		})
 	end
 end
