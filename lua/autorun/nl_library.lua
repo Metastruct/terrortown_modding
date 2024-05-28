@@ -7,6 +7,22 @@ local AllowedWake = { -- these conditions can be removed when a friend presses +
 
 NLL = {}
 
+NLL.ConditionStorage = {} -- Magical table only used in this file, unsure if it's safe to local
+
+function NLL.GetCondition(ply) -- Function that returns the player's table value or "NIL" as string.
+	return NLL.ConditionStorage[ply]
+end
+
+function NLL.SetCondition(ply,string) -- Function that sets the player's table value or "NIL" as string.
+	NLL.ConditionStorage[ply] = string
+	return
+end
+
+function NLL.WipeCondition(ply) -- Function that removes a specified key and it's value
+	NLL.ConditionStorage[ply] = nil
+	return
+end
+
 if SERVER then
 
 util.AddNetworkString("nllinfopayload") -- establish payload netstring
@@ -26,20 +42,6 @@ hook.Add("PlayerCanHearPlayersVoice", "TG_NLL", function(listener, talker)
 		return false,false
 	end
 end)
-
-NLL.ConditionStorage = {} -- Magical table that stores all players with conditions. Better than ply.condition
-
-function NLL.GetCondition(ply) -- Function that returns the player's table value or "NIL" as string.
-	return NLL.ConditionStorage[ply]
-end
-function NLL.SetCondition(ply,string) -- Function that sets the player's table value or "NIL" as string.
-	NLL.ConditionStorage[ply] = string
-	return
-end
-function NLL.WipeCondition(ply) -- Function that removes a specified key and it's value
-	NLL.ConditionStorage[ply] = nil
-	return
-end
 
 -- Handles a few unique stun types.
 hook.Add("Think", "TG_NLL", function()
@@ -427,7 +429,7 @@ net.Receive("nllinfopayload", function()
 		payload["subject"].newhp = payload["health"]
 	end
 	if string.find( payloadtype, "cond", 1, false ) then
-		payload["subject"].condition = payload["condition"]
+		NLL.SetCondition(payload["subject"],payload["condition"])
 	end
 	if string.find( payloadtype, "drowsy", 1, false ) then -- only network drowsy directly to the player who needs it
 		LocalPlayer().DrowsyDuration = payload["drowsy"]
@@ -528,10 +530,10 @@ hook.Add("HUDPaint", "TG_NLL", function()
 			local ply = targ:GetNWEntity("nllplyowner")
 			local nick,nickclr,font = GrabPlyInfo(ply)
 			if not nick then return end -- Someone doesn't want us to draw his info.
-			
+			local plycond = NLL.GetCondition(ply)
 			SimpleTextShadowed(nick, font, pos.x, pos.y - 50, nickclr, 1)
-			if not condcolors[ply.condition] then conditionColor = Color(150,150,255) else conditionColor = condcolors[ply.condition][1] end
-			SimpleTextShadowed(ply.condition, font, pos.x, pos.y - 70, conditionColor, 1)
+			if not condcolors[plycond] then conditionColor = Color(150,150,255) else conditionColor = condcolors[plycond][1] end
+			SimpleTextShadowed(plycond, font, pos.x, pos.y - 70, conditionColor, 1)
 			
 			local hp = (ply.newhp and ply.newhp or ply:Health())
 			
@@ -540,9 +542,9 @@ hook.Add("HUDPaint", "TG_NLL", function()
 			SimpleTextShadowed(txt, "TargetIDSmall2", pos.x, pos.y - 30, clr, 1)
 			
 			local textToShow = ""
-			if not condcolors[ply.condition] then textToShow = string.format("This player is stunned! Press %s %s to covertly kill.",input.LookupBinding("+walk"),input.LookupBinding("+use")) else
-				textToShow = "This player is "..condcolors[ply.condition][2].."!"
-				if condcolors[ply.condition][3] then textToShow = textToShow..string.format(" Press %s to %s.",input.LookupBinding("+use"),condcolors[ply.condition][3]) end
+			if not condcolors[plycond] then textToShow = string.format("This player is stunned! Press %s %s to covertly kill.",input.LookupBinding("+walk"),input.LookupBinding("+use")) else
+				textToShow = "This player is "..condcolors[plycond][2].."!"
+				if condcolors[plycond][3] then textToShow = textToShow..string.format(" Press %s to %s.",input.LookupBinding("+use"),condcolors[plycond][3]) end
 				textToShow = textToShow .. string.format(" Press %s %s to covertly kill.",input.LookupBinding("+walk"),input.LookupBinding("+use"))
 			end
 			SimpleTextShadowed(textToShow, "TargetIDSmall2", pos.x, pos.y - 10, Color(255,255,200), 1)
