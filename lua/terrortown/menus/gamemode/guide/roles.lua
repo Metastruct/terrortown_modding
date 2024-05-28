@@ -7,7 +7,7 @@ local abs = math.abs
 local function TTTKey(bindName)
 	local binding = tonumber(bind.Find(bindName))
 
-	if binding and binding ~= KEY_NONE then
+	if binding and binding ~= -1 and binding ~= KEY_NONE then
 		return string.upper(input.GetKeyName(binding))
 	else
 		return "NONE"
