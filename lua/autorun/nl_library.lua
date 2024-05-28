@@ -1,5 +1,5 @@
 -- The tazer is no longer a dependancy :^) --
-AllowedWake = { -- these conditions can be removed when a friend presses +use
+local AllowedWake = { -- these conditions can be removed when a friend presses +use
 	["ZZZ"] = true,
 	["---"] = true,
 	["PLV"] = false
@@ -29,11 +29,11 @@ end)
 
 NLL.ConditionStorage = {} -- Magical table that stores all players with conditions. Better than ply.condition
 
-function NLL.GetCondtion(ply) -- Function that returns the player's table value or "NIL" as string.
-	return NLL.ConditionStorage[ply] or "NIL"
+function NLL.GetCondition(ply) -- Function that returns the player's table value or "NIL" as string.
+	return NLL.ConditionStorage[ply]
 end
 function NLL.SetCondition(ply,string) -- Function that sets the player's table value or "NIL" as string.
-	NLL.ConditionStorage[ply] = string or "NIL"
+	NLL.ConditionStorage[ply] = string
 	return
 end
 function NLL.WipeCondition(ply) -- Function that removes a specified key and it's value
@@ -166,7 +166,7 @@ end
 Deploy player ragdoll, Sleeping Variants can be woken up with E.
 ]]--
 function NLL.Ragdoll( ply, pushdir, stuntype)
-	if not ply:Alive() or IsValid(ply.nllragdoll) then return end -- you already have a body
+	if not IsValid(ply) or not ply:Alive() or IsValid(ply.nllragdoll) then return end -- you already have a body
 	local plyphys = ply:GetPhysicsObject()
 	local plyvel = Vector(0,0,0)
 	if plyphys:IsValid() then
@@ -212,7 +212,6 @@ function NLL.Ragdoll( ply, pushdir, stuntype)
 
 	ply.nllragdoll = rag
 	rag.nllplayer = ply
-	ply.condition = stuntype
 		
 	ply:SetNWEntity("nllviewrag", rag)
 	rag:SetNWEntity("nllplyowner", ply)
@@ -228,6 +227,7 @@ function NLL.Ragdoll( ply, pushdir, stuntype)
 end
 
 function NLL.UnRagdoll( ply )
+	if not IsValid(ply) then return end
 	ply.nllismuted = false -- to prevent perma mute, sometimes we unragdoll the player for emergency reasons
 	local ragvalid = IsValid(ply.nllragdoll)
 	local pos
@@ -292,7 +292,7 @@ IllegalCovertKill = { -- [Killer] = {[Victim] = Message} When Killer kills Victi
 }
 hook.Add( "PlayerUse", "NLLRagdollWakeAttempt", function( ply, ent )
     if IsValid(ent) and IsValid(ent.nllplayer) then
-	if not AllowedWake[ent.nllplayer.condition] and not ply:IsWalking() then return end -- allow 'waking' if the victim needs to be killed
+	if not AllowedWake[NLL.GetCondition(ent.nllplayer)] and not ply:IsWalking() then return end -- allow 'waking' if the victim needs to be killed
 	if ply:IsWalking() then -- this entire block checks if the kill is "legal" :innocent:
 		local BlacklistResult = "This kill is actually allowed"
 		if IllegalCovertKill[ply:GetRole()] then
@@ -349,27 +349,8 @@ function NLL.PlayerZZZ( ply, pushdir, stuntype, timebefore, timedur )
         
 	if stuntype == "ZZZ" or stuntype == "KSR" then -- Kissers cannot be woke
 		if timebefore < 5 then ply.nllismuted = true end -- Instantly mute a player if they happen to get struck by a 'critical tranq'
-		if timer.Exists("NLLSleepIn"..id) then
-			if timer.TimeLeft( "NLLSleepIn"..id ) < 3 then return end
-			local newdelay = math.min( timebefore/3, timer.TimeLeft( "NLLSleepIn"..id )/2 )
-			timer.Remove("NLLSleepIn"..id)
-			timer.Create("NLLSleepIn"..id, newdelay, 1, function()
-				NLL.Ragdoll(ply, pushdir,stuntype)
-				ply.nllismuted = true
-				timer.Create("NLLUnragdoll"..id, timedur, 1, function()
-					NLL.UnRagdoll(ply)
-					ply.nllismuted = false
-				end)
-			end)
-			
-			ply.DrowsyDuration = newdelay
-			net.Start("nllinfopayload")
-				net.WriteString("drowsy")
-				net.WriteTable({["drowsy"] = newdelay})
-			net.Send(ply)
-			return
-		end
-		timer.Create("NLLSleepIn"..id, timebefore, 1, function()
+		local truebefore = timer.Exists("NLLSleepIn"..id) and math.min( timebefore/3, timer.TimeLeft( "NLLSleepIn"..id )/2 ) or timebefore -- compressed
+		timer.Create("NLLSleepIn"..id, truebefore, 1, function()
 			NLL.Ragdoll(ply, pushdir,stuntype)
 			ply.nllismuted = true
 			timer.Create("NLLUnragdoll"..id, timedur, 1, function()
@@ -388,13 +369,12 @@ function NLL.PlayerZZZ( ply, pushdir, stuntype, timebefore, timedur )
 		if not ply.nllstnpr then ply.nllstnpr = 0 end
 		ply.nllstnpr = ply.nllstnpr + timebefore -- Stun Damage
 		if ply.nllstnpr < 100 then // Not above 100 Stun Damage, don't do anything.
-			if timer.Exists("NLLSTNHeal"..id) then timer.Remove("NLLSTNHeal"..id) end
 			timer.Create("NLLSTNHeal"..id,15,1,function()
 				ply.nllstnpr = 0 -- They haven't been hit by stun for 15 seconds, heal that stun damage
 			end)
 			return
 		end
-		timer.Create("NLLSleepIn"..id,0,1,function()
+		timer.Create("NLLSleepIn"..id,0,1,function() -- this is only a timer to allow damage to pass through before we ragdoll
 			ply.nllstnpr = 0
 			NLL.Ragdoll(ply, pushdir,stuntype)
 			ply.nllismuted = true
@@ -405,18 +385,9 @@ function NLL.PlayerZZZ( ply, pushdir, stuntype, timebefore, timedur )
 		end)
 		return
 	end
-	if stuntype == "---" then -- "Surrender". Supposed to allow self ragdolling, unused for now.
-		NLL.Ragdoll(ply, pushdir,"---")
-		ply.nllismuted = false -- You're still awake, you shouldn't be muted while surrendering.
-		timer.Create("NLLUnragdoll"..id, timedur, 1, function()
-			NLL.UnRagdoll(ply)
-			ply.nllismuted = false
-		end)
-		return
-	end
-	if stuntype == "PLV" then -- Pulverize, bone anihilation method
-		NLL.Ragdoll(ply, pushdir,"PLV")
-		ply.nllismuted = true
+	if stuntype == "---" or stuntype == "PLV" then -- "Surrender" and "Pulverize" currently unused.
+		NLL.Ragdoll(ply, pushdir,stuntype)
+		ply.nllismuted = stuntype == "PLV"
 		timer.Create("NLLUnragdoll"..id, timedur, 1, function()
 			NLL.UnRagdoll(ply)
 			ply.nllismuted = false
