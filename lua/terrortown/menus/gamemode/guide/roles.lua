@@ -7,7 +7,7 @@ local abs = math.abs
 local function TTTKey(bindName)
 	local binding = tonumber(bind.Find(bindName))
 
-	if binding and binding != KEY_NONE then
+	if binding and binding ~= -1 and binding ~= KEY_NONE then
 		return string.upper(input.GetKeyName(binding))
 	else
 		return "NONE"
@@ -16,7 +16,7 @@ end
 
 local highlightColor = Color(28, 93, 201)
 
-local mg = 5 -- margin
+local mg = 5  -- margin
 local pd = 10 -- padding
 local iconSize = 72
 
@@ -55,7 +55,7 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 			["nones"] = math.huge
 		}
 
-		for k,v in ipairs(roles.GetAvailableTeams()) do
+		for k, v in ipairs(roles.GetAvailableTeams()) do
 			namedTeams[v] = k
 		end
 	end
@@ -118,7 +118,7 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 			enabledConVar = roleEnabledConVars[role.name]
 		end
 
-		if enabledConVar != true and not enabledConVar:GetBool() then continue end
+		if enabledConVar ~= true and not enabledConVar:GetBool() then continue end
 
 		local baseContainer = parent:Add("DContentPanelTTT2")
 		baseContainer:Dock(TOP)
@@ -167,8 +167,8 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 		end
 		header.Toggle = function(s, closeOthers)
 			if closeOthers then
-				for k,v in ipairs(parent.RolePanelHeaders) do
-					if IsValid(v) and v != s and v.Expanded then
+				for k, v in ipairs(parent.RolePanelHeaders) do
+					if IsValid(v) and v ~= s and v.Expanded then
 						v:Toggle()
 					end
 				end
@@ -191,7 +191,7 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 			baseContainer:SetTall(s.Expanded and s.ExpandHeight or iconSize)
 		end
 		header.OnMousePressed = function(s, mcode)
-			if mcode != MOUSE_LEFT then return end
+			if mcode ~= MOUSE_LEFT then return end
 
 			s:Toggle(true)
 		end
@@ -241,15 +241,15 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 
 		local descText = customExplanations[role.index]
 
-		if descText and descText != "" then
+		if descText and descText ~= "" then
 			-- Show the custom explanation with the proper key bindings
 			descText = string.Interpolate(descText, descTextParams)
 		else
 			-- There's no custom explanation, show the role's description text instead
 			descText = "(This role has no custom help written for it yet.)\n\n" ..
 				(isfunction(fallbackSpecialCases[role.name])
-				and fallbackSpecialCases[role.name](descTextParams)
-				or GetPT("info_popup_" .. role.name, descTextParams))
+					and fallbackSpecialCases[role.name](descTextParams)
+					or GetPT("info_popup_" .. role.name, descTextParams))
 		end
 
 		-- Because labels have text limits, we need to split them up when appropriate - determine the split points
@@ -332,14 +332,14 @@ local function AddCustomExplanation(roleId, text)
 end
 
 AddCustomExplanation(ROLE_INNOCENT,
-[[You are an ordinary innocent. Your goal is to work with your fellow innocents to figure out who the traitors are. Kill all the traitors to win!
+	[[You are an ordinary innocent. Your goal is to work with your fellow innocents to figure out who the traitors are. Kill all the traitors to win!
 
 Remember, everyone is suspicious of you like you are of them! Try not to jump to conclusions without solid evidence! If you mistakenly kill another innocent, you'll lower your odds of winning!
 
 You can prove to everyone you're innocent by successfully killing traitors and confirming their corpses.]])
 
 AddCustomExplanation(ROLE_TRAITOR,
-[[You are a traitor among the innocents. Your goal is to eliminate all the innocents with the help of your traitor buddies... if you have any.
+	[[You are a traitor among the innocents. Your goal is to eliminate all the innocents with the help of your traitor buddies... if you have any.
 
 You can open the scoreboard with [{scorekey}] to see who you're teamed up with.
 Voice chat with only the traitors using [{teamvoicekey}].
@@ -350,7 +350,7 @@ You'll start with a few credits - you can gain more credits by killing enough in
 You can also give credits to other people using the Transfer tab in the [{menukey}] menu.]])
 
 AddCustomExplanation(ROLE_DETECTIVE,
-[[You are a detective, sent out to help the innocents track down traitors using your detective resources.
+	[[You are a detective, sent out to help the innocents track down traitors using your detective resources.
 
 Everyone knows you're a detective - you have the hat and everything! Including a DNA Scanner that can analyse DNA found on corpses, weapons and bombs to locate potential suspects.
 
@@ -359,7 +359,7 @@ You can buy equipment using credits by pressing [{menukey}].
 You'll start with a few credits - you can get more credits by killing traitors, and by looting unused credits off corpses.]])
 
 AddCustomExplanation(ROLE_JESTER,
-[[You are a harmless jester, you cannot damage anyone!
+	[[You are a harmless jester, you cannot damage anyone!
 But it would be so funny if someone killed you... it's your goal to have that happen! :)
 
 Trick someone into shooting you by acting suspicious, but don't make it too obvious or you'll be called out as a jester and avoided.
@@ -370,7 +370,7 @@ If you die without the aid of another player (like falling to your death), it wo
 Blast and fire damage caused by a player will hurt you, but you'll always be left with at least 1 HP from it.]])
 
 AddCustomExplanation(ROLE_SWAPPER,
-[[You are a cheeky swapper! You want to create chaos by letting someone kill you...
+	[[You are a cheeky swapper! You want to create chaos by letting someone kill you...
 When someone does kill you, you and your killer will swap roles. You'll also be revived instantly.
 
 Since dying doesn't mean you win like the jester does, your victory will come from swapping to the innocents side or the traitors side, then fulfilling their goal.
@@ -382,7 +382,7 @@ Everyone is alerted that a "jester" is present at the start of a round, but only
 If you die without the aid of another player (like falling to your death), you won't be able to swap with anything and you'll accept your demise.]])
 
 AddCustomExplanation(ROLE_UNKNOWN,
-[[...yet. You are the unknown. You need someone to slay you so you can receive their role. It doesn't matter to you whose side you end up on.
+	[[...yet. You are the unknown. You need someone to slay you so you can receive their role. It doesn't matter to you whose side you end up on.
 
 When you die, you'll be revived in the next few seconds with the same role as your killer. They will need to stay alive until then, otherwise your revive will fail!
 If you die without the aid of another player (like falling to your death), you won't be able to revive.
@@ -390,7 +390,7 @@ If you die without the aid of another player (like falling to your death), you w
 Be careful, some people can get cautious of you suddenly being alive again. If you revive onto the traitors side in front of some innocents, you could be in trouble.]])
 
 AddCustomExplanation(ROLE_GAMBLER,
-[[You are a gambling traitor. You've rolled the dice and got a randomised set of equipment! Have you gotten lucky?
+	[[You are a gambling traitor. You've rolled the dice and got a randomised set of equipment! Have you gotten lucky?
 Like the usual traitor, your goal is to eliminate all the innocents with the help of your traitor buddies.
 
 Voice chat with only the traitors using [{teamvoicekey}].
@@ -398,7 +398,7 @@ Voice chat with only the traitors using [{teamvoicekey}].
 You get no credits whatsoever, so no shopping for you. However, you do immediately start with a big pool of items than all other traitors! You can get to slaughtering right away! ...right?]])
 
 AddCustomExplanation(ROLE_SHANKER,
-[[You are a shanker ready to stab with your trusty shank knife.
+	[[You are a shanker ready to stab with your trusty shank knife.
 Like the usual traitor, your goal is to eliminate all the innocents with the help of your traitor buddies.
 
 Your shank knife is fast, silent, and does moderate damage from the front. You can backstab people for an instant kill.
@@ -411,7 +411,7 @@ You start with no credits, but you can get some by killing detectives, and by lo
 You can also give credits to other people using the Transfer tab in the [{menukey}] menu.]])
 
 AddCustomExplanation(ROLE_EXECUTIONER,
-[[You are an executioner. You gain a damage bonus towards your randomly selected target.
+	[[You are an executioner. You gain a damage bonus towards your randomly selected target.
 Like the usual traitor, your goal is to eliminate all the innocents with the help of your traitor buddies.
 
 You can see the name of your randomly selected target in the bottom-left corner. Once you kill your target, you'll immediately get a new one. If you kill someone who isn't your target, you will have no target and no damage bonus for a small amount of time.
@@ -424,7 +424,7 @@ You start with one credit - you can gain more by killing detectives, and by loot
 You can also give credits to other people using the Transfer tab in the [{menukey}] menu.]])
 
 AddCustomExplanation(ROLE_MESMERIST,
-[[You are a traitor with mesmerist powers. You can revive someone to become your thrall.
+	[[You are a traitor with mesmerist powers. You can revive someone to become your thrall.
 Like the usual traitor, your goal is to eliminate all the innocents with the help of your traitor buddies.
 
 You have a mesmerist defib! Find a corpse that has an intact brain (ie. they haven't been headshot to death), then revive them with your defib to gain a traitor buddy!
@@ -439,7 +439,7 @@ You start with one credit - you can get more by killing detectives, and by looti
 You can also give credits to other people using the Transfer tab in the [{menukey}] menu.]])
 
 AddCustomExplanation(ROLE_THRALL,
-[[You've been resurrected as a traitor by the mesmerist! Help them kill the innocents!
+	[[You've been resurrected as a traitor by the mesmerist! Help them kill the innocents!
 Like the usual traitor, your goal is to eliminate all the innocents with the help of your traitor buddies.
 
 Voice chat with only the traitors using [{teamvoicekey}].
@@ -451,7 +451,7 @@ Don't worry if your mesmerist dies, your life isn't tied to them so you can keep
 You get one credit to spend! Perhaps your mesmerist will be kind enough to send more credits your way?]])
 
 AddCustomExplanation(ROLE_DEFECTOR,
-[[You've picked up a Jihad Bomb from a traitor and converted to their side! Sacrificing yourself sounds fun!
+	[[You've picked up a Jihad Bomb from a traitor and converted to their side! Sacrificing yourself sounds fun!
 
 As a defector, you can ONLY deal damage using the bomb you picked up. This means shooting people won't work!
 
@@ -460,7 +460,7 @@ Use it wisely, it will kill you too! For the best results, wait for people to cr
 Voice chat with only the traitors using [{teamvoicekey}].]])
 
 AddCustomExplanation(ROLE_DEFECTIVE,
-[[You are an EVIL traitorous detective - a defective! You look like a regular detective to the innocents. Gain their trust and get the real detectives killed!
+	[[You are an EVIL traitorous detective - a defective! You look like a regular detective to the innocents. Gain their trust and get the real detectives killed!
 Like the usual traitor, your goal is to eliminate all the innocents with the help of your traitor buddies.
 
 You and the other detectives cannot harm each other while there are innocents still alive. You need to convince them to kill their detectives for you... or have your traitor friends take them down.
@@ -473,7 +473,7 @@ You'll start with a few credits - you can get more by killing enough innocents, 
 You can also give credits to other people using the Transfer tab in the [{menukey}] menu.]])
 
 AddCustomExplanation(ROLE_VAMPIRE,
-[[You are a traitor vampire! Your thirst for blood is insatiable, you will slowly waste away without it...
+	[[You are a traitor vampire! Your thirst for blood is insatiable, you will slowly waste away without it...
 Harm people in any way to fulfill your bloodlust.
 Like the usual traitor, your goal is to eliminate all the innocents with the help of your traitor buddies.
 
@@ -495,7 +495,7 @@ You'll start with one credit - you can get more by killing detectives, and by lo
 You can also give credits to other people using the Transfer tab in the [{menukey}] menu.]])
 
 AddCustomExplanation(ROLE_IMPOSTOR,
-[[Impostor. Among Us. That's your role.
+	[[Impostor. Among Us. That's your role.
 Like the usual traitor, your goal is to eliminate all the innocents with the help of your traitor buddies.
 
 You deal slightly less damage than normal, so if you're going to shoot someone, make it count!
@@ -511,7 +511,7 @@ You are unable to buy equipment. Instead, you can sabotage lights, comms, oxygen
 Voice chat with only the traitors using [{teamvoicekey}].]])
 
 AddCustomExplanation(ROLE_HAUNTED,
-[[You are a haunting traitor! If you are killed by someone, you will haunt their soul until you can take it over...
+	[[You are a haunting traitor! If you are killed by someone, you will haunt their soul until you can take it over...
 Like the usual traitor, your goal is to eliminate all the innocents with the help of your traitor buddies.
 
 Being killed marks your killer with dark smoke. If they are killed, you will steal their soul and be revived at your ragdoll!
@@ -523,7 +523,7 @@ Voice chat with only the traitors using [{teamvoicekey}].
 Due to your haunting abilities, you get no credits and cannot buy equipment.]])
 
 AddCustomExplanation(ROLE_MEDIC,
-[[You are a medic that's been sent to provide aid to everyone in the field!
+	[[You are a medic that's been sent to provide aid to everyone in the field!
 You don't care what's really going on - making sure your patients are healthy is all that matters to you!
 
 Use your technologically advanced medigun to heal people by attaching a healing beam to them.
@@ -533,21 +533,21 @@ If someone important has gone down, you can revive them with your one-time use d
 Try not to get yourself involved by killing someone! If you break your oath, you will be stripped of your medical supplies and lose some karma!]])
 
 AddCustomExplanation(ROLE_AMNESIAC,
-[[You are suffering from amnesia and don't remember what role you are. Finding and confirming an unidentified body will surely jog your memory.
+	[[You are suffering from amnesia and don't remember what role you are. Finding and confirming an unidentified body will surely jog your memory.
 
 Once you've confirmed a body, you will discretely become that body's role.
 
 While you are an amnesiac, you are on neither side. You can still contribute to the killing, but you could weaken the side you end up joining...]])
 
 AddCustomExplanation(ROLE_WRATH,
-[[You are an innocent with a short fuse. If you are wrongly killed, you will come back with a vengeance.
+	[[You are an innocent with a short fuse. If you are wrongly killed, you will come back with a vengeance.
 
 Being killed by another innocent vexes you, thus you will awaken as a traitor. Kill the fuckers.
 
 You aren't aware of your wrath nature. You will only discover it in death. Unless, of course, a traitor kills you.]])
 
 AddCustomExplanation(ROLE_CUPID,
-[[You are Cupid! You want to make two people fall in love and work together! Til death do them part...
+	[[You are Cupid! You want to make two people fall in love and work together! Til death do them part...
 
 Take out your Cupid Crossbow and shoot someone to mark them for love. You can then either choose to shoot another person to make those two people lovers, or you can shoot yourself to become lovers with that person!
 
@@ -558,17 +558,17 @@ If one lover is a traitor, the other non-traitor lover will help them as their c
 Once you have used up your crossbow, you will act as an ordinary innocent.]])
 
 AddCustomExplanation(ROLE_BOMBER,
-[[You are an innocent armed with a rigged c4. You'll leave a c4 about to explode on death.
+	[[You are an innocent armed with a rigged c4. You'll leave a c4 about to explode on death.
 
 If you suspect someone is a traitor and don't want to risk losing a gunfight to them, you can try sticking to them.]])
 
 AddCustomExplanation(ROLE_SACRIFICE,
-[[You are an innocent who is willing to trade their life for someone more important.
+	[[You are an innocent who is willing to trade their life for someone more important.
 
 You have a special defib that can bring someone back to life, killing you in the process! Be sure to make the right choice!]])
 
 AddCustomExplanation(ROLE_SEANCE,
-[[You are an innocent that can see spirits - could the dead be trying to tell you something?
+	[[You are an innocent that can see spirits - could the dead be trying to tell you something?
 
 You will see yellow floating orbs around where dead players are spectating. If you see many orbs in one area, there's probably something interesting there!
 You can try calling out to the spirits to have them relay information!
