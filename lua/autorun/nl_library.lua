@@ -591,7 +591,7 @@ end
 
 //shared
 hook.Add( "Tick", "DrowsyVariableControl", function() // allows client to predict how drowsy they should be.
-	for k,v in ipairs(SERVER and player.GetAll() or IsValid(LocalPlayer()) and {LocalPlayer()}) do
+	for k,v in ipairs(SERVER and player.GetAll() or IsValid(LocalPlayer()) and {LocalPlayer()} or {}) do
 		
 		if not v.DrowsyDuration then v.DrowsyDuration = 0 end
 		v.DrowsyDuration = math.Clamp(v.DrowsyDuration - engine.TickInterval(),0,60)
