@@ -34,6 +34,7 @@ DEFINE_BASECLASS("weapon_tttbasegrenade")
 SWEP.ClassName = className
 
 SWEP.UseHands = true
+SWEP.ShowDefaultViewModel = false
 SWEP.ViewModel = "models/weapons/c_grenade.mdl"
 SWEP.WorldModel = "models/weapons/tbrick01.mdl"
 
@@ -302,6 +303,8 @@ else
 
 			local scale = appearance.GetGlobalScale()
 			local w, h = 100 * scale, 20 * scale
+			local wHalf = w * 0.5
+
 			local drawColor = appearance.SelectFocusColor(client:GetRoleColor())
 
 			draw.AdvancedText(
@@ -315,31 +318,15 @@ else
 				true,
 				scale
 			)
-			draw.Box(x - w / 2 + scale, y - h + scale, w * pct, h, COLOR_BLACK)
-			draw.OutlinedShadowedBox(x - w / 2, y - h, w, h, scale, drawColor)
-			draw.Box(x - w / 2, y - h, w * pct, h, drawColor)
+			draw.Box(x - wHalf + scale, y - h + scale, w * pct, h, COLOR_BLACK)
+			draw.OutlinedShadowedBox(x - wHalf, y - h, w, h, scale, drawColor)
+			draw.Box(x - wHalf, y - h, w * pct, h, drawColor)
 		else
 			self:DoDrawCrosshair(x, y, true)
 		end
 	end
 
-	function SWEP:ToggleViewModelVisibility(vm, state)
-		if not IsValid(vm) then return end
-
-		vm:SetMaterial(state and "engine/occlusionproxy" or nil)
-
-		vm._brickHack = state
-	end
-
 	function SWEP:Deploy()
-		local owner = self:GetOwner()
-
-		if IsValid(owner) then
-			self.CurrentOwner = owner
-
-			self:ToggleViewModelVisibility(owner:GetViewModel(), true)
-		end
-
 		self.throwForce = self.throwForceMin
 
 		bstrdStart, bstrdEnd = nil, nil
@@ -347,23 +334,7 @@ else
 		return BaseClass.Deploy(self)
 	end
 
-	function SWEP:Holster()
-		local owner = self:GetOwner()
-
-		if IsValid(owner) then
-			self:ToggleViewModelVisibility(owner:GetViewModel(), false)
-		end
-
-		return BaseClass.Holster(self)
-	end
-
 	function SWEP:OnRemove()
-		local owner = self:GetOwner()
-
-		if IsValid(owner) then
-			self:ToggleViewModelVisibility(owner:GetViewModel(), false)
-		end
-
 		if IsValid(self.ClientsideWorldModel.Model) then
 			self.ClientsideWorldModel.Model:Remove()
 		end
@@ -375,21 +346,7 @@ else
 		BaseClass.OnRemove(self)
 	end
 
-	function SWEP:OwnerChanged()
-		local owner = self:GetOwner()
-
-		if not IsValid(owner) and IsValid(self.CurrentOwner) then
-			self:ToggleViewModelVisibility(self.CurrentOwner:GetViewModel(), false)
-		end
-
-		self.CurrentOwner = owner
-	end
-
 	function SWEP:PostDrawViewModel(vm, pl, wep)
-		if not vm._brickHack then
-			self:ToggleViewModelVisibility(vm, true)
-		end
-
 		local modelData = self.ClientsideViewModel
 
 		if not IsValid(modelData.Model) then
