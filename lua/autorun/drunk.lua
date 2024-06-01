@@ -94,6 +94,8 @@ if SERVER then
 	end
 
 	hook.Add("PlayerSay", "BeerSay", function(ply, text)
+		if not ply:IsTerror() then return end
+
 		ply.drunkfactor = ply.drunkfactor or 0
 
 		return DrunkText(text, math.min(ply.drunkfactor, 500))
@@ -109,8 +111,16 @@ if CLIENT then
 		smooth = Vector(0, 0, 0)
 	end)
 
+	local function is_alive()
+		local ply = LocalPlayer()
+		if not IsValid(ply) then return false end
+
+		return ply:IsTerror()
+	end
+
 	hook.Add("RenderScreenspaceEffects", "beer.RenderScreenspaceEffects", function()
 		if factor <= 0 then return end
+		if not is_alive then return end
 
 		local fdec = factor / 100
 		local params = {}
@@ -131,12 +141,14 @@ if CLIENT then
 	end)
 
 	hook.Add("CreateMove", "beer.CreateMove", function(ucmd)
-		if factor > 0 then
-			local random = VectorRand() * 0.1 * (factor / 100)
-			smooth = smooth + ((random - smooth) * 0.0005)
-			ucmd:SetViewAngles((ucmd:GetViewAngles():Forward() + smooth):Angle())
-			ucmd:SetForwardMove(ucmd:GetForwardMove() + smooth.y * 100000)
-			ucmd:SetSideMove(ucmd:GetSideMove() + smooth.x * 100000)
-		end
+		if factor <= 0 then return end
+		if not is_alive then return end
+
+		local random = VectorRand() * 0.1 * (factor / 100)
+		smooth = smooth + ((random - smooth) * 0.0005)
+
+		ucmd:SetViewAngles((ucmd:GetViewAngles():Forward() + smooth):Angle())
+		ucmd:SetForwardMove(ucmd:GetForwardMove() + smooth.y * 100000)
+		ucmd:SetSideMove(ucmd:GetSideMove() + smooth.x * 100000)
 	end)
 end
