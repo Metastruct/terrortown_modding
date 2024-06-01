@@ -1,6 +1,6 @@
 local ROUND = {}
 ROUND.Name = "Bad Trip"
-ROUND.Description = "You've had sniffed some questionnable powder, as the round continues, side effects will get worse..."
+ROUND.Description = "You've had some questionnable powder, as the round continues, side effects will worsen..."
 
 local CVAR_HASTE = GetConVar("ttt_haste")
 local CVAR_HASTE_TIME = GetConVar("ttt_haste_starting_minutes")
