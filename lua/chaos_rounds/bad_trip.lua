@@ -74,6 +74,7 @@ if CLIENT then
 	end
 
 	function ROUND:Finish()
+		timer.Remove("ChaosRoundBadTrip")
 		hook.Remove("Think", "ChaosRoundBadTrip")
 
 		for _, data in ipairs(self.MatData) do
