@@ -1,22 +1,22 @@
--- Manual SWEP tweaks
--- Use this file to apply manual tweaks and fixes onto a weapon, without having to overwrite said weapon's entire lua file
+-- Manual entity tweaks
+-- Use this file to apply manual tweaks and fixes onto an entity, without having to overwrite said entity's entire lua file
 
 require("hookextras")
 
 util.OnInitialize(function()
-	local SWEP
+	local ENT
 
 	-- Magneto-stick: Allow for bigger camera turns while holding a prop without dropping it
-	SWEP = weapons.GetStored("weapon_zm_carry")
-	if SWEP then
-		SWEP.dropAngleThreshold = 0.925
+	ENT = weapons.GetStored("weapon_zm_carry")
+	if ENT then
+		ENT.dropAngleThreshold = 0.925
 	end
 
 	-- Jihad Bomb: Set explosion radius and disable damage behind walls
 	-- PS: this is terrible unfortunately the developer of this weapon left no configuration possible...
-	SWEP = weapons.GetStored("weapon_ttt_jihad_bomb")
-	if SWEP then
-		function SWEP:Explode()
+	ENT = weapons.GetStored("weapon_ttt_jihad_bomb")
+	if ENT then
+		function ENT:Explode()
 			local pos = self:GetPos()
 			local dmg = 200
 			local dmgowner = self:GetOwner()
@@ -69,18 +69,41 @@ util.OnInitialize(function()
 				end
 			end)
 		end)
+
+		-- Detective hat: Allow it to be possessed by spectators
+		ENT = scripted_ents.GetStored("ttt_hat_deerstalker")
+		if ENT then
+			ENT = ENT.t
+
+			ENT.AllowPropspec = true
+
+			ENT.EquipTo_Original = ENT.EquipTo_Original or ENT.EquipTo
+
+			function ENT:EquipTo(pl)
+				-- If someone picks it up to wear it, kick out the possessor
+				if PROPSPEC then
+					local specOwner = self:GetNWEntity("spec_owner")
+
+					if IsValid(specOwner) then
+						PROPSPEC.End(specOwner)
+					end
+				end
+
+				self:EquipTo_Original(pl)
+			end
+		end
 	else
 		-- Clientside only tweaks
 
 		-- Kiss: Hide its weird heart model on players
-		SWEP = weapons.GetStored("weapon_ttt2_kiss")
-		if SWEP then
-			function SWEP:DrawWorldModel()
+		ENT = weapons.GetStored("weapon_ttt2_kiss")
+		if ENT then
+			function ENT:DrawWorldModel()
 				if IsValid(self:GetOwner()) then return end
 				self:DrawModel()
 			end
 
-			function SWEP:DrawWorldModelTranslucent() end
+			function ENT:DrawWorldModelTranslucent() end
 		end
 	end
 end)
