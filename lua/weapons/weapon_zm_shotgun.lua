@@ -134,7 +134,7 @@ end
 -- @ignore
 function SWEP:CanPrimaryAttack()
 	if self:Clip1() <= 0 then
-		self:EmitSound("Weapon_Shotgun.Empty")
+		self:EmitSound(")weapons/shotgun/shotgun_empty.wav", 75, 100, 0.7, CHAN_ITEM)
 		self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 
 		return false
