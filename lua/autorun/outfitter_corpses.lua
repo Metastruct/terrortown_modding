@@ -17,8 +17,6 @@ if SERVER then
 		net.Broadcast()
 	end)
 else
-	local ragdollClassName = "prop_ragdoll"
-
 	local outfitterRagdollList = {}
 
 	local function NormaliseBaseRagdoll(rag)
@@ -106,7 +104,7 @@ else
 
 			pendingOutfitterRagdolls[entId] = nil
 
-			if IsValid(pl) and ent:GetClass() == ragdollClassName then
+			if IsValid(pl) and ent:IsRagdoll() then
 				CreateOutfitterRagdoll(pl, ent)
 			end
 		end
@@ -115,7 +113,7 @@ else
 	hook.Add("NotifyShouldTransmit", tag, function(ent, transmit)
 		if not transmit then return end
 
-		if IsValid(ent) and ent:GetClass() == ragdollClassName and IsValid(ent.outfitterChildMdl) then
+		if IsValid(ent) and ent:IsRagdoll() and IsValid(ent.outfitterChildMdl) then
 			ent.outfitterChildMdl:SetParent(ent)
 			ent.outfitterChildMdl:SetLocalPos(vector_origin)
 
@@ -151,7 +149,7 @@ else
 			return
 		end
 
-		if rag:GetClass() != ragdollClassName then return end
+		if not rag:IsRagdoll() then return end
 
 		CreateOutfitterRagdoll(pl, rag)
 	end)
