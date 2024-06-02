@@ -67,7 +67,8 @@ SWEP.MaxPropSize = 72
 SWEP.EntityClassWhitelist = {
 	prop_physics = true,
 	prop_physics_multiplayer = true,
-	prop_physics_respawnable = true
+	prop_physics_respawnable = true,
+	ttt_hat_deerstalker = true
 }
 
 local convarBreatheDelay = CreateConVar(convarBreatheDelayName, 45, {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED})
@@ -253,7 +254,7 @@ hook.Add("SetupMove", hookTag, function(pl, mv, cm)
 							if p:IsPlayerHolding() then
 								local carryClass = "weapon_zm_carry"
 
-								for k,v in ipairs(player.GetAll()) do
+								for k, v in ipairs(player.GetAll()) do
 									local vWep = v:GetActiveWeapon()
 
 									if IsValid(vWep) and vWep:GetClass() == carryClass and vWep:GetCarryTarget() == p then
@@ -704,7 +705,7 @@ if SERVER then
 		local pl = ent.PropDisguiserOwner
 		local beforeHp = ent:Health()
 
-		-- Prop is breakable and is about to be broken, take the full
+		-- Prop is breakable and is about to be broken, take the full amount of damage
 		if beforeHp > 0 and (beforeHp - dmg:GetDamage()) <= 0 then
 			pl:TakeDamageInfo(dmg)
 			return
@@ -742,7 +743,7 @@ if SERVER then
 
 	-- We need to force people out of disguises before the next round starts, otherwise people don't respawn properly
 	hook.Add("TTTEndRound", hookTag, function()
-		for k,v in ipairs(player.GetAll()) do
+		for k, v in ipairs(player.GetAll()) do
 			if not v:IsTerror() then continue end
 
 			local p = v.PropDisguiserProp
@@ -919,7 +920,7 @@ else
 
 		local now = RealTime()
 
-		for k,v in next,wep.GhostProps do
+		for k, v in next, wep.GhostProps do
 			if not IsValid(v.Model) then
 				wep.GhostProps[k] = nil
 				continue
