@@ -42,7 +42,7 @@ if SERVER then
 	end
 
 	local function revive_zombie(ply)
-		ply:Revive(15, function()
+		ply:Revive(5, function()
 			timer.Simple(0, function()
 				if not IsValid(ply) then return end
 				ply:Spawn()
