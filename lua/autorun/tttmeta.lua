@@ -383,22 +383,22 @@ end)
 
 hook.Add("CanPlyGotoPly", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == ROUND_ACTIVE then return false, "no teleporting while round is active" end
+	if GetRoundState() == ROUND_ACTIVE then return false, "no teleporting while round is active" end
 end)
 
 hook.Add("CanAutojump", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == ROUND_ACTIVE then return false end
+	if GetRoundState() == ROUND_ACTIVE then return false end
 end)
 
 hook.Add("CanPlyGoto", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == ROUND_ACTIVE then return false, "no teleporting while round is active" end
+	if GetRoundState() == ROUND_ACTIVE then return false, "no teleporting while round is active" end
 end)
 
 hook.Add("CanPlyTeleport", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == ROUND_ACTIVE then return false, "no teleporting while round is active" end
+	if GetRoundState() == ROUND_ACTIVE then return false, "no teleporting while round is active" end
 end)
 
 hook.Add("IsEntityTeleportable", Tag, function(pl)
@@ -408,12 +408,12 @@ end)
 
 hook.Add("CanSSJump", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == ROUND_ACTIVE then return false, "no jumping while round is active" end
+	if GetRoundState() == ROUND_ACTIVE then return false, "no jumping while round is active" end
 end)
 
 hook.Add("CanPlyRespawn", Tag, function(pl)
 	if pl.Unrestricted then return end
-	if GAMEMODE.round_state == ROUND_ACTIVE then return false, "no respawning while round is active" end
+	if GetRoundState() == ROUND_ACTIVE then return false, "no respawning while round is active" end
 end)
 
 hook.Add("CanPlayerTimescale", Tag, function(pl)
