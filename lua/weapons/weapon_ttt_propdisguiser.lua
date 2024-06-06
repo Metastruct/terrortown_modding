@@ -32,8 +32,8 @@ end
 
 DEFINE_BASECLASS("weapon_tttbase")
 
-SWEP.HoldType = "normal"
 SWEP.ClassName = className
+SWEP.HoldType = "normal"
 
 SWEP.ViewModel = "models/weapons/c_stunstick.mdl"
 SWEP.WorldModel = "models/xqm/button2.mdl"

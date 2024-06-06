@@ -40,9 +40,10 @@ end
 
 DEFINE_BASECLASS("weapon_tttbase")
 
-SWEP.HoldType = "shotgun"
 SWEP.ClassName = className
+SWEP.HoldType = "shotgun"
 
+SWEP.UseHands = false
 SWEP.ViewModel = "models/weapons/blunderbus.mdl"
 SWEP.WorldModel = "models/weapons/w_blunderbus.mdl"
 
