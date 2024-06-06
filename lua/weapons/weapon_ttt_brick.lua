@@ -17,6 +17,7 @@ else
 	SWEP.Author = "TW1STaL1CKY"
 	SWEP.Slot = 3
 
+	SWEP.ShowDefaultViewModel = false
 	SWEP.ViewModelFlip = false
 	SWEP.ViewModelFOV = 54
 
@@ -33,8 +34,6 @@ DEFINE_BASECLASS("weapon_tttbasegrenade")
 
 SWEP.ClassName = className
 
-SWEP.UseHands = true
-SWEP.ShowDefaultViewModel = false
 SWEP.ViewModel = "models/weapons/c_grenade.mdl"
 SWEP.WorldModel = "models/weapons/tbrick01.mdl"
 

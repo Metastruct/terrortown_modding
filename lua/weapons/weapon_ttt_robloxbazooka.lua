@@ -28,10 +28,9 @@ end
 
 DEFINE_BASECLASS("weapon_tttbase")
 
-SWEP.HoldType = "rpg"
 SWEP.ClassName = className
+SWEP.HoldType = "rpg"
 
-SWEP.UseHands = true
 SWEP.ViewModel = "models/robloxstuff/classic/c_bazooka.mdl"
 SWEP.WorldModel = "models/robloxstuff/classic/w_bazooka.mdl"
 
@@ -59,7 +58,7 @@ function SWEP:PrimaryAttack()
 	self:SetNextPrimaryFire( CurTime() + self.Primary.Delay )
 
 	if self:GetFired() then
-		self:EmitSound("weapons/pistol/pistol_empty.wav", 64, 100, 0.2, CHAN_VOICE)
+		self:EmitSound("weapons/pistol/pistol_empty.wav", 70, 100, 0.5, CHAN_ITEM)
 
 		return
 	end

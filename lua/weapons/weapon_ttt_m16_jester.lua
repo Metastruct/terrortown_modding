@@ -85,7 +85,7 @@ function SWEP:Reload()
 	local owner = self:GetOwner()
 	local isJester = self:IsWorthyOfPower(owner)
 
-	local vm, isReloading
+	local isReloading
 
 	-- Always allow reloading even when out of ammo by giving 1 bullet then taking it away right after teehee
 	if SERVER then owner:GiveAmmo(1, self:GetPrimaryAmmoType(), true) end
