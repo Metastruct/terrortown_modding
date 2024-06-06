@@ -41,6 +41,7 @@ DEFINE_BASECLASS("weapon_tttbase")
 SWEP.ClassName = className
 SWEP.HoldType = "pistol"
 
+SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/tw1stal1cky/c_squirtbottle.mdl"
 SWEP.WorldModel = "models/weapons/tw1stal1cky/w_squirtbottle.mdl"
 

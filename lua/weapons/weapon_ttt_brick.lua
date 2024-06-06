@@ -34,6 +34,7 @@ DEFINE_BASECLASS("weapon_tttbasegrenade")
 
 SWEP.ClassName = className
 
+SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/c_grenade.mdl"
 SWEP.WorldModel = "models/weapons/tbrick01.mdl"
 
