@@ -31,6 +31,7 @@ DEFINE_BASECLASS("weapon_tttbase")
 SWEP.ClassName = className
 SWEP.HoldType = "rpg"
 
+SWEP.UseHands = true
 SWEP.ViewModel = "models/robloxstuff/classic/c_bazooka.mdl"
 SWEP.WorldModel = "models/robloxstuff/classic/w_bazooka.mdl"
 
