@@ -52,6 +52,12 @@ util.OnInitialize(function()
 				if self.disguiserTargetActivated and pac and pac.TogglePartDrawing then
 					pac.TogglePartDrawing(self, false)
 				end
+
+				-- Funny feedback sound (only the user hears it)
+				local filter = RecipientFilter()
+				filter:AddPlayer(self)
+
+				self:EmitSound("ambient/levels/citadel/pod_open1.wav", 100, 85, 1, CHAN_VOICE, 0, 0, filter)
 			end
 
 			function PLAYER:DeactivateDisguiserTarget()
@@ -60,6 +66,12 @@ util.OnInitialize(function()
 				if pac and pac.TogglePartDrawing then
 					pac.TogglePartDrawing(self, true)
 				end
+
+				-- Funny feedback sound (only the user hears it)
+				local filter = RecipientFilter()
+				filter:AddPlayer(self)
+
+				self:EmitSound("ambient/levels/citadel/pod_close1.wav", 100, 85, 1, CHAN_VOICE, 0, 0, filter)
 			end
 		else
 			function ENT:DrawWorldModel(flags)
@@ -69,6 +81,42 @@ util.OnInitialize(function()
 
 				self:DrawModel(flags)
 			end
+
+			-- Completely overwrite this net message with tweaks to handle outfitter
+			net.Receive("TTT2ToggleDisguiserTarget", function()
+				local addDisguise = net.ReadBool()
+				local owner = net.ReadEntity()
+
+				if not IsValid(owner) then return end
+
+				if addDisguise then
+					owner.disguiserTarget = net.ReadEntity()
+
+					if IsValid(owner.disguiserTarget) and owner.disguiserTarget.outfitter_mdl then
+						owner.disguiserOriginalIsOutfitter = owner.outfitter_mdl != nil
+						owner.disguiserOriginalModel = owner.outfitter_mdl or owner:GetModel()
+
+						-- Use outfitter to enforce it because a simple SetModel isn't effective
+						owner:EnforceModel(owner.disguiserTarget.outfitter_mdl)
+					end
+				else
+					owner.disguiserTarget = nil
+
+					if owner.disguiserOriginalModel then
+						if owner.disguiserOriginalIsOutfitter then
+							-- Enforce the owner's own outfitter model back
+							owner:EnforceModel(owner.disguiserOriginalModel)
+						else
+							-- Stop enforcing, then try setting the regular model back
+							owner:EnforceModel()
+							owner:SetModel(owner.disguiserOriginalModel)
+						end
+
+						owner.disguiserOriginalIsOutfitter = nil
+						owner.disguiserOriginalModel = nil
+					end
+				end
+			end)
 		end
 
 		-- See client/voicehud_disguise.lua for the voicehud tweaks
