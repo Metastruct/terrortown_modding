@@ -62,7 +62,7 @@ util.OnInitialize(function()
 				end
 			end
 		else
-			function SWEP:DrawWorldModel(flags)
+			function ENT:DrawWorldModel(flags)
 				local owner = self:GetOwner()
 
 				if IsValid(owner) then return end
