@@ -48,30 +48,36 @@ util.OnInitialize(function()
 			function PLAYER:ActivateDisguiserTarget()
 				self:ActivateDisguiserTarget_Original()
 
-				-- Ensure disguising actually took place before hiding the PAC
-				if self.disguiserTargetActivated and pac and pac.TogglePartDrawing then
-					pac.TogglePartDrawing(self, false)
+				-- Ensure disguising actually took place before doing extra stuff
+				if self.disguiserTargetActivated then
+					if pac and pac.TogglePartDrawing then
+						pac.TogglePartDrawing(self, false)
+					end
+
+					-- Funny feedback sound (only the user hears it)
+					local filter = RecipientFilter()
+					filter:AddPlayer(self)
+
+					self:EmitSound("ambient/levels/citadel/pod_open1.wav", 100, 85, 1, CHAN_VOICE, 0, 0, filter)
 				end
-
-				-- Funny feedback sound (only the user hears it)
-				local filter = RecipientFilter()
-				filter:AddPlayer(self)
-
-				self:EmitSound("ambient/levels/citadel/pod_open1.wav", 100, 85, 1, CHAN_VOICE, 0, 0, filter)
 			end
 
 			function PLAYER:DeactivateDisguiserTarget()
+				local wasDisguised = self.disguiserTargetActivated
+
 				self:DeactivateDisguiserTarget_Original()
 
 				if pac and pac.TogglePartDrawing then
 					pac.TogglePartDrawing(self, true)
 				end
 
-				-- Funny feedback sound (only the user hears it)
-				local filter = RecipientFilter()
-				filter:AddPlayer(self)
+				-- Only play feedback sound if they were disguised
+				if wasDisguised then
+					local filter = RecipientFilter()
+					filter:AddPlayer(self)
 
-				self:EmitSound("ambient/levels/citadel/pod_close1.wav", 100, 85, 1, CHAN_VOICE, 0, 0, filter)
+					self:EmitSound("ambient/levels/citadel/pod_close1.wav", 100, 85, 1, CHAN_VOICE, 0, 0, filter)
+				end
 			end
 		else
 			function ENT:DrawWorldModel(flags)
