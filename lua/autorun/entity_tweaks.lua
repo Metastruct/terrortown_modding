@@ -34,6 +34,46 @@ util.OnInitialize(function()
 		end
 	end
 
+	-- Identity Disguiser: Make disguiser invisible in hand and make user stand straight, hide PACs while in use
+	ENT = weapons.GetStored("weapon_ttt_identity_disguiser")
+	if ENT then
+		ENT.HoldType = "normal"
+
+		if SERVER then
+			local PLAYER = FindMetaTable("Player")
+
+			PLAYER.ActivateDisguiserTarget_Original = PLAYER.ActivateDisguiserTarget_Original or PLAYER.ActivateDisguiserTarget
+			PLAYER.DeactivateDisguiserTarget_Original = PLAYER.DeactivateDisguiserTarget_Original or PLAYER.DeactivateDisguiserTarget
+
+			function PLAYER:ActivateDisguiserTarget()
+				self:ActivateDisguiserTarget_Original()
+
+				-- Ensure disguising actually took place before hiding the PAC
+				if self.disguiserTargetActivated and pac and pac.TogglePartDrawing then
+					pac.TogglePartDrawing(self, false)
+				end
+			end
+
+			function PLAYER:DeactivateDisguiserTarget()
+				self:DeactivateDisguiserTarget_Original()
+
+				if pac and pac.TogglePartDrawing then
+					pac.TogglePartDrawing(self, true)
+				end
+			end
+		else
+			function SWEP:DrawWorldModel(flags)
+				local owner = self:GetOwner()
+
+				if IsValid(owner) then return end
+
+				self:DrawModel(flags)
+			end
+		end
+
+		-- See client/voicehud_disguise.lua for the voicehud tweaks
+	end
+
 	if SERVER then
 		-- Serverside only tweaks
 
