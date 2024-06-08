@@ -34,7 +34,7 @@ SWEP.Primary.Damage = 40
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
-SWEP.Primary.Delay = 0.6
+SWEP.Primary.Delay = 0.5
 SWEP.Primary.Ammo = "none"
 SWEP.Primary.HitRange = 80
 
@@ -52,11 +52,10 @@ SWEP.IsSilent = true
 SWEP.NoSights = true
 
 -- Pull out faster than standard guns
-SWEP.DeploySpeed = 2
+SWEP.DeploySpeed = 2.25
 
 function SWEP:PrimaryAttack()
 	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
-	self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
 
 	local owner = self:GetOwner()
 	if not IsValid(owner) then return end
@@ -155,12 +154,7 @@ end
 
 function SWEP:SecondaryAttack() end
 
-if SERVER then
-	function SWEP:Equip()
-		self:SetNextPrimaryFire(CurTime() + self.Primary.Delay * 1.5)
-		self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay * 1.5)
-	end
-else
+if CLIENT then
 	local tryT = LANG.TryTranslation
 
 	hook.Add("TTTRenderEntityInfo", "HUDDrawTargetIDShankKnife", function(tData)
@@ -178,17 +172,21 @@ else
 		-- enable targetID rendering
 		tData:EnableOutline()
 		tData:SetOutlineColor(roleColor)
+
 		tData:AddDescriptionLine(tryT("knife_instant"), roleColor)
 
 		-- draw instant-kill maker
 		local x = ScrW() * 0.5
 		local y = ScrH() * 0.5
+
 		surface.SetDrawColor(clr(roleColor))
 
 		local outer = 20
 		local inner = 10
+
 		surface.DrawLine(x - outer, y - outer, x - inner, y - inner)
 		surface.DrawLine(x + outer, y + outer, x + inner, y + inner)
+
 		surface.DrawLine(x - outer, y + outer, x - inner, y + inner)
 		surface.DrawLine(x + outer, y - outer, x + inner, y - inner)
 	end)
