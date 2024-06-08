@@ -39,7 +39,27 @@ util.OnInitialize(function()
 	if ENT then
 		ENT.HoldType = "normal"
 
+		ENT.Primary.Delay = 0.1
+
+		ENT.PrimaryAttack_Original = ENT.PrimaryAttack_Original or ENT.PrimaryAttack
+
+		function ENT:PrimaryAttack()
+			self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
+			self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
+
+			self:PrimaryAttack_Original()
+		end
+
 		if SERVER then
+			ENT.SecondaryAttack_Original = ENT.SecondaryAttack_Original or ENT.SecondaryAttack
+
+			function ENT:SecondaryAttack()
+				self:SetNextPrimaryFire(CurTime() + self.Secondary.Delay)
+				self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
+
+				self:SecondaryAttack_Original()
+			end
+
 			local PLAYER = FindMetaTable("Player")
 
 			PLAYER.ActivateDisguiserTarget_Original = PLAYER.ActivateDisguiserTarget_Original or PLAYER.ActivateDisguiserTarget
@@ -58,7 +78,7 @@ util.OnInitialize(function()
 					local filter = RecipientFilter()
 					filter:AddPlayer(self)
 
-					self:EmitSound("ambient/levels/citadel/pod_open1.wav", 100, 85, 1, CHAN_VOICE, 0, 0, filter)
+					self:EmitSound("ambient/levels/citadel/pod_open1.wav", 100, 85, 0.75, CHAN_VOICE, 0, 0, filter)
 				end
 			end
 
@@ -76,7 +96,7 @@ util.OnInitialize(function()
 					local filter = RecipientFilter()
 					filter:AddPlayer(self)
 
-					self:EmitSound("ambient/levels/citadel/pod_close1.wav", 100, 85, 1, CHAN_VOICE, 0, 0, filter)
+					self:EmitSound("ambient/levels/citadel/pod_close1.wav", 100, 85, 0.75, CHAN_VOICE, 0, 0, filter)
 				end
 			end
 		else
