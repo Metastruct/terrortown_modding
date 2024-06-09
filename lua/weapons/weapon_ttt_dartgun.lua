@@ -59,6 +59,14 @@ if SERVER then
 	hook.Add("PlayerDeath", "weapon_ttt_dartgun", function(ply)
 		ply:SetNWBool("TTTDartGunTracked", false)
 	end)
+
+	hook.Add("SetupPlayerVisibility", "weapon_ttt_dartgun", function()
+		for _, ply in ipairs(player.GetAll()) do
+			if ply:IsTerror() and ply:GetNWBool("TTTDartGunTracked", false) then
+				AddOriginToPVS(ply:GetPos())
+			end
+		end
+	end)
 end
 
 if CLIENT then
@@ -115,7 +123,7 @@ if CLIENT then
 		end
 	end)
 
-	hook.Add("PreDrawHalos", "weapon_ttt_dartgun", function()
+	hook.Add("PreDrawOutlines", "weapon_ttt_dartgun", function()
 		local tracked_players = {}
 		for _, ply in ipairs(player.GetAll()) do
 			if not ply:GetNWBool("TTTDartGunTracked", false) then continue end
@@ -125,6 +133,6 @@ if CLIENT then
 			table.insert(tracked_players, ply)
 		end
 
-		halo.Add(tracked_players, WARN_COLOR, 0, 0, 2, true, true)
+		outline.Add(tracked_players, WARN_COLOR, OUTLINE_MODE_BOTH, 4)
 	end)
 end
