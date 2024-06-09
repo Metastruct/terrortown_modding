@@ -297,22 +297,26 @@ if CLIENT then
 else
 	hook.Add("TTTBeginRound", "TTTFakeDeathInit", function()
 		DFROLES.Roles = {{
-					TRAITOR.index,
-					firstToUpper(TRAITOR.name),
-					TRAITOR.color
-				}}
+			TRAITOR.index,
+			firstToUpper(TRAITOR.name),
+			TRAITOR.color
+		}}
 
 		local t_siki = GetSidekickTableForRole(TRAITOR)
 		if t_siki then
 			DFROLES.Roles[#DFROLES.Roles + 1] = {
-			t_siki.index,
-			firstToUpper(t_siki.name),
-			t_siki.color
+				t_siki.index,
+				firstToUpper(t_siki.name),
+				t_siki.color
 			}
 		end
 
-		for _, v in pairs(GetRoles()) do
-			if IsRoleSelectable(v) && v.index != TRAITOR.index then
+		local roles = roles.GetList()
+
+		for i = 1, #roles do
+			local v = roles[i]
+
+			if v:IsSelectable() and v.index != TRAITOR.index then
 				DFROLES.Roles[#DFROLES.Roles + 1] = {
 					v.index,
 					firstToUpper(v.name),
@@ -322,9 +326,9 @@ else
 				local siki = GetSidekickTableForRole(v)
 				if siki then
 					DFROLES.Roles[#DFROLES.Roles + 1] = {
-					siki.index,
-					firstToUpper(siki.name),
-					siki.color
+						siki.index,
+						firstToUpper(siki.name),
+						siki.color
 					}
 				end
 			end
