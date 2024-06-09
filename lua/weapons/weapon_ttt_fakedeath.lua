@@ -267,8 +267,35 @@ if CLIENT then
 
 		chat.PlaySound()
 	end)
+
+	hook.Add("TTTScoreboardRowColorForPlayer", "TTTFakeDeathColorFake", function(ply)
+		if IsValid(ply) and ply:GetNWBool("FakedDeath") and ply:TTT2NETGetBool("body_found") then
+			local role = ply:GetNWInt("FakeCorpseRole")
+			local color = Color(0, 0, 0, 0)
+
+			if role ~= ROLE_INNOCENT then
+				local index = ply:GetNWInt("FakeCorpseIndex")
+				color = DFROLES.Roles[index][3]
+			end
+
+			return color
+		end
+	end)
+
+	hook.Add("TTT2ModifyMiniscoreboardColor", "TTTFakeDeathFColorFake", function(ply, col)
+		if IsValid(ply) and ply:GetNWBool("FakedDeath") and ply:TTT2NETGetBool("body_found") then
+			local role = ply:GetNWInt("FakeCorpseRole")
+
+			local index = ply:GetNWInt("FakeCorpseIndex")
+			local color = DFROLES.Roles[index][3]
+
+			color = Color(color.r, color.g, color.b, col.a)
+
+			return color
+		end
+	end)
 else
-	hook.Add("TTTBeginRound", "TTTDFInit", function()
+	hook.Add("TTTBeginRound", "TTTFakeDeathInit", function()
 		DFROLES.Roles = {{
 					TRAITOR.index,
 					firstToUpper(TRAITOR.name),
@@ -316,6 +343,56 @@ else
 
 		net.Broadcast()
 	end)
+
+	local function SelectHeadshot(ply, cmd, args)
+		if #args ~= 1 then return end
+
+		if args[1] == "0" then
+			ply.df_headshot = false
+		else
+			ply.df_headshot = true
+		end
+	end
+	concommand.Add("ttt_df_headshot", SelectHeadshot)
+
+	local function SelectFakeCredits(ply, cmd, args)
+		if #args ~= 1 then return end
+
+		if args[1] == "0" then
+			ply.df_fakecredits = false
+		else
+			ply.df_fakecredits = true
+		end
+	end
+	concommand.Add("ttt_df_fakecredits", SelectFakeCredits)
+
+	local function SelectWeapon(ply, cmd, args)
+		if #args ~= 1 then return end
+
+		ply.df_weapon = args[1]
+	end
+	concommand.Add("ttt_df_select_weapon", SelectWeapon)
+
+	local function SelectRole(ply, cmd, args)
+		if #args ~= 1 then return end
+
+		ply.df_role = math.floor(args[1])
+	end
+	concommand.Add("ttt_df_select_role", SelectRole)
+
+	local function SelectClass(ply, cmd, args)
+		if #args ~= 1 then return end
+
+		ply.df_class = args[1]
+	end
+	concommand.Add("ttt_df_select_class", SelectClass)
+
+	local function SelectPlayer(ply, cmd, args)
+		if #args ~= 1 then return end
+
+		ply.df_bodyname = args[1]
+	end
+	concommand.Add("ttt_df_select_player", SelectPlayer)
 end
 
 function SWEP:Initialize()
@@ -326,150 +403,6 @@ function SWEP:Initialize()
 		self:AddTTT2HUDHelp("Spawn a corpse", "Quickly change the role of the corpse")
 		self:AddHUDHelpLine("Customize the corpse (name, role, cause of death)", Key("+reload", "R"))
 	end
-end
-
-function SWEP:CreateGUI()
-	local ply = LocalPlayer()
-
-	local w, h = 300, 195
-
-	local Panel = vgui.Create("DFrame")
-	--Panel:SetPaintBackground(false)
-	Panel:SetSize(w, h)
-	Panel:Center()
-	Panel:MakePopup()
-	Panel:IsActive()
-	Panel:SetTitle("Death Faker Config")
-	Panel:SetVisible(true)
-	Panel:ShowCloseButton(true)
-	Panel:SetMouseInputEnabled(true)
-	Panel:SetDeleteOnClose(true)
-	Panel:SetKeyboardInputEnabled(false)
-
-	local FakeCreditsCB = vgui.Create("DCheckBoxLabel", Panel)
-	FakeCreditsCB:SetText("Fake Credits")
-	FakeCreditsCB:SetPos(10, 30)
-	FakeCreditsCB:SetSize(100, 20)
-	FakeCreditsCB:SetChecked(ply.df_fakecredits)
-	FakeCreditsCB.OnChange = function()
-		if FakeCreditsCB:GetChecked() then
-			RunConsoleCommand("ttt_df_fakecredits", "1")
-			ply.df_fakecredits = true
-		else
-			RunConsoleCommand("ttt_df_fakecredits", "0")
-			ply.df_fakecredits = false
-		end
-	end
-
-	local HeadshotCB = vgui.Create("DCheckBoxLabel", Panel)
-	HeadshotCB:SetText("Headshot (and silent)")
-	HeadshotCB:SetPos(10, 50)
-	HeadshotCB:SetSize(100, 20)
-	HeadshotCB:SetChecked(ply.df_headshot)
-	HeadshotCB.OnChange = function()
-		if HeadshotCB:GetChecked() then
-			RunConsoleCommand("ttt_df_headshot", "1")
-			ply.df_headshot = true
-			ply.bloodmode = true
-		else
-			RunConsoleCommand("ttt_df_headshot", "0")
-			ply.df_headshot = false
-			ply.bloodmode = false
-		end
-	end
-
-	local DLabel = vgui.Create("DLabel", Panel)
-	DLabel:SetPos(10, 70)
-	DLabel:SetSize(100, 20)
-	DLabel:SetText("Body Name:")
-
-	local NameComboBox = vgui.Create("DComboBox", Panel)
-	NameComboBox:SetPos(150, 70)
-	NameComboBox:SetSize(140, 20)
-
-	local plys = player.GetAll()
-	local value = ply:Name()
-
-	if ply.df_bodyname then
-		local newply = player.GetByUniqueID(ply.df_bodyname)
-
-		value = IsValid(newply) and newply:Name() or value
-	end
-
-	NameComboBox:SetValue(value)
-	for i = 1, #plys do
-		NameComboBox:AddChoice(plys[i]:Name(), plys[i]:UniqueID())
-	end
-
-	NameComboBox.OnSelect = function(panel, index, _, data)
-		RunConsoleCommand("ttt_df_select_player", data)
-
-		ply.df_bodyname = data
-	end
-
-	local DLabel2 = vgui.Create("DLabel", Panel)
-	DLabel2:SetPos(10, 95)
-	DLabel2:SetSize(100, 20)
-	DLabel2:SetText("Body Role:")
-
-	local RoleComboBox = vgui.Create("DComboBox", Panel)
-	RoleComboBox:SetPos(150, 95)
-	RoleComboBox:SetSize(140, 20)
-
-	local data = 1
-
-	if ply.df_role then
-		data = ply.df_role
-	end
-
-	for _, v in ipairs(DFROLES.Roles) do
-		RoleComboBox:AddChoice(v[2], v[1], data == v[1])
-	end
-
-	RoleComboBox.OnSelect = function(panel, index, _, dat)
-		RunConsoleCommand("ttt_df_select_role", dat)
-
-		ply.df_role = dat
-	end
-
-	local floatingY = 120
-
-	local DLabel3 = vgui.Create("DLabel", Panel)
-	DLabel3:SetPos(10, floatingY)
-	DLabel3:SetSize(100, 20)
-	DLabel3:SetText("Used Weapon:")
-
-	local WeaponCB = vgui.Create("DComboBox", Panel)
-	WeaponCB:SetPos(150, floatingY)
-	WeaponCB:SetSize(140, 20)
-
-	local weps = weapons.GetList()
-
-	if not ply.df_weapon then
-		ply.df_weapon = "weapon_ttt_m16"
-	end
-
-	for i = 1, #weps do
-		local wep = weps[i]
-
-		if wep.Base == "weapon_tttbase" and wep.Primary.Ammo ~= "none" then
-			WeaponCB:AddChoice(LANG.TryTranslation(wep.PrintName), wep.ClassName, wep.ClassName == ply.df_weapon)
-		end
-	end
-
-	WeaponCB:AddChoice("Fall Damage", "-1", ply.df_weapon == "-1")
-	WeaponCB:AddChoice("Explosion Damage", "-2", ply.df_weapon == "-2")
-	WeaponCB:AddChoice("Object Damage", "-3", ply.df_weapon == "-3")
-	WeaponCB:AddChoice("Fire Damage", "-4", ply.df_weapon == "-4")
-	WeaponCB:AddChoice("Water Damage", "-5", ply.df_weapon == "-5")
-
-	WeaponCB.OnSelect = function(panel, index, _, dat)
-		RunConsoleCommand("ttt_df_select_weapon", dat)
-
-		ply.df_weapon = dat
-	end
-
-	self.GUI = Panel
 end
 
 function SWEP:PrimaryAttack()
@@ -529,125 +462,6 @@ function SWEP:SecondaryAttack()
 	end
 end
 
-function SWEP:BodyDrop()
-	local ply = self:GetOwner()
-	if not IsValid(ply) then return end
-
-	local dmg = DamageInfo()
-
-	local dead
-
-	if ply.df_bodyname then
-		dead = player.GetByUniqueID(ply.df_bodyname)
-	end
-
-	if not dead then
-		dead = ply
-	end
-
-	-- Use a blank string when a damage type has been specified, otherwise this will change to the weapon of choice
-	local dmgwep = ""
-
-	if ply.df_weapon == "-1" then
-		dmg:SetDamageType(DMG_FALL)
-	elseif ply.df_weapon == "-2" then
-		dmg:SetDamageType(DMG_BLAST)
-	elseif ply.df_weapon == "-3" then
-		dmg:SetDamageType(DMG_CRUSH)
-	elseif ply.df_weapon == "-4" then
-		dmg:SetDamageType(DMG_BURN)
-	elseif ply.df_weapon == "-5" then
-		dmg:SetDamageType(DMG_DROWN)
-	else
-		dmg:SetDamageType(DMG_BULLET)
-
-		dmgwep = ply.df_weapon or "weapon_ttt_m16"
-	end
-
-	local wepTab = dmgwep != "" and weapons.Get(dmgwep) or nil
-	local wepDamage = wepTab
-		and wepTab.Primary
-		and isnumber(wepTab.Primary.Damage)
-		and wepTab.Primary.Damage
-		or math.random(10, 25)
-
-	if ply.df_headshot then
-		wepDamage = wepDamage * (wepTab and wepTab.HeadshotMultiplier or 2.7)
-	end
-
-	dmg:SetAttacker(ply)
-	dmg:SetDamage(wepDamage)
-
-	dead:SetNWBool("FakedDeath", true)
-
-	local rag = CORPSE.Create(dead, ply, dmg)
-	CORPSE.SetCredits(rag, 0)
-
-	rag.sid = dead:SteamID()
-	rag.sid64 = dead:SteamID64()
-
-	rag.is_fake = true
-	rag:SetNWBool("IsFakeBody", true)
-	rag:SetNWEntity("FakeBodyCreator", ply)
-
-	-- Tie the body to the player
-	dead.fake_corpse = rag
-
-	rag.dmgwep = dmgwep
-	rag.was_headshot = ply.df_headshot or false
-
-	rag:SetNWBool("FakeCredits", ply.df_fakecredits or false)
-
-	rag.was_role = ply.df_role or 1
-
-	rag.killer_sample = nil
-
-	dead:SetNWInt("FakeCorpseRole", rag.was_role)
-	local key = 0
-	for k, v in ipairs(DFROLES.Roles) do
-		if v[1] == ply.df_role then
-			key = k
-
-			break
-		end
-	end
-	dead:SetNWInt("FakeCorpseIndex", key)
-	rag.role_color = DFROLES.Roles[key][3]
-
-	if not ply.df_headshot then
-		-- The deathsound handling is all localised within base TTT2, so this is the simplest way we can replicate it
-		sound.Play(string.format("player/death%s.wav", math.random(1, 6)), ply:GetShootPos(), 90, 100)
-	end
-
-	-- If convar is enabled, automatically identify the body after dropping it
-	--TODO?: This needs updating if we're actually going to be using this convar, it all sucks lol  (bad finder, found message is wrong)
-	if identify:GetBool() then
-		CORPSE.SetFound(rag, true)
-
-		dead:TTT2NETSetBool("body_found", true)
-		dead:SetNWBool("body_found", true)
-
-		-- We are going to use a random player to identify this fake body.
-		local finder = table.Random(player.GetAll())
-		if finder == dead or finder:IsSpec() or not finder:Alive() then
-			finder = table.Random(player.GetAll())
-		end
-
-		for _, v in ipairs(player.GetAll()) do -- Tell the other player's that this body has been 'found'
-			CustomMsg(v, finder:Nick() .. " found the body of " .. dead:Nick() .. ". He was a Traitor!", color_white)
-		end
-	end
-
-	for i = 1, 10 do
-		local jitter = VectorRand() * 60
-		jitter.z = 20
-
-		util.PaintDown(rag:GetPos() + jitter, "Blood", rag)
-	end
-
-	return rag
-end
-
 function SWEP:Reload()
 	if not IsFirstTimePredicted() or SERVER or CurTime() <= self.ReloadingTime then return end
 
@@ -661,81 +475,282 @@ function SWEP:Reload()
 end
 
 if SERVER then
-	function SelectHeadshot(ply, cmd, args)
-		if #args ~= 1 then return end
+	function SWEP:BodyDrop()
+		local ply = self:GetOwner()
+		if not IsValid(ply) then return end
 
-		if args[1] == "0" then
-			ply.df_headshot = false
-		else
-			ply.df_headshot = true
+		local dmg = DamageInfo()
+
+		local dead
+
+		if ply.df_bodyname then
+			dead = player.GetByUniqueID(ply.df_bodyname)
 		end
-	end
-	concommand.Add("ttt_df_headshot", SelectHeadshot)
 
-	function SelectFakeCredits(ply, cmd, args)
-		if #args ~= 1 then return end
-
-		if args[1] == "0" then
-			ply.df_fakecredits = false
-		else
-			ply.df_fakecredits = true
+		if not dead then
+			dead = ply
 		end
+
+		-- Use a blank string when a damage type has been specified, otherwise this will change to the weapon of choice
+		local dmgwep = ""
+
+		if ply.df_weapon == "-1" then
+			dmg:SetDamageType(DMG_FALL)
+		elseif ply.df_weapon == "-2" then
+			dmg:SetDamageType(DMG_BLAST)
+		elseif ply.df_weapon == "-3" then
+			dmg:SetDamageType(DMG_CRUSH)
+		elseif ply.df_weapon == "-4" then
+			dmg:SetDamageType(DMG_BURN)
+		elseif ply.df_weapon == "-5" then
+			dmg:SetDamageType(DMG_DROWN)
+		else
+			dmg:SetDamageType(DMG_BULLET)
+
+			dmgwep = ply.df_weapon or "weapon_ttt_m16"
+		end
+
+		local wepTab = dmgwep != "" and weapons.Get(dmgwep) or nil
+		local wepDamage = wepTab
+			and wepTab.Primary
+			and isnumber(wepTab.Primary.Damage)
+			and wepTab.Primary.Damage
+			or math.random(10, 25)
+
+		if ply.df_headshot then
+			wepDamage = wepDamage * (wepTab and wepTab.HeadshotMultiplier or 2.7)
+		end
+
+		dmg:SetAttacker(ply)
+		dmg:SetDamage(wepDamage)
+
+		dead:SetNWBool("FakedDeath", true)
+
+		-- This is a silly hack to make the ragdoll appear where the user is
+		local storedPos = dead:GetPos()
+		dead:SetPos(ply:GetPos())
+
+		local rag = CORPSE.Create(dead, ply, dmg)
+		CORPSE.SetCredits(rag, 0)
+
+		dead:SetPos(storedPos)
+
+		rag.sid = dead:SteamID()
+		rag.sid64 = dead:SteamID64()
+		rag.uqid = dead:UniqueID()
+
+		rag.is_fake = true
+		rag:SetNWBool("IsFakeBody", true)
+		rag:SetNWEntity("FakeBodyCreator", ply)
+
+		-- Tie the body to the player
+		dead.fake_corpse = rag
+
+		rag.dmgwep = dmgwep
+		rag.was_headshot = ply.df_headshot or false
+
+		rag:SetNWBool("FakeCredits", ply.df_fakecredits or false)
+
+		rag.was_role = ply.df_role or 1
+
+		rag.kills = {}
+		rag.killer_sample = nil
+
+		dead:SetNWInt("FakeCorpseRole", rag.was_role)
+		local key = 0
+		for k, v in ipairs(DFROLES.Roles) do
+			if v[1] == ply.df_role then
+				key = k
+
+				break
+			end
+		end
+		dead:SetNWInt("FakeCorpseIndex", key)
+		rag.role_color = DFROLES.Roles[key][3]
+
+		if not ply.df_headshot then
+			-- The deathsound handling is all localised within base TTT2, so this is the simplest way we can replicate it
+			sound.Play(string.format("player/death%s.wav", math.random(1, 6)), ply:GetShootPos(), 90, 100)
+		end
+
+		-- If convar is enabled, automatically identify the body after dropping it
+		--TODO?: This needs updating if we're actually going to be using this convar, it all sucks lol  (bad finder, found message is wrong)
+		if identify:GetBool() then
+			CORPSE.SetFound(rag, true)
+
+			dead:TTT2NETSetBool("body_found", true)
+			dead:SetNWBool("body_found", true)
+
+			-- We are going to use a random player to identify this fake body.
+			local finder = table.Random(player.GetAll())
+			if finder == dead or finder:IsSpec() or not finder:Alive() then
+				finder = table.Random(player.GetAll())
+			end
+
+			for _, v in ipairs(player.GetAll()) do -- Tell the other player's that this body has been 'found'
+				CustomMsg(v, finder:Nick() .. " found the body of " .. dead:Nick() .. ". He was a Traitor!", color_white)
+			end
+		end
+
+		for i = 1, 10 do
+			local jitter = VectorRand() * 60
+			jitter.z = 20
+
+			util.PaintDown(rag:GetPos() + jitter, "Blood", rag)
+		end
+
+		return rag
 	end
-	concommand.Add("ttt_df_fakecredits", SelectFakeCredits)
+else
+	function SWEP:CreateGUI()
+		local ply = LocalPlayer()
 
-	function SelectWeapon(ply, cmd, args)
-		if #args ~= 1 then return end
+		local w, h = 300, 195
 
-		ply.df_weapon = args[1]
+		local y = 30
+
+		local Panel = vgui.Create("DFrame")
+		--Panel:SetPaintBackground(false)
+		Panel:SetSize(w, h)
+		Panel:Center()
+		Panel:MakePopup()
+		Panel:IsActive()
+		Panel:SetTitle("Death Faker Config")
+		Panel:SetVisible(true)
+		Panel:ShowCloseButton(true)
+		Panel:SetMouseInputEnabled(true)
+		Panel:SetDeleteOnClose(true)
+		Panel:SetKeyboardInputEnabled(false)
+
+		local FakeCreditsCB = vgui.Create("DCheckBoxLabel", Panel)
+		FakeCreditsCB:SetText("Fake Credits")
+		FakeCreditsCB:SetPos(10, y)
+		FakeCreditsCB:SetSize(150, 20)
+		FakeCreditsCB:SetChecked(ply.df_fakecredits)
+		FakeCreditsCB.OnChange = function()
+			if FakeCreditsCB:GetChecked() then
+				RunConsoleCommand("ttt_df_fakecredits", "1")
+				ply.df_fakecredits = true
+			else
+				RunConsoleCommand("ttt_df_fakecredits", "0")
+				ply.df_fakecredits = false
+			end
+		end
+
+		y = y + 20
+
+		local HeadshotCB = vgui.Create("DCheckBoxLabel", Panel)
+		HeadshotCB:SetText("Headshot (and silent)")
+		HeadshotCB:SetPos(10, y)
+		HeadshotCB:SetSize(150, 20)
+		HeadshotCB:SetChecked(ply.df_headshot)
+		HeadshotCB.OnChange = function()
+			if HeadshotCB:GetChecked() then
+				RunConsoleCommand("ttt_df_headshot", "1")
+				ply.df_headshot = true
+				ply.bloodmode = true
+			else
+				RunConsoleCommand("ttt_df_headshot", "0")
+				ply.df_headshot = false
+				ply.bloodmode = false
+			end
+		end
+
+		y = y + 30
+
+		local DLabel = vgui.Create("DLabel", Panel)
+		DLabel:SetPos(10, y)
+		DLabel:SetSize(100, 20)
+		DLabel:SetText("Body Name:")
+
+		local NameComboBox = vgui.Create("DComboBox", Panel)
+		NameComboBox:SetPos(150, y)
+		NameComboBox:SetSize(140, 20)
+
+		local plys = player.GetAll()
+		local value = ply:Name()
+
+		if ply.df_bodyname then
+			local newply = player.GetByUniqueID(ply.df_bodyname)
+
+			value = IsValid(newply) and newply:Name() or value
+		end
+
+		NameComboBox:SetValue(value)
+		for i = 1, #plys do
+			NameComboBox:AddChoice(plys[i]:Name(), plys[i]:UniqueID())
+		end
+
+		NameComboBox.OnSelect = function(panel, index, _, data)
+			RunConsoleCommand("ttt_df_select_player", data)
+
+			ply.df_bodyname = data
+		end
+
+		y = y + 25
+
+		local DLabel2 = vgui.Create("DLabel", Panel)
+		DLabel2:SetPos(10, y)
+		DLabel2:SetSize(100, 20)
+		DLabel2:SetText("Body Role:")
+
+		local RoleComboBox = vgui.Create("DComboBox", Panel)
+		RoleComboBox:SetPos(150, y)
+		RoleComboBox:SetSize(140, 20)
+
+		local data = 1
+
+		if ply.df_role then
+			data = ply.df_role
+		end
+
+		for _, v in ipairs(DFROLES.Roles) do
+			RoleComboBox:AddChoice(v[2], v[1], data == v[1])
+		end
+
+		RoleComboBox.OnSelect = function(panel, index, _, dat)
+			RunConsoleCommand("ttt_df_select_role", dat)
+
+			ply.df_role = dat
+		end
+
+		y = y + 25
+
+		local DLabel3 = vgui.Create("DLabel", Panel)
+		DLabel3:SetPos(10, y)
+		DLabel3:SetSize(100, 20)
+		DLabel3:SetText("Used Weapon:")
+
+		local WeaponCB = vgui.Create("DComboBox", Panel)
+		WeaponCB:SetPos(150, y)
+		WeaponCB:SetSize(140, 20)
+
+		local weps = weapons.GetList()
+
+		if not ply.df_weapon then
+			ply.df_weapon = "weapon_ttt_m16"
+		end
+
+		for i = 1, #weps do
+			local wep = weps[i]
+
+			if wep.Base == "weapon_tttbase" and wep.Primary.Ammo ~= "none" then
+				WeaponCB:AddChoice(LANG.TryTranslation(wep.PrintName), wep.ClassName, wep.ClassName == ply.df_weapon)
+			end
+		end
+
+		WeaponCB:AddChoice("Fall Damage", "-1", ply.df_weapon == "-1")
+		WeaponCB:AddChoice("Explosion Damage", "-2", ply.df_weapon == "-2")
+		WeaponCB:AddChoice("Object Damage", "-3", ply.df_weapon == "-3")
+		WeaponCB:AddChoice("Fire Damage", "-4", ply.df_weapon == "-4")
+		WeaponCB:AddChoice("Water Damage", "-5", ply.df_weapon == "-5")
+
+		WeaponCB.OnSelect = function(panel, index, _, dat)
+			RunConsoleCommand("ttt_df_select_weapon", dat)
+
+			ply.df_weapon = dat
+		end
+
+		self.GUI = Panel
 	end
-	concommand.Add("ttt_df_select_weapon", SelectWeapon)
-
-	function SelectRole(ply, cmd, args)
-		if #args ~= 1 then return end
-
-		ply.df_role = math.floor(args[1])
-	end
-	concommand.Add("ttt_df_select_role", SelectRole)
-
-	function SelectClass(ply, cmd, args)
-		if #args ~= 1 then return end
-
-		ply.df_class = args[1]
-	end
-	concommand.Add("ttt_df_select_class", SelectClass)
-
-	function SelectPlayer(ply, cmd, args)
-		if #args ~= 1 then return end
-
-		ply.df_bodyname = args[1]
-	end
-	concommand.Add("ttt_df_select_player", SelectPlayer)
 end
-
-hook.Add("TTTScoreboardRowColorForPlayer", "FakeBodyColorFake", function(ply)
-	if IsValid(ply) and ply:GetNWBool("FakedDeath") and ply:TTT2NETGetBool("body_found") then
-		local role = ply:GetNWInt("FakeCorpseRole")
-		local color = Color(0, 0, 0, 0)
-
-		if role ~= ROLE_INNOCENT then
-			local index = ply:GetNWInt("FakeCorpseIndex")
-			color = DFROLES.Roles[index][3]
-		end
-
-		return color
-	end
-end)
-
-hook.Add("TTT2ModifyMiniscoreboardColor", "FakeBodyColorFake", function(ply, col)
-	if IsValid(ply) and ply:GetNWBool("FakedDeath") and ply:TTT2NETGetBool("body_found") then
-		local role = ply:GetNWInt("FakeCorpseRole")
-		local color = Color(0, 0, 0, 0)
-
-		local index = ply:GetNWInt("FakeCorpseIndex")
-		color = DFROLES.Roles[index][3]
-
-		color = Color(color.r, color.g, color.b, col.a)
-
-		return color
-	end
-end)
