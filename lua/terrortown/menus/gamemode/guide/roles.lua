@@ -558,7 +558,7 @@ If one lover is a traitor, the other non-traitor lover will help them as their c
 Once you have used up your crossbow, you will act as an ordinary innocent.]])
 
 AddCustomExplanation(ROLE_BOMBER,
-	[[You are an innocent armed with a rigged c4. You'll leave a c4 about to explode on death.
+	[[You are an innocent rigged with C4. When you die, you'll leave your C4 on the floor ready to explode!
 
 If you suspect someone is a traitor and don't want to risk losing a gunfight to them, you can try sticking to them.]])
 
@@ -568,9 +568,29 @@ AddCustomExplanation(ROLE_SACRIFICE,
 You have a special defib that can bring someone back to life, killing you in the process! Be sure to make the right choice!]])
 
 AddCustomExplanation(ROLE_SEANCE,
-	[[You are an innocent that can see spirits - could the dead be trying to tell you something?
+	[[You are an innocent that can see spirits. Could the dead be trying to tell you something?
 
 You will see yellow floating orbs around where dead players are spectating. If you see many orbs in one area, there's probably something interesting there!
 You can try calling out to the spirits to have them relay information!
 
 You can feel when someone has died. This can be useful information for your team if they haven't noticed yet.]])
+
+AddCustomExplanation(ROLE_OCCULTIST,
+	[[You are an innocent part of the occult! You've performed a ritual successfully, now you will come back to life when you fall below 25 HP.
+Be careful, if you're killed in one shot, your ritual powers won't take effect...
+
+Once your ritual powers activate, you'll create a small ring of fire around your corpse. After some time, you'll be resurrected like a phoenix!
+
+If you're able to die, you can try to burn the traitors with you by sticking close to them.]])
+
+AddCustomExplanation(ROLE_PARANOID,
+	[[You are an paranoid innocent. You've equipped yourself with a dead man's switch that will alert the others of your death.
+
+Even if you're killed silently, everyone will know you have died somewhere. Try not to wander off too far!]])
+
+AddCustomExplanation(ROLE_ZOMBIE,
+	[[(This role is only available in special conditions.)
+
+You are a zombie. Infect the living. Kill them all.
+
+Tear at their flesh with [LMB]. Leap with [RMB].]])
