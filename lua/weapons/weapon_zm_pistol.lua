@@ -31,15 +31,16 @@ SWEP.Primary.Automatic = true
 SWEP.Primary.DefaultClip = 20
 SWEP.Primary.ClipMax = 60
 SWEP.Primary.Ammo = "Pistol"
-SWEP.Primary.Sound = Sound("Weapon_FiveSeven.Single")
+SWEP.Primary.Sound = Sound("Weapon_P228.Single")
 
 SWEP.AutoSpawnable = true
 SWEP.AmmoEnt = "item_ammo_pistol_ttt"
 
 SWEP.UseHands = true
-SWEP.ViewModel = "models/weapons/cstrike/c_pist_fiveseven.mdl"
-SWEP.WorldModel = "models/weapons/w_pist_fiveseven.mdl"
-SWEP.idleResetFix = true
+SWEP.ViewModelFlip = false
+SWEP.ViewModelFOV = 54
+SWEP.ViewModel = Model("models/weapons/cstrike/c_pist_p228.mdl")
+SWEP.WorldModel = Model("models/weapons/w_pist_p228.mdl")
 
-SWEP.IronSightsPos = Vector(-5.95, -4, 2.799)
+SWEP.IronSightsPos = Vector(-5.961, -9.214, 2.839)
 SWEP.IronSightsAng = Vector(0, 0, 0)
