@@ -137,10 +137,29 @@ local function Render()
 	render.SetStencilEnable(false)
 end
 
-hook.Add("PostDrawEffects", "RenderOutlines", function()
+local function HookCallback()
 	hook.Run("PreDrawOutlines")
 	if #List == 0 then return end
 
 	Render()
 	List = {}
-end)
+end
+
+hook.Add("PostDrawEffects", "RenderOutlines", HookCallback)
+
+-- overrides
+halo.old_Add = halo.old_Add or halo.Add
+function halo.Add(entities, color, blurX, blurY, passes, additive, ignoreZ)
+	local size = math.max(blurX, blurY)
+	if size <= 0 then return end
+
+	Add(entities, color, ignoreZ and OUTLINE_MODE_BOTH or OUTLINE_MODE_VISIBLE, size)
+end
+
+halo.old_Render = halo.old_Render or halo.Render
+halo.Render = Render
+
+hook.old_RenderedEntity = hook.old_RenderedEntity or halo.RenderedEntity
+halo.RenderedEntity = RenderedEntity
+
+hook.Add("PostDrawEffects", "RenderHalos", HookCallback)

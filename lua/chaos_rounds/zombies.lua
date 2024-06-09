@@ -182,8 +182,21 @@ if CLIENT then
 		hook.Add("PlayerFootstep", TAG, function(ply)
 			if ply:GetSubRole() ~= ROLE_ZOMBIE then return end
 
-			ply:EmitSound("npc/fast_zombie/foot" .. math.random(1,4) .. ".wav", 120)
+			ply:EmitSound("npc/fast_zombie/foot" .. math.random(1, 4) .. ".wav", 120)
 			return true
+		end)
+
+		hook.Add("PreDrawOutlines", TAG, function()
+			local zombies = {}
+			for _, ply in ipairs(player.GetAll()) do
+				if not ply:IsTerror() then continue end
+				if ply:GetSubRole() ~= ROLE_ZOMBIE then continue end
+
+				table.insert(zombies, ply)
+			end
+
+			local role_color = roles.GetByIndex(ROLE_ZOMBIE).color
+			outline.Add(zombies, role_color, OUTLINE_MODE_VISIBLE, 4)
 		end)
 	end
 
