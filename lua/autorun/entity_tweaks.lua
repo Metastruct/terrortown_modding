@@ -12,47 +12,183 @@ util.OnInitialize(function()
 		ENT.dropAngleThreshold = 0.925
 	end
 
-	-- Jihad Bomb: Set explosion radius and disable damage behind walls
-	-- PS: this is terrible unfortunately the developer of this weapon left no configuration possible...
-	ENT = weapons.GetStored("weapon_ttt_jihad_bomb")
+	-- Regular Knife: Increase damage and attack speed, remove the weird artifical attack delay on equip (DeploySpeed handles this anyway)
+	ENT = weapons.GetStored("weapon_ttt_knife")
 	if ENT then
-		function ENT:Explode()
-			local pos = self:GetPos()
-			local dmg = 200
-			local dmgowner = self:GetOwner()
+		ENT.Primary.Damage = 75
+		ENT.Primary.Delay = 0.75
 
-			local r_inner = 250
-			local r_outer = r_inner * 1.15
+		if SERVER then
+			function ENT:Equip()
+				if self:IsOnFire() then
+					self:Extinguish()
+				end
 
-			self:EmitSound("weapons/jihad_bomb/big_explosion.wav", 400, math.random(100, 125))
+				if self:HasSpawnFlags(SF_WEAPON_START_CONSTRAINED) then
+					local flags = self:GetSpawnFlags()
+					local newflags = bit.band(self:GetSpawnFlags(), bit.bnot(SF_WEAPON_START_CONSTRAINED))
 
-			-- change body to a random charred body
-			local model = "models/humans/charple0" .. math.random(1, 4) .. ".mdl"
-			self:GetOwner():SetModel(model)
+					self:SetKeyValue("spawnflags", newflags)
+				end
+			end
+		end
+	end
 
-			-- explosion damage
-			util.BlastDamage(self, dmgowner, pos, r_outer, dmg)
+	-- Identity Disguiser: Make disguiser invisible in hand and make user stand straight, hide PACs while in use
+	ENT = weapons.GetStored("weapon_ttt_identity_disguiser")
+	if ENT then
+		ENT.HoldType = "normal"
 
-			local effect = EffectData()
-			effect:SetStart(pos)
-			effect:SetOrigin(pos)
-			effect:SetScale(r_outer)
-			effect:SetRadius(r_outer)
-			effect:SetMagnitude(dmg)
-			util.Effect("Explosion", effect, true, true)
+		ENT.Primary.Delay = 0.1
 
-			-- make sure the owner dies anyway
-			if (SERVER and IsValid(dmgowner) and dmgowner:Alive()) then
-				dmgowner:Kill()
+		ENT.PrimaryAttack_Original = ENT.PrimaryAttack_Original or ENT.PrimaryAttack
+
+		function ENT:PrimaryAttack()
+			self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
+			self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
+
+			self:PrimaryAttack_Original()
+		end
+
+		if SERVER then
+			ENT.SecondaryAttack_Original = ENT.SecondaryAttack_Original or ENT.SecondaryAttack
+
+			function ENT:SecondaryAttack()
+				self:SetNextPrimaryFire(CurTime() + self.Secondary.Delay)
+				self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
+
+				self:SecondaryAttack_Original()
 			end
 
-			--BurnOwnersBody(model)
-			self:Remove()
+			local PLAYER = FindMetaTable("Player")
+
+			PLAYER.ActivateDisguiserTarget_Original = PLAYER.ActivateDisguiserTarget_Original or PLAYER.ActivateDisguiserTarget
+			PLAYER.DeactivateDisguiserTarget_Original = PLAYER.DeactivateDisguiserTarget_Original or PLAYER.DeactivateDisguiserTarget
+
+			function PLAYER:ActivateDisguiserTarget()
+				self:ActivateDisguiserTarget_Original()
+
+				-- Ensure disguising actually took place before doing extra stuff
+				if self.disguiserTargetActivated then
+					if pac and pac.TogglePartDrawing then
+						pac.TogglePartDrawing(self, false)
+					end
+
+					-- Funny feedback sound (only the user hears it)
+					local filter = RecipientFilter()
+					filter:AddPlayer(self)
+
+					self:EmitSound("ambient/levels/citadel/pod_open1.wav", 100, 85, 0.75, CHAN_VOICE, 0, 0, filter)
+				end
+			end
+
+			function PLAYER:DeactivateDisguiserTarget()
+				local wasDisguised = self.disguiserTargetActivated
+
+				self:DeactivateDisguiserTarget_Original()
+
+				if pac and pac.TogglePartDrawing then
+					pac.TogglePartDrawing(self, true)
+				end
+
+				-- Only play feedback sound if they were disguised
+				if wasDisguised then
+					local filter = RecipientFilter()
+					filter:AddPlayer(self)
+
+					self:EmitSound("ambient/levels/citadel/pod_close1.wav", 100, 85, 0.75, CHAN_VOICE, 0, 0, filter)
+				end
+			end
+		else
+			function ENT:DrawWorldModel(flags)
+				local owner = self:GetOwner()
+
+				if IsValid(owner) then return end
+
+				self:DrawModel(flags)
+			end
+
+			-- Completely overwrite this net message with tweaks to handle outfitter
+			net.Receive("TTT2ToggleDisguiserTarget", function()
+				local addDisguise = net.ReadBool()
+				local owner = net.ReadEntity()
+
+				if not IsValid(owner) then return end
+
+				if addDisguise then
+					owner.disguiserTarget = net.ReadEntity()
+
+					if IsValid(owner.disguiserTarget) and owner.disguiserTarget.outfitter_mdl then
+						owner.disguiserOriginalIsOutfitter = owner.outfitter_mdl != nil
+						owner.disguiserOriginalModel = owner.outfitter_mdl or owner:GetModel()
+
+						-- Use outfitter to enforce it because a simple SetModel isn't effective
+						owner:EnforceModel(owner.disguiserTarget.outfitter_mdl)
+					end
+				else
+					owner.disguiserTarget = nil
+
+					if owner.disguiserOriginalModel then
+						if owner.disguiserOriginalIsOutfitter then
+							-- Enforce the owner's own outfitter model back
+							owner:EnforceModel(owner.disguiserOriginalModel)
+						else
+							-- Stop enforcing, then try setting the regular model back
+							owner:EnforceModel()
+							owner:SetModel(owner.disguiserOriginalModel)
+						end
+
+						owner.disguiserOriginalIsOutfitter = nil
+						owner.disguiserOriginalModel = nil
+					end
+				end
+			end)
 		end
+
+		-- See client/voicehud_disguise.lua for the voicehud tweaks
 	end
 
 	if SERVER then
 		-- Serverside only tweaks
+
+		-- Jihad Bomb: Set explosion radius and disable damage behind walls
+		-- PS: this is terrible unfortunately the developer of this weapon left no configuration possible...
+		ENT = weapons.GetStored("weapon_ttt_jihad_bomb")
+		if ENT then
+			function ENT:Explode()
+				local pos = self:GetPos()
+				local dmg = 200
+				local dmgowner = self:GetOwner()
+
+				local r_inner = 250
+				local r_outer = r_inner * 1.15
+
+				self:EmitSound("weapons/jihad_bomb/big_explosion.wav", 400, math.random(100, 125))
+
+				-- change body to a random charred body
+				local model = "models/humans/charple0" .. math.random(1, 4) .. ".mdl"
+				self:GetOwner():SetModel(model)
+
+				-- explosion damage
+				util.BlastDamage(self, dmgowner, pos, r_outer, dmg)
+
+				local effect = EffectData()
+				effect:SetStart(pos)
+				effect:SetOrigin(pos)
+				effect:SetScale(r_outer)
+				effect:SetRadius(r_outer)
+				effect:SetMagnitude(dmg)
+				util.Effect("Explosion", effect, true, true)
+
+				-- make sure the owner dies anyway
+				if (SERVER and IsValid(dmgowner) and dmgowner:Alive()) then
+					dmgowner:Kill()
+				end
+
+				--BurnOwnersBody(model)
+				self:Remove()
+			end
+		end
 
 		-- All grenade projectiles: Disable air-drag for slightly better flight, following trajectory line more accurately
 		local grenadeProjectileBaseClass = "ttt_basegrenade_proj"
