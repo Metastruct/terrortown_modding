@@ -299,7 +299,8 @@ else
 		DFROLES.Roles = {{
 			TRAITOR.index,
 			firstToUpper(TRAITOR.name),
-			TRAITOR.color
+			TRAITOR.color,
+			TRAITOR.defaultTeam
 		}}
 
 		local t_siki = GetSidekickTableForRole(TRAITOR)
@@ -307,7 +308,8 @@ else
 			DFROLES.Roles[#DFROLES.Roles + 1] = {
 				t_siki.index,
 				firstToUpper(t_siki.name),
-				t_siki.color
+				t_siki.color,
+				t_siki.defaultTeam
 			}
 		end
 
@@ -320,7 +322,8 @@ else
 				DFROLES.Roles[#DFROLES.Roles + 1] = {
 					v.index,
 					firstToUpper(v.name),
-					v.color
+					v.color,
+					v.defaultTeam
 				}
 
 				local siki = GetSidekickTableForRole(v)
@@ -328,7 +331,8 @@ else
 					DFROLES.Roles[#DFROLES.Roles + 1] = {
 						siki.index,
 						firstToUpper(siki.name),
-						siki.color
+						siki.color,
+						siki.defaultTeam
 					}
 				end
 			end
@@ -555,13 +559,10 @@ if SERVER then
 
 		rag:SetNWBool("FakeCredits", ply.df_fakecredits or false)
 
-		rag.was_role = ply.df_role or 1
-
 		rag.kills = {}
 		rag.killer_sample = nil
 
-		dead:SetNWInt("FakeCorpseRole", rag.was_role)
-		local key = 0
+		local key = 1
 		for k, v in ipairs(DFROLES.Roles) do
 			if v[1] == ply.df_role then
 				key = k
@@ -569,8 +570,16 @@ if SERVER then
 				break
 			end
 		end
+
+		local dfRole = DFROLES.Roles[key]
+
+		rag.role_color = dfRole[3]
+
+		rag.was_team = dfRole[4]
+		rag.was_role = ply.df_role or 1
+
 		dead:SetNWInt("FakeCorpseIndex", key)
-		rag.role_color = DFROLES.Roles[key][3]
+		dead:SetNWInt("FakeCorpseRole", rag.was_role)
 
 		if not ply.df_headshot then
 			-- The deathsound handling is all localised within base TTT2, so this is the simplest way we can replicate it
