@@ -529,7 +529,7 @@ function SWEP:SecondaryAttack()
 	end
 end
 
-function ENT:BodyDrop()
+function SWEP:BodyDrop()
 	local ply = self:GetOwner()
 	if not IsValid(ply) then return end
 
