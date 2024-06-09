@@ -34,7 +34,7 @@ util.OnInitialize(function()
 		end
 	end
 
-	-- Identity Disguiser: Make disguiser invisible in hand and make user stand straight, hide PACs while in use
+	-- Identity Disguiser: Make disguiser invisible in hand and make user stand straight, add fire delays, hide PACs and steal outfitter models while in use
 	ENT = weapons.GetStored("weapon_ttt_identity_disguiser")
 	if ENT then
 		ENT.HoldType = "normal"
