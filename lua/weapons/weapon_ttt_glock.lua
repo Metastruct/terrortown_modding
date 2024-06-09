@@ -5,7 +5,7 @@ end
 SWEP.HoldType = "revolver"
 
 if CLIENT then
-	SWEP.PrintName = "Glock"
+	SWEP.PrintName = "Automatic Pistol"
 	SWEP.Slot = 1
 
 	SWEP.ViewModelFlip = false
