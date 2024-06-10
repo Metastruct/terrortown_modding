@@ -63,10 +63,12 @@ util.OnInitialize(function()
 
 			local color = VOICE.GetVoiceColor(pl)
 
-			unlitColor.a = math.max(1 - (pl:VoiceVolume() * 1.25), 0) * 255
+			unlitColor.a = math.max(1 - (pl:VoiceVolume() * 1.75), 0) * 255
 
 			draw.Box(xPos, yPos, w, h, color)
 			draw.Box(xPos, yPos, w, h, unlitColor)
+
+			self:DrawLines(xPos, yPos, w, h, color.a)
 
 			local padding = 4 * self.scale
 			local avSize = h - (padding * 2)
