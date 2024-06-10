@@ -54,7 +54,10 @@ util.OnInitialize(function()
 
 		HUDELEMENT.DrawVoiceBar_Original = HUDELEMENT.DrawVoiceBar_Original or HUDELEMENT.DrawVoiceBar
 
-		local unlitColor = Color(25, 25, 25)
+		local colorUnlit = Color(25, 25, 25)
+		local colorBatteryBar = Color(255, 255, 255, 35)
+		local colorBatteryLine = Color(255, 255, 255, 140)
+
 		function HUDELEMENT:DrawVoiceBar(pl, xPos, yPos, w, h)
 			if not convarSimpleVoiceHud:GetBool() then
 				HUDELEMENT:DrawVoiceBar_Original(pl, xPos, yPos, w, h)
@@ -63,10 +66,10 @@ util.OnInitialize(function()
 
 			local color = VOICE.GetVoiceColor(pl)
 
-			unlitColor.a = math.max(1 - (pl:VoiceVolume() * 1.75), 0) * 255
+			colorUnlit.a = math.max(1 - (pl:VoiceVolume() * 1.75), 0) * 255
 
 			draw.Box(xPos, yPos, w, h, color)
-			draw.Box(xPos, yPos, w, h, unlitColor)
+			draw.Box(xPos, yPos, w, h, colorUnlit)
 
 			self:DrawLines(xPos, yPos, w, h, color.a)
 
@@ -90,12 +93,26 @@ util.OnInitialize(function()
 				"PureSkinPopupText",
 				xPos + h + padding,
 				yPos + h * 0.5 - 1,
-				util.GetDefaultColor(unlitColor),
+				util.GetDefaultColor(colorUnlit),
 				TEXT_ALIGN_LEFT,
 				TEXT_ALIGN_CENTER,
 				false,
 				self.scale
 			)
+
+			if
+				voicebattery.IsEnabled()
+				and pl == LocalPlayer()
+				and VOICE.GetVoiceMode(pl) == VOICE_MODE_GLOBAL
+			then
+				local batteryWidth = w - h - padding
+				local batteryHeight = 2 * self.scale
+				local batteryXPos = xPos + h
+				local batteryYPos = yPos + h - padding - batteryHeight
+
+				draw.Box(batteryXPos, batteryYPos, batteryWidth, batteryHeight, colorBatteryBar)
+				draw.Box(batteryXPos, batteryYPos, voicebattery.GetChargePercent() * batteryWidth, batteryHeight, colorBatteryLine)
+			end
 		end
 	end
 end)
