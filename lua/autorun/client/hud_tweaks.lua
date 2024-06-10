@@ -66,7 +66,7 @@ util.OnInitialize(function()
 
 			local color = VOICE.GetVoiceColor(pl)
 
-			colorUnlit.a = math.max(1 - (pl:VoiceVolume() * 1.75), 0) * 255
+			colorUnlit.a = math.max(1 - (pl:VoiceVolume() * 1.75), 0) * 150
 
 			draw.Box(xPos, yPos, w, h, color)
 			draw.Box(xPos, yPos, w, h, colorUnlit)
@@ -111,7 +111,8 @@ util.OnInitialize(function()
 				local batteryYPos = yPos + h - padding - batteryHeight
 
 				draw.Box(batteryXPos, batteryYPos, batteryWidth, batteryHeight, colorBatteryBar)
-				draw.Box(batteryXPos, batteryYPos, voicebattery.GetChargePercent() * batteryWidth, batteryHeight, colorBatteryLine)
+				draw.Box(batteryXPos, batteryYPos, voicebattery.GetChargePercent() * batteryWidth, batteryHeight,
+					colorBatteryLine)
 			end
 		end
 	end
