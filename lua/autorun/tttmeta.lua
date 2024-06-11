@@ -476,4 +476,7 @@ util.OnInitialize(function()
 			return pos, ang
 		end
 	end
+
+	-- Disable processing the widgets module - nothing uses it in TTT and no addons use it, so let's free up some processing time
+	hook.Remove("PlayerTick", "TickWidgets")
 end)
