@@ -1,5 +1,5 @@
 local ROUND = {}
-ROUND.Name = "Gambling"
+ROUND.Name = "Let's go gambling"
 ROUND.Description = "Everyone gets the same special random weapon and a crowbar, and that's it. Mind your ammo."
 
 local TAG = "ChaosRoundGambling"
