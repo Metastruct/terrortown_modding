@@ -60,7 +60,7 @@ util.OnInitialize(function()
 
 		function HUDELEMENT:DrawVoiceBar(pl, xPos, yPos, w, h)
 			if not convarSimpleVoiceHud:GetBool() then
-				HUDELEMENT:DrawVoiceBar_Original(pl, xPos, yPos, w, h)
+				self:DrawVoiceBar_Original(pl, xPos, yPos, w, h)
 				return
 			end
 
