@@ -190,7 +190,6 @@ function SWEP:CreateGrenade(src, ang, vel, angimp, pl)
 	gren:SetElasticity(0.15)
 
 	gren:Spawn()
-	gren:PhysWake()
 
 	-- Transfer damage scale value and stored fingerprints to the projectile entity
 	gren.damageScaling = self.damageScaling
@@ -199,6 +198,7 @@ function SWEP:CreateGrenade(src, ang, vel, angimp, pl)
 	local phys = gren:GetPhysicsObject()
 
 	if IsValid(phys) then
+		phys:Wake()
 		phys:SetVelocity(vel)
 		phys:AddAngleVelocity(angimp)
 	end
