@@ -160,6 +160,20 @@ if SERVER then
 				if isHeadshot then
 					if isThrowerValid then
 						dmg:ScaleDamage(2)
+
+						-- Mute the death scream
+						ent.was_headshot = true
+
+						-- Var to flag they were hit with a brick headshot to pass onto the corpse
+						ent.was_brick_headshot = true
+
+						-- Don't let these flags linger for other sources of damage
+						timer.Simple(0, function()
+							if IsValid(ent) then
+								ent.was_headshot = false
+								ent.was_brick_headshot = nil
+							end
+						end)
 					end
 
 					ent:EmitSound(isBstrd and self.BstrdHeadshotSound or self.HeadshotSound, 100)
@@ -292,6 +306,12 @@ if SERVER then
 			and not isPickupProbe
 		then
 			return false, 5
+		end
+	end)
+
+	hook.Add("TTTOnCorpseCreated", "TTTBrickWeapon", function(rag, pl)
+		if pl.was_brick_headshot then
+			rag.was_headshot = true
 		end
 	end)
 else
