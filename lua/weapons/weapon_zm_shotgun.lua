@@ -36,6 +36,8 @@ SWEP.Primary.NumShots = 9
 SWEP.Primary.Sound = Sound("Weapon_XM1014.Single")
 SWEP.Primary.Recoil = 7
 
+SWEP.DryFireSound = ")weapons/shotgun/shotgun_empty.wav"
+
 SWEP.AutoSpawnable = true
 SWEP.Spawnable = true
 SWEP.AmmoEnt = "item_box_buckshot_ttt"
@@ -53,6 +55,7 @@ SWEP.IronSightsAng = Vector(-0.101, -0.7, -0.201)
 function SWEP:SetupDataTables()
 	self:NetworkVar("Bool", 0, "Reloading")
 	self:NetworkVar("Float", 0, "ReloadTimer")
+	self:NetworkVar("Float", 1, "ReloadInterruptTimer")
 
 	return BaseClass.SetupDataTables(self)
 end
@@ -60,120 +63,118 @@ end
 ---
 -- @ignore
 function SWEP:Reload()
-	if
-		self:GetReloading()
-		or self:Clip1() > self.Primary.ClipSize
-		or self:GetOwner():GetAmmoCount(self.Primary.Ammo) < 0
-	then
-		return
-	end
-
-	self:StartReload()
+    self:StartReload()
 end
 
 ---
 -- @ignore
 function SWEP:StartReload()
-	if self:GetReloading() then
-		return false
-	end
+    if self:GetReloading() then
+        return false
+    end
 
-	self:SetIronsights(false)
-	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
+    local owner = self:GetOwner()
 
-	local owner = self:GetOwner()
+    if
+        not IsValid(owner)
+        or self:Clip1() >= self.Primary.ClipSize
+        or owner:GetAmmoCount(self.Primary.Ammo) <= 0
+    then
+        return false
+    end
 
-	if not owner or owner:GetAmmoCount(self.Primary.Ammo) <= 0 then
-		return false
-	end
+    local now = CurTime()
 
-	if self:Clip1() >= self.Primary.ClipSize then
-		return false
-	end
+    self:SetIronsights(false)
+    self:SetNextPrimaryFire(now + self.Primary.Delay)
 
-	self:SendWeaponAnim(ACT_SHOTGUN_RELOAD_START)
-	self:SetReloadTimer(CurTime() + self:SequenceDuration())
-	self:SetReloading(true)
+    self:SendWeaponAnim(ACT_SHOTGUN_RELOAD_START)
 
-	return true
+    local sequenceDuration = self:SequenceDuration()
+
+    self:SetReloadTimer(now + sequenceDuration)
+    self:SetReloadInterruptTimer(now + sequenceDuration * 0.4)
+    self:SetReloading(true)
+
+    return true
 end
 
 ---
 -- @ignore
 function SWEP:PerformReload()
-	local owner = self:GetOwner()
+    local owner = self:GetOwner()
 
-	-- prevent normal shooting in between reloads
-	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
+    if
+        not IsValid(owner)
+        or self:Clip1() >= self.Primary.ClipSize
+        or owner:GetAmmoCount(self.Primary.Ammo) <= 0
+    then
+        return
+    end
 
-	if
-		not owner
-		or owner:GetAmmoCount(self.Primary.Ammo) <= 0
-		or self:Clip1() >= self.Primary.ClipSize
-	then
-		return
-	end
+    local now = CurTime()
 
-	owner:RemoveAmmo(1, self.Primary.Ammo, false)
+    -- Prevent normal shooting in between reloads
+    self:SetNextPrimaryFire(now + self.Primary.Delay)
 
-	self:SetClip1(self:Clip1() + 1)
-	self:SendWeaponAnim(ACT_VM_RELOAD)
-	self:SetReloadTimer(CurTime() + self:SequenceDuration())
+    owner:RemoveAmmo(1, self.Primary.Ammo, false)
+    self:SetClip1(self:Clip1() + 1)
+
+    owner:DoAnimationEvent(ACT_HL2MP_GESTURE_RELOAD_PISTOL)
+    self:SendWeaponAnim(ACT_VM_RELOAD)
+
+    local sequenceDuration = self:SequenceDuration()
+
+    self:SetReloadTimer(now + sequenceDuration)
+    self:SetReloadInterruptTimer(now + sequenceDuration * 0.8)
 end
 
 ---
 -- @ignore
 function SWEP:FinishReload()
-	self:SetReloading(false)
-	self:SendWeaponAnim(ACT_SHOTGUN_RELOAD_FINISH)
+    self:SetReloading(false)
 
-	self:SetReloadTimer(CurTime() + self:SequenceDuration())
-end
+    self:SendWeaponAnim(ACT_SHOTGUN_RELOAD_FINISH)
 
----
--- @ignore
-function SWEP:CanPrimaryAttack()
-	if self:Clip1() <= 0 then
-		self:EmitSound(")weapons/shotgun/shotgun_empty.wav", 75, 100, 0.7, CHAN_ITEM)
-		self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
-
-		return false
-	end
-
-	return true
+    self:SetReloadTimer(CurTime() + self:SequenceDuration())
 end
 
 ---
 -- @ignore
 function SWEP:Think()
-	BaseClass.Think(self)
+    BaseClass.Think(self)
 
-	if not self:GetReloading() then
-		return
-	end
+    if not self:GetReloading() then
+        return
+    end
 
-	local owner = self:GetOwner()
+    local owner = self:GetOwner()
 
-	if owner:KeyDown(IN_ATTACK) then
-		self:FinishReload()
-	elseif self:GetReloadTimer() <= CurTime() then
-		if owner:GetAmmoCount(self.Primary.Ammo) <= 0 then
-			self:FinishReload()
-		elseif self:Clip1() < self.Primary.ClipSize then
-			self:PerformReload()
-		else
-			self:FinishReload()
-		end
-	end
+    if
+        owner:KeyDown(IN_ATTACK)
+        and self:Clip1() >= 1
+        and self:GetReloadInterruptTimer() <= CurTime()
+    then
+        self:FinishReload()
+    elseif self:GetReloadTimer() <= CurTime() then
+        if owner:GetAmmoCount(self.Primary.Ammo) <= 0 then
+            self:FinishReload()
+        elseif self:Clip1() < self.Primary.ClipSize then
+            self:PerformReload()
+        else
+            self:FinishReload()
+        end
+    end
 end
 
 ---
 -- @ignore
 function SWEP:Deploy()
-	self:SetReloading(false)
-	self:SetReloadTimer(0)
+    self:SetReloading(false)
+    self:SetReloadTimer(0)
+    self:SetReloadInterruptTimer(0)
 
-	return BaseClass.Deploy(self)
+    return BaseClass.Deploy(self)
 end
 
 ---
