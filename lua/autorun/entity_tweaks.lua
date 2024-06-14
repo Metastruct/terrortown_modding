@@ -107,43 +107,45 @@ util.OnInitialize(function()
 				self:DrawModel(flags)
 			end
 
-			-- Completely overwrite this net message with tweaks to handle outfitter
-			net.Receive("TTT2ToggleDisguiserTarget", function()
-				local addDisguise = net.ReadBool()
-				local owner = net.ReadEntity()
+			-- Completely overwrite this net message with tweaks to handle outfitter (if it's present)
+			if outfitter then
+				net.Receive("TTT2ToggleDisguiserTarget", function()
+					local addDisguise = net.ReadBool()
+					local owner = net.ReadEntity()
 
-				if not IsValid(owner) then return end
+					if not IsValid(owner) then return end
 
-				if addDisguise then
-					owner.disguiserTarget = net.ReadEntity()
+					if addDisguise then
+						owner.disguiserTarget = net.ReadEntity()
 
-					if IsValid(owner.disguiserTarget) then
-						local mdl = owner.disguiserTarget.outfitter_mdl or owner.disguiserTarget:GetModel()
+						if IsValid(owner.disguiserTarget) then
+							local mdl = owner.disguiserTarget.outfitter_mdl or owner.disguiserTarget:GetModel()
 
-						owner.disguiserOriginalIsOutfitter = owner.outfitter_mdl != nil
-						owner.disguiserOriginalModel = owner.outfitter_mdl or owner:GetModel()
+							owner.disguiserOriginalIsOutfitter = owner.outfitter_mdl != nil
+							owner.disguiserOriginalModel = owner.outfitter_mdl or owner:GetModel()
 
-						-- Use outfitter to enforce it because a simple SetModel isn't effective
-						owner:EnforceModel(mdl)
-					end
-				else
-					owner.disguiserTarget = nil
-
-					if owner.disguiserOriginalModel then
-						if owner.disguiserOriginalIsOutfitter then
-							-- Enforce the owner's own outfitter model back
-							owner:EnforceModel(owner.disguiserOriginalModel)
-						else
-							-- Stop enforcing, then try setting the regular model back
-							owner:EnforceModel()
-							owner:SetModel(owner.disguiserOriginalModel)
+							-- Use outfitter to enforce it because a simple SetModel isn't effective
+							owner:EnforceModel(mdl)
 						end
+					else
+						owner.disguiserTarget = nil
 
-						owner.disguiserOriginalIsOutfitter = nil
-						owner.disguiserOriginalModel = nil
+						if owner.disguiserOriginalModel then
+							if owner.disguiserOriginalIsOutfitter then
+								-- Enforce the owner's own outfitter model back
+								owner:EnforceModel(owner.disguiserOriginalModel)
+							else
+								-- Stop enforcing, then try setting the regular model back
+								owner:EnforceModel()
+								owner:SetModel(owner.disguiserOriginalModel)
+							end
+
+							owner.disguiserOriginalIsOutfitter = nil
+							owner.disguiserOriginalModel = nil
+						end
 					end
-				end
-			end)
+				end)
+			end
 		end
 
 		-- See client/voicehud_disguise.lua for the voicehud tweaks
