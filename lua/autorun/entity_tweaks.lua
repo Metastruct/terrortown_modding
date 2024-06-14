@@ -42,6 +42,7 @@ util.OnInitialize(function()
 		ENT.Primary.Delay = 0.1
 
 		ENT.PrimaryAttack_Original = ENT.PrimaryAttack_Original or ENT.PrimaryAttack
+		ENT.SecondaryAttack_Original = ENT.SecondaryAttack_Original or ENT.SecondaryAttack
 
 		function ENT:PrimaryAttack()
 			self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
@@ -50,16 +51,14 @@ util.OnInitialize(function()
 			self:PrimaryAttack_Original()
 		end
 
+		function ENT:SecondaryAttack()
+			self:SetNextPrimaryFire(CurTime() + self.Secondary.Delay)
+			self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
+
+			self:SecondaryAttack_Original()
+		end
+
 		if SERVER then
-			ENT.SecondaryAttack_Original = ENT.SecondaryAttack_Original or ENT.SecondaryAttack
-
-			function ENT:SecondaryAttack()
-				self:SetNextPrimaryFire(CurTime() + self.Secondary.Delay)
-				self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
-
-				self:SecondaryAttack_Original()
-			end
-
 			local PLAYER = FindMetaTable("Player")
 
 			PLAYER.ActivateDisguiserTarget_Original = PLAYER.ActivateDisguiserTarget_Original or PLAYER.ActivateDisguiserTarget
@@ -118,12 +117,14 @@ util.OnInitialize(function()
 				if addDisguise then
 					owner.disguiserTarget = net.ReadEntity()
 
-					if IsValid(owner.disguiserTarget) and owner.disguiserTarget.outfitter_mdl then
+					if IsValid(owner.disguiserTarget) then
+						local mdl = owner.disguiserTarget.outfitter_mdl or owner.disguiserTarget:GetModel()
+
 						owner.disguiserOriginalIsOutfitter = owner.outfitter_mdl != nil
 						owner.disguiserOriginalModel = owner.outfitter_mdl or owner:GetModel()
 
 						-- Use outfitter to enforce it because a simple SetModel isn't effective
-						owner:EnforceModel(owner.disguiserTarget.outfitter_mdl)
+						owner:EnforceModel(mdl)
 					end
 				else
 					owner.disguiserTarget = nil
