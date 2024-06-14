@@ -157,6 +157,17 @@ if SERVER then
 			"developers", true)
 		end
 
+		if PROPSPEC then
+			PROPSPEC.Start_Original = PROPSPEC.Start_Original or PROPSPEC.Start
+
+			function PROPSPEC.Start(pl, ent)
+				-- Don't allow spectators to possess Prop Disguiser props
+				if IsValid(ent.PropDisguiserOwner) then return end
+
+				PROPSPEC.Start_Original(pl, ent)
+			end
+		end
+
 		-- Disable an obsolete engine protect hook we have if it's there - all it really does now is print a useless message in console
 		hook.Remove("EntityRemoved", "dont_remove_players")
 
