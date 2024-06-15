@@ -29,7 +29,7 @@ function SWEP:Kiss()
 	if SERVER then
 		local owner = self:GetOwner()
 		local dmg_info = DamageInfo()
-		dmg_info:SetAttacker(owner)
+		dmg_info:SetAttacker(IsValid(owner) and owner or self)
 		dmg_info:SetDamageType(DMG_NERVEGAS)
 		dmg_info:SetInflictor(self)
 		dmg_info:SetDamage(5)
