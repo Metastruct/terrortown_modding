@@ -70,6 +70,10 @@ SWEP.LimitedStock = true
 SWEP.DeploySpeed = 1.25
 SWEP.NoSights = true
 
+function SWEP:SetupDataTables()
+	self:NetworkVar("Float", 0, "SpinupTime")
+end
+
 function SWEP:PrimaryAttack() end
 
 function SWEP:SecondaryAttack() end
@@ -140,8 +144,12 @@ function SWEP:DryFire()
     self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 end
 
+function SWEP:IsSpinningUp()
+	return self:GetSpinupTime() > 0
+end
+
 function SWEP:ResetFiringValues()
-	self.SpinupTime = nil
+	self:SetSpinupTime(0)
 
 	if CLIENT then
 		self.SpinupBarrelRoll = 0
@@ -180,7 +188,7 @@ function SWEP:StopFiringSound(stopSpinupSoundToo)
 			self.SpinupLastOwner:StopSound(self.SpinupStartSound)
 		end
 
-		if self.SpinupTime then
+		if self:IsSpinningUp() then
 			emitSoundSource:EmitSound(self.SpinupStopSound, 78, 100, 1, CHAN_VOICE)
 		end
 	end
@@ -202,26 +210,26 @@ function SWEP:Think()
 	local wantsToFire = owner:KeyDown(IN_ATTACK)
 
 	if wantsToFire then
-		if not self.SpinupTime and not self._stopSoundFrame then
-			self.SpinupTime = CurTime() + self.SpinupDuration
+		if not self:IsSpinningUp() and not self._stopSoundFrame then
 			self.SpinupLastOwner = owner
+			self:SetSpinupTime(CurTime() + self.SpinupDuration)
 
 			self:EmitSound(self.SpinupStartSound, 78, 100, 1, CHAN_VOICE)
 
 			owner:DoAnimationEvent(ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2)
 		end
 	else
-		if self.SpinupTime then
+		if self:IsSpinningUp() then
 			self:StopFiringSound(true)
 
-			self.SpinupTime = nil
+			self:SetSpinupTime(0)
 		end
 	end
 
-	if self.SpinupTime then
+	if self:IsSpinningUp() then
 		local now = CurTime()
 
-		if self.SpinupTime <= now and self:GetNextPrimaryFire() <= now then
+		if self:GetSpinupTime() <= now and self:GetNextPrimaryFire() <= now then
 			self:PrimaryAttackEx()
 		end
 	end
@@ -267,7 +275,7 @@ hook.Add("TTTPlayerSpeedModifier", "TTTMassiveMinigun", function(pl, _, _, speed
         local wep = pl:GetActiveWeapon()
 
 		if IsValid(wep) and wep:GetClass() == className then
-			speedMultiplierModifier[1] = speedMultiplierModifier[1] * (wep.SpinupTime and 0.45 or 0.8)
+			speedMultiplierModifier[1] = speedMultiplierModifier[1] * (wep:IsSpinningUp() and 0.45 or 0.8)
 		end
     end
 end)
@@ -285,7 +293,7 @@ if CLIENT then
 
 		local frameTime = FrameTime()
 
-		self.SpinupBarrelSpeed = self.SpinupTime
+		self.SpinupBarrelSpeed = self:GetSpinupTime()
 			and math.min((self.SpinupBarrelSpeed or 0) + ((barrelMaxSpeed * self.SpinupDuration) * frameTime), barrelMaxSpeed)
 			or math.max(Lerp(0.6 * frameTime, self.SpinupBarrelSpeed or 0, 0) - (16 * frameTime), 0)
 
