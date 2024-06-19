@@ -275,7 +275,7 @@ hook.Add("TTTPlayerSpeedModifier", "TTTMassiveMinigun", function(pl, _, _, speed
         local wep = pl:GetActiveWeapon()
 
 		if IsValid(wep) and wep:GetClass() == className then
-			speedMultiplierModifier[1] = speedMultiplierModifier[1] * (wep:IsSpinningUp() and 0.45 or 0.8)
+			speedMultiplierModifier[1] = speedMultiplierModifier[1] * (wep.IsSpinningUp and wep:IsSpinningUp() and 0.45 or 0.8)
 		end
     end
 end)
@@ -293,7 +293,7 @@ if CLIENT then
 
 		local frameTime = FrameTime()
 
-		self.SpinupBarrelSpeed = self:GetSpinupTime()
+		self.SpinupBarrelSpeed = self.IsSpinningUp and self:IsSpinningUp()
 			and math.min((self.SpinupBarrelSpeed or 0) + ((barrelMaxSpeed * self.SpinupDuration) * frameTime), barrelMaxSpeed)
 			or math.max(Lerp(0.6 * frameTime, self.SpinupBarrelSpeed or 0, 0) - (16 * frameTime), 0)
 
