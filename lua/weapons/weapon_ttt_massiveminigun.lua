@@ -59,7 +59,7 @@ SWEP.HeadshotMultiplier = 2.6
 
 SWEP.DryFireSound = ")weapons/pistol/pistol_empty.wav"
 
-SWEP.SpinupDuration = 0.8
+SWEP.SpinupDuration = 0.6
 SWEP.SpinupStartSound = ")weapons/minigun/minigun_start.wav"
 SWEP.SpinupStopSound = ")weapons/minigun/minigun_stop.ogg"
 
@@ -67,7 +67,7 @@ SWEP.Kind = WEAPON_EQUIP
 SWEP.CanBuy = {ROLE_TRAITOR}
 SWEP.LimitedStock = true
 
-SWEP.DeploySpeed = 1.25
+SWEP.DeploySpeed = 1.2
 SWEP.NoSights = true
 
 function SWEP:SetupDataTables()
