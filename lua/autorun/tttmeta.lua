@@ -602,6 +602,8 @@ util.OnInitialize(function()
 	hook.Remove("EntityRemoved", "npcspec")
 	hook.Remove("Move", "physgun_cascade") -- Doesn't need to be running all the time, plus if it's ever spawned in TTT, I feel it shouldn't trap people like it does in Sandbox
 	hook.Remove("PlayerNoClip", "physgun_cascade")
+	hook.Remove("PlayerFly", "restrictors")
+	hook.Remove("PlayerNoClip", "restrictors")
 	hook.Remove("PlayerNoClip", "TC")
 
 	PlayerAFKIdle = nil -- Cleanup global func from npcspec/wandercam
