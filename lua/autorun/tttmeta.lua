@@ -183,6 +183,9 @@ if SERVER then
 		-- Disable an engine protect hook that isn't needed at all in TTT, free up a bit of processing
 		hook.Remove("EntityTakeDamage", "weapon_striderbuster_anticrash")
 
+		-- Disable autorepairing windows
+		hook.Remove("OnEntityCreated", "func_breakable_surf_autorepair")
+
 		-- Disable serverside hooks from other things that don't work or are obsolete in TTT - remove hook bloat and free up some processing
 		hook.Remove("PlayerInitialSpawn", "__R4gM0d__")
 		hook.Remove("PlayerSpawn", "__R4gM0d__")
