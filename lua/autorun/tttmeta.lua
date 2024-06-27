@@ -21,6 +21,7 @@ if SERVER then
 		["economy"] = true,
 		["findfag"] = true,
 		["findlag"] = true,
+		["friendly"] = true,
 		["givecoins"] = true,
 		["giveup"] = true,
 		["god"] = true,
@@ -39,14 +40,22 @@ if SERVER then
 		["ooc"] = true,
 		["puke"] = true,
 		["push"] = true,
+		["raffle"] = true,
 		["ragdoll"] = true,
 		["ragdollize"] = true,
 		["ragmod"] = true,
 		["ragmodset"] = true,
+		["spec"] = true,
+		["spectate"] = true,
+		["sprayroulette"] = true,
+		["tc"] = true,
+		["unjail"] = true,
 		["unragdoll"] = true,
 		["unragdollize"] = true,
 		["unreserve"] = true,
-		["vomit"] = true
+		["untc"] = true,
+		["vomit"] = true,
+		["wandercam"] = true
 	}
 
 	for cmd in pairs(badcmds) do
@@ -171,8 +180,43 @@ if SERVER then
 		-- Disable an obsolete engine protect hook we have if it's there - all it really does now is print a useless message in console
 		hook.Remove("EntityRemoved", "dont_remove_players")
 
-		-- Disable an engine protect hook that isn't needed at all in TTT, free up some processing time
+		-- Disable an engine protect hook that isn't needed at all in TTT, free up a bit of processing
 		hook.Remove("EntityTakeDamage", "weapon_striderbuster_anticrash")
+
+		-- Disable autorepairing windows
+		hook.Remove("OnEntityCreated", "func_breakable_surf_autorepair")
+
+		-- Disable serverside hooks from other things that don't work or are obsolete in TTT - remove hook bloat and free up some processing
+		hook.Remove("PlayerInitialSpawn", "__R4gM0d__")
+		hook.Remove("PlayerSpawn", "__R4gM0d__")
+		hook.Remove("PlayerDeath", "__R4gM0d__")
+		hook.Remove("PlayerNoClip", "AowlJail")
+		hook.Remove("PlayerDisconnected", "AowlJail")
+		hook.Remove("PlayerSay", "kaboomkaboom")
+		hook.Remove("PostPlayerDeath", "kill_silent")
+		hook.Remove("PlayerSlowThink", "ms_drowning")
+		hook.Remove("OnEntityWaterLevelChanged", "ms_drowning")
+		hook.Remove("PlayerSpawn", "ms_drowning")
+		hook.Remove("PlayerShouldTakeDamage", "physgun_crosstreams")
+		hook.Remove("CanPlayerHax", "RP_FriendlyMode")
+		hook.Remove("EntityTakeDamage", "RP_FriendlyMode")
+		hook.Remove("PlayerShouldTakeDamage", "RP_FriendlyMode")
+		hook.Remove("PlayerLeftTrigger", "RP_FriendlyMode")
+		hook.Remove("SetupPlayerVisibility", "Spectate")
+		hook.Remove("PlayerDisconnected", "TC")
+		hook.Remove("PlayerShouldTakeDamage", "TC")
+		hook.Remove("CanPlayerHax", "useful_commands_ragdollize")
+		hook.Remove("CanPlayerSuicide", "useful_commands_ragdollize")
+		hook.Remove("CanPlyTeleport", "useful_commands_ragdollize")
+		hook.Remove("PlayerNoClip", "useful_commands_ragdollize")
+		hook.Remove("PlayerSwitchFlashlight", "useful_commands_ragdollize")
+		hook.Remove("PlayerCanPickupWeapon", "useful_commands_ragdollize")
+		hook.Remove("CanPlayerEnterVehicle", "useful_commands_ragdollize")
+		hook.Remove("EntityRemoved", "useful_commands_ragdollize_cleanup")
+		hook.Remove("EntityRemoved", "useful_commands_ragdollize_ragdollremove")
+		hook.Remove("FindUseEntity", "useless")
+		timer.Remove("AowlJail")
+		timer.Remove("physgun_crosstreams")
 	end)
 else
 	-- Tell PAC to load a TTT autoload
@@ -382,6 +426,64 @@ else
 				end
 			end)
 		end
+
+		-- Restrict custom picker command to unrestricted devs
+		-- Yes, this is all clientside so it could be circumvented if you're hacking, but you would be using something else to wallhack at that point, so...
+		local cmdTable = concommand.GetTable()
+		local pickerCmd = cmdTable.picker_toggle
+		if pickerCmd then
+			local function runIfAllowed(func)
+				local pl = LocalPlayer()
+				if IsValid(pl) and pl:IsAdmin() and pl.Unrestricted then
+					func()
+				end
+			end
+
+			concommand.Add("picker_toggle", function()
+				runIfAllowed(pickerCmd)
+			end)
+
+			local pickerOnCmd = cmdTable["+picker"]
+			if pickerOnCmd then
+				concommand.Add("+picker", function()
+					runIfAllowed(pickerOnCmd)
+				end)
+			end
+
+			local pickerOffCmd = cmdTable["-picker"]
+			if pickerOffCmd then
+				concommand.Add("-picker", function()
+					runIfAllowed(pickerOffCmd)
+				end)
+			end
+		end
+
+		-- Disable on-demand flymode toggling (keep actual flymode code in case we make something that uses it)
+		list.Set("ChatCommands", "fly")
+		concommand.Add("+fly", emptyFunc)
+		concommand.Add("-fly", emptyFunc)
+		concommand.Add("fly", emptyFunc)
+		concommand.Add("togglefly", emptyFunc)
+		hook.Remove("PlayerBindPress", "flymoving")
+
+		-- Disable rearview commands (it's cool but kinda cheaty for TTT)
+		concommand.Add("+rear", emptyFunc)
+		concommand.Add("-rear", emptyFunc)
+		hook.Remove("CalcView", "rearview")
+		hook.Remove("PreDrawViewModel", "rearview")
+
+		-- Disable clientside hooks from other things that don't work or are obsolete in TTT - remove hook bloat and free up some processing
+		hook.Remove("CalcView", "DeathView")
+		hook.Remove("ShouldDrawLocalPlayer", "DeathView")
+		hook.Remove("HUDShouldDraw", "hide_hud")
+		hook.Remove("HUDPaint", "oxygen_hud")
+		hook.Remove("HUDPaint", "raffler")
+		hook.Remove("HUDDrawTargetID", "RP_FriendlyMode")
+		hook.Remove("HUDShouldDraw", "tobecontinued")
+		hook.Remove("RenderScreenspaceEffects", "tobecontinued")
+		hook.Remove("entity_killed", "tobecontinued")
+		hook.Remove("player_spawn", "tobecontinued")
+		hook.Remove("PlayerBindPress", "ToolMenuFix")
 	end)
 end
 
@@ -457,6 +559,13 @@ util.OnInitialize(function()
 		list.Set("ChatCommands", "boxify")
 	end
 
+	-- Remove extra ragmod commands
+	list.Set("ChatCommands", "ragmodset")
+	concommand.Add("ragmodset", emptyFunc)
+
+	-- Remove kill_silent command
+	concommand.Add("kill_silent", emptyFunc)
+
 	-- If the playermodel has an anim_attachment_head attachment then use that for hat position, else do what base TTT does (use head bone etc)
 	if playermodels then
 		function playermodels.GetHatPosition(pl)
@@ -488,7 +597,17 @@ util.OnInitialize(function()
 		end
 	end
 
-	-- Disable processing the widgets module - nothing uses it in TTT and no addons use it, so let's free up some processing time
+	-- Disable processing the widgets module - nothing uses it in TTT and no addons use it, so let's free up a bit of processing
 	hook.Remove("PlayerTick", "TickWidgets")
 	hook.Remove("PostDrawEffects", "RenderWidgets")
+
+	-- Disable shared hooks from other things that don't work or are obsolete in TTT - remove hook bloat and free up some processing
+	hook.Remove("EntityRemoved", "npcspec")
+	hook.Remove("Move", "physgun_cascade") -- Doesn't need to be running all the time, plus if it's ever spawned in TTT, I feel it shouldn't trap people like it does in Sandbox
+	hook.Remove("PlayerNoClip", "physgun_cascade")
+	hook.Remove("PlayerFly", "restrictors")
+	hook.Remove("PlayerNoClip", "restrictors")
+	hook.Remove("PlayerNoClip", "TC")
+
+	PlayerAFKIdle = nil -- Cleanup global func from npcspec/wandercam
 end)

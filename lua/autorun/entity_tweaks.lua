@@ -151,6 +151,20 @@ util.OnInitialize(function()
 		-- See client/voicehud_disguise.lua for the voicehud tweaks
 	end
 
+	-- Detective Toy Car: Change holdtype, remove jank driver damage application from this hook (damage is already dealt via another hook anyway)
+	ENT = weapons.GetStored("weapon_ttt_detective_toy_car")
+	if ENT then
+		ENT.HoldType = "duel"
+
+		if SERVER then
+			hook.Add("EntityTakeDamage", "TTTDetectiveToyCarDamageMult", function(ent, dmg)
+				if ent.IsDetectiveToyCar and isnumber(ent.DamageMult) then
+					dmg:ScaleDamage(ent.DamageMult)
+				end
+			end
+		end
+	end
+
 	if SERVER then
 		-- Serverside only tweaks
 
@@ -184,7 +198,7 @@ util.OnInitialize(function()
 				util.Effect("Explosion", effect, true, true)
 
 				-- make sure the owner dies anyway
-				if (SERVER and IsValid(dmgowner) and dmgowner:Alive()) then
+				if SERVER and IsValid(dmgowner) and dmgowner:Alive() then
 					dmgowner:Kill()
 				end
 
