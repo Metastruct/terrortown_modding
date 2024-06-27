@@ -12,4 +12,4 @@ if SERVER then
 	end
 end
 
-return RegisterChaosRound(ROUND)
+--return RegisterChaosRound(ROUND)
