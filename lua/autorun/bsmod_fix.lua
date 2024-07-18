@@ -1,4 +1,5 @@
 -- I SWEAR TO GOD IF ANYONE COMPLAINS THATS ITS ON E IM GONNA MURDER SOMEBODY - Earu
+if not KMCheck then return end
 
 local Tag = "bsmod_integration"
 local function elligibleForKillMove(ply)
@@ -36,9 +37,7 @@ if SERVER then
 
 		_G.KMCheck(ply)
 	end)
-end
-
-if CLIENT then
+else
 	local RED_COLOR = Color(255,0,0)
 	hook.Add("TTTRenderEntityInfo", Tag, function(data)
 		local ent = data:GetEntity()
