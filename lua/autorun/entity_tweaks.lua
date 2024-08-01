@@ -161,7 +161,7 @@ util.OnInitialize(function()
 				if ent.IsDetectiveToyCar and isnumber(ent.DamageMult) then
 					dmg:ScaleDamage(ent.DamageMult)
 				end
-			end
+			end)
 		end
 	end
 
