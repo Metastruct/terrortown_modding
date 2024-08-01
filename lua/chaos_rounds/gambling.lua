@@ -22,7 +22,6 @@ if SERVER then
 		"weapon_ttt_greendemon",
 		"weapon_banana",
 		"ttt_kamehameha_swep",
-		"weapon_ttt_defector_jihad", -- could be funny
 	}
 
 	function ROUND:SelectRandomWeapon()
