@@ -876,7 +876,7 @@ else
 	function SWEP:RefreshHUDHelp()
 		if self:GetDisguised() then
 			self:AddTTT2HUDHelp(nil, textUnbecomeProp)
-			self:AddHUDHelpLine(textFirstPerson, Key("+walk", "WALK"))
+			self:AddHUDHelpLine(textFirstPerson, Key("+walk", "LALT"))
 		else
 			local mdl = self:GetSelectedModelPath()
 
