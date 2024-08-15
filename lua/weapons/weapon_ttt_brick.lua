@@ -42,9 +42,10 @@ SWEP.Kind = WEAPON_NADE
 
 SWEP.ThrowSound = ")weapons/tw1stal1cky/brick/throw.mp3"
 
-SWEP.detonate_timer = 3			-- Time it takes to get to full power - doesn't detonate, we're just keeping the base's naming
-SWEP.throwForceMin = 0.75		-- Base throw force (at zero power)
-SWEP.throwForceMax = 3			-- Max throw force (at full power)
+SWEP.HeadshotMultiplier = 2
+SWEP.detonate_timer = 0.8		-- Time it takes to get to full power - doesn't detonate, we're just keeping the base's naming
+SWEP.throwForceMin = 2.6		-- Base throw force (at zero power)
+SWEP.throwForceMax = 3.2		-- Max throw force (at full power)
 SWEP.throwForce = SWEP.throwForceMin
 
 function SWEP:SetupDataTables()
@@ -118,7 +119,7 @@ function SWEP:Think()
 		if not pl:KeyDown(IN_ATTACK) then
 			-- MOUSE1 released, throw now
 
-			self:EmitSound(self.ThrowSound, 70, math.random(92, 101), 0.66)
+			self:EmitSound(self.ThrowSound, 70, math.random(96, 112), 0.66)
 			self:StartThrow()
 
 			self:SetPin(false)
@@ -191,8 +192,9 @@ function SWEP:CreateGrenade(src, ang, vel, angimp, pl)
 
 	gren:Spawn()
 
-	-- Transfer damage scale value and stored fingerprints to the projectile entity
+	-- Transfer damage scaling values and stored fingerprints to the projectile entity
 	gren.damageScaling = self.damageScaling
+	gren.HeadshotMultiplier = self.HeadshotMultiplier
 	gren.fingerprints = self.fingerprints
 
 	local phys = gren:GetPhysicsObject()
