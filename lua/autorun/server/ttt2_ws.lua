@@ -26,8 +26,6 @@ local addons = {
 	"2807269633", 	-- Laser Phaser
 	"2893718679",	-- Cozy Coupe simfphys car
 	"3003509443",	-- Detective Toy Car (Cozy Coupe)
-	"3012629692",	-- Alchemist Role
-	"3012641039",	-- Witch Role
 }
 
 for _, id in ipairs(addons) do
