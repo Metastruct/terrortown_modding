@@ -113,6 +113,11 @@ if SERVER then
 		return false
 	end)
 
+	-- Disable discord messages for alive players
+	hook.Add("PlayerCanSeeDiscordChat", Tag, function(_, _, _, ply)
+		if ply:IsTerror() then return false end
+	end)
+
 	-- Disable alternative way of using "aowl push"
 	concommand.Add("push", emptyFunc)
 
