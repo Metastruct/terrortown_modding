@@ -44,7 +44,7 @@ if CLIENT then
 		-- Speed and direction variables
 		local speed = 0.1
 		local offset = 0
-		local coef = MAX_TEXTURE_SCROLL_SPEED / self:GetTotalRoundTime()
+		local coef = MAX_TEXTURE_SCROLL_SPEED / (self:GetTotalRoundTime() * 3)
 		local function UpdateMaterialTexture()
 			-- Increment the offset based on the speed and frame time
 			offset = offset + speed * FrameTime()
@@ -94,7 +94,7 @@ end
 if SERVER then
 	function ROUND:Start()
 		local factor = 1
-		local coef = MAX_DRUNK_FACTOR / self:GetTotalRoundTime()
+		local coef = MAX_DRUNK_FACTOR / (self:GetTotalRoundTime() * 3)
 		timer.Create("ChaosRoundBadTrip", 1, 0, function()
 			for _, ply in ipairs(player.GetAll()) do
 				if not ply:IsTerror() then continue end
