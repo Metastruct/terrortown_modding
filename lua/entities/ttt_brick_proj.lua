@@ -62,13 +62,13 @@ if SERVER then
 	local utilTraceLine = util.TraceLine
 
 	ENT.DamageMin = 2
-	ENT.DamageMax = 45
+	ENT.DamageMax = 32
 
 	-- The amount of time the brick projectile has to exist before dealing full speed-scaled damage
-	ENT.DamageGraceTime = 0.09
+	ENT.DamageGraceTime = 0.08
 
 	ENT.SpeedScaleMin = 300
-	ENT.SpeedScaleMax = 1800
+	ENT.SpeedScaleMax = 1750
 
 	ENT.ImpactSound = ")weapons/tw1stal1cky/brick/impact%s.mp3"
 	ENT.ImpactSoftSound = ")physics/concrete/rock_impact_soft%s.wav"
@@ -159,7 +159,7 @@ if SERVER then
 
 				if isHeadshot then
 					if isThrowerValid then
-						dmg:ScaleDamage(2)
+						dmg:ScaleDamage(self.HeadshotMultiplier or 2)
 
 						-- Mute the death scream
 						ent.was_headshot = true

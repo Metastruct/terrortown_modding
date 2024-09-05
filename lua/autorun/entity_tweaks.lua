@@ -165,6 +165,14 @@ util.OnInitialize(function()
 		end
 	end
 
+	-- Medigun: Re-enable use of lastinv
+	ENT = weapons.GetStored("weapon_ttt_medigun")
+	if ENT then
+		function ENT:Deploy()
+			return true
+		end
+	end
+
 	if SERVER then
 		-- Serverside only tweaks
 
