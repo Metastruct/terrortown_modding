@@ -67,7 +67,7 @@ if SERVER then
 	end
 
 	function ROUND:Start()
-		local end_time = CurTime() + 60 * 5
+		local end_time = CurTime() + 60 * 3
 
 		timer.Simple(1, function()
 			SetRoundEnd(end_time)
