@@ -2,6 +2,39 @@ local Tag = "tttfix"
 
 require("hookextras")
 
+
+do
+	-- Attempt restoring failed hooks once
+	local restored = setmetatable({}, {
+		__index = function(self, k)
+			local t = {}
+			self[k] = t
+	
+			return t
+		end
+	})
+	
+	HOOK_FIXER_ENABLED = true
+	
+	timer.Create("tttfix_hook_amnesty_experiment", 0.997, 0, function()
+		if HOOK_FIXER_ENABLED == false then return end
+	
+		for hook_name, failed_hooks in pairs(hook.GetFailed and hook.GetFailed() or {}) do
+			for hook_cb_name, faildata in pairs(failed_hooks) do
+				if not restored[hook_name][hook_cb_name] then
+					local existing_func = hook.GetTable()[hook_name][hook_cb_name]
+					restored[hook_name][hook_cb_name] = faildata
+	
+					if not existing_func then
+						hook.Restore(hook_name, hook_cb_name)
+					end
+				end
+			end
+		end
+	end)
+end
+
+
 local emptyFunc = function() end
 
 AOWL_NO_TEAMS = true
