@@ -350,11 +350,18 @@ else
 	end)
 
 	-- Trigger things on TTT round hooks (eg. outfitter fixes)
+	-- Added perma debug prints until we figure out why it doesn't print
+	hook.Add("TTTPrepareRound", Tag, function()
+		Msg"[TTT Fix] hook.Run() " print("TTTPrepareRound")
+	end)
+	
 	hook.Add("TTTBeginRound", Tag, function()
+		Msg"[TTT Fix] hook.Run() " print("TTTBeginRound")
 		SetPerfMode(true)
 	end)
 
 	hook.Add("TTTEndRound", Tag, function()
+		Msg"[TTT Fix] hook.Run() " print("TTTEndRound")
 		SetPerfMode(false)
 	end)
 
