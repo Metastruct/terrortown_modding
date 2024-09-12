@@ -243,7 +243,7 @@ function SWEP:GetThrowVelocity()
 	tang.p = math.Clamp(tang.p, -90, 90)
 
 	local vel = math.min(800, (90 - tang.p) * 6)
-	local force = tang:Forward() * vel * self.throwForce + pl:GetVelocity()
+	local force = tang:Forward() * vel * self.throwForce
 
 	return src, force
 end
