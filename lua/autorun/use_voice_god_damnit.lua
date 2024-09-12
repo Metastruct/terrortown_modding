@@ -103,8 +103,6 @@ if SERVER then
 	hook.Add("PlayerVoiceStateChanged", TAG, function(ply, enabled)
 		if not enabled and ply:IsTerror() then
 			make_spectator(ply)
-		else
-			ply:SetForceSpec(false)
 		end
 	end)
 end
