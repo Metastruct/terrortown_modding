@@ -185,8 +185,7 @@ util.OnInitialize(function()
 				local dmg = 200
 				local dmgowner = self:GetOwner()
 
-				local r_inner = 250
-				local r_outer = r_inner * 1.15
+				local r_outer = 320
 
 				self:EmitSound("weapons/jihad_bomb/big_explosion.wav", 400, math.random(100, 125))
 
