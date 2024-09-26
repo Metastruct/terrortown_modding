@@ -173,6 +173,12 @@ util.OnInitialize(function()
 		end
 	end
 
+	-- Medic's Defib: Correct its BaseClass since TTT2 changed the base defib's classname lol
+	ENT = weapons.GetStored("weapon_ttt2_medic_defibrillator")
+	if ENT then
+		ENT.Base = "weapon_ttt_defib"
+	end
+
 	if SERVER then
 		-- Serverside only tweaks
 
