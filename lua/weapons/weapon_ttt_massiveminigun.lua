@@ -42,9 +42,9 @@ SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/c_minigun.mdl"
 SWEP.WorldModel = "models/weapons/w_minigun_fixed.mdl"
 
-SWEP.Primary.Damage = 10
-SWEP.Primary.NumShots = 2
-SWEP.Primary.Cone = 0.08
+SWEP.Primary.Damage = 9
+SWEP.Primary.NumShots = 3
+SWEP.Primary.Cone = 0.0866
 SWEP.Primary.ClipSize = 500
 SWEP.Primary.ClipMax = 500
 SWEP.Primary.DefaultClip = 500
@@ -55,7 +55,7 @@ SWEP.Primary.Ammo = "none"
 SWEP.Primary.Sound = ")weapons/minigun/minigun_shoot.wav"
 SWEP.Primary.SoundEnd = ")weapons/minigun/minigun_shoot_end.ogg"
 
-SWEP.HeadshotMultiplier = 2.6
+SWEP.HeadshotMultiplier = 2.5
 
 SWEP.DryFireSound = ")weapons/pistol/pistol_empty.wav"
 
