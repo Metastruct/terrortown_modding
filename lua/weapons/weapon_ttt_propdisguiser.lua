@@ -555,6 +555,9 @@ if SERVER then
 
 			p.PropDisguiserOwner = pl
 
+			-- Add the player's fingerprints to the disguise prop because funny
+			p.fingerprints = {pl}
+
 			pl.PropDisguiserProp = p
 			pl.PropDisguiserColGroup = pl:GetCollisionGroup()
 
