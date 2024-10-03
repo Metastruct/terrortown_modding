@@ -1,37 +1,55 @@
 local ROUND = {}
 ROUND.Name = "Very Quiet Hill"
-ROUND.Description = "Everyone is nearly blind, but also has a radar!"
+ROUND.Description = "Everyone is nearly blind in this fog - you'll need a radar!"
+
+local TAG = "ttt_chaos_veryquiethill"
 
 function ROUND:Start()
 	if SERVER then
-		-- Give everyone the radar item
-		for _, ply in pairs(player.GetAll()) do
+		-- Give everyone the radar item using this hook
+		for _, ply in ipairs(player.GetAll()) do
 			ply:GiveEquipmentItem("item_ttt_radar")
 		end
 	else
-		hook.Add("SetupWorldFog", "ttt_chaos_veryquiethill", function()
+		local startDist, endDist = -65, 650
+		local fogShade, fogDensity = 160, 0.995
+
+		hook.Add("SetupWorldFog", TAG, function()
 			render.FogMode(MATERIAL_FOG_LINEAR)
-			render.FogStart(0)
-			render.FogEnd(300)
-			render.FogMaxDensity(1)
-			render.FogColor(0, 0, 0)
+			render.FogStart(startDist)
+			render.FogEnd(endDist)
+			render.FogMaxDensity(fogDensity)
+			render.FogColor(fogShade, fogShade, fogShade)
 			return true
 		end)
-		hook.Add("SetupSkyboxFog", "ttt_chaos_veryquiethill", function(sb)
+
+		hook.Add("SetupSkyboxFog", TAG, function(sb)
 			render.FogMode(MATERIAL_FOG_LINEAR)
-			render.FogStart(0)
-			render.FogEnd(300 * sb)
-			render.FogMaxDensity(1)
-			render.FogColor(0, 0, 0)
+			render.FogStart(startDist * sb)
+			render.FogEnd(endDist * sb)
+			render.FogMaxDensity(fogDensity)
+			render.FogColor(fogShade, fogShade, fogShade)
 			return true
+		end)
+
+		hook.Add("PostDraw2DSkyBox", TAG, function()
+			render.OverrideDepthEnable(true, false)
+
+			cam.Start2D()
+				surface.SetDrawColor(fogShade, fogShade, fogShade)
+				surface.DrawRect(0, 0, ScrW(), ScrH())
+			cam.End2D()
+
+			render.OverrideDepthEnable(false, false)
 		end)
 	end
 end
 
 function ROUND:Finish()
 	if CLIENT then
-		hook.Remove("SetupWorldFog", "ttt_chaos_veryquiethill")
-		hook.Remove("SetupSkyboxFog", "ttt_chaos_veryquiethill")
+		hook.Remove("SetupWorldFog", TAG)
+		hook.Remove("SetupSkyboxFog", TAG)
+		hook.Remove("PostDraw2DSkyBox", TAG)
 	end
 end
 
