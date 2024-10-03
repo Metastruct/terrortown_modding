@@ -1,27 +1,29 @@
 local ROUND = {}
-ROUND.Name = "Let's go gambling"
+ROUND.Name = "Let's Go Gambling"
 ROUND.Description = "Everyone gets the same special random weapon and a crowbar, and that's it. Mind your ammo."
 
 local TAG = "ChaosRoundGambling"
 
 if SERVER then
 	local WEAPON_LIST = {
-		"weapon_ttt_blunderbuss",
-		"weapon_laser_phaser",
-		"weapon_ttt_ivy_kiss",
-		"weapon_ttt_gay_brick",
-		"weapon_ttt_robloxbazooka",
-		"weapon_ttt_revolver",
-		"stungun", -- yes theres no mistake here
-		"weapon_ttt_homebat",
-		"weapon_ttt_ricochet",
-		"weapon_ttt_c4",
-		"weapon_ttt_phammer",
 		"posswitch",
-		"weapon_ttt_slam",
-		"weapon_ttt_greendemon",
+		"stungun", -- yes theres no mistake here
 		"weapon_banana",
-		"ttt_kamehameha_swep",
+		"weapon_laser_phaser",
+		"weapon_prop_rain",
+		"weapon_ttt_blunderbuss",
+		"weapon_ttt_c4",
+		"weapon_ttt_flaregun",
+		"weapon_ttt_gay_brick",
+		"weapon_ttt_greendemon",
+		"weapon_ttt_homebat",
+		"weapon_ttt_ivy_kiss",
+		"weapon_ttt_massiveminigun",
+		"weapon_ttt_phammer",
+		"weapon_ttt_revolver",
+		"weapon_ttt_ricochet",
+		"weapon_ttt_robloxbazooka",
+		"weapon_ttt_slam",
 	}
 
 	function ROUND:SelectRandomWeapon()
@@ -53,15 +55,15 @@ if SERVER then
 	end
 
 	local ACCEPTED_WEAPONS_CLASS = {
-		weapon_zm_improvised = true, -- crowbar apparently...
-		weapon_ttt_unarmed = true, -- hands
-		weapon_zm_carry = true, -- magneto stick
-		weapon_ttt_brick = true, -- always funny
-		weapon_ttt2_kiss = true, -- funny too
+		weapon_zm_improvised = true,	-- Crowbar
+		weapon_ttt_unarmed = true,		-- Holstered (Hands)
+		weapon_zm_carry = true,			-- Magneto-stick
+		weapon_ttt_brick = true,		-- Brick (always funny)
+		weapon_ttt2_kiss = true,		-- Kiss (funny too)
 	}
 
 	function ROUND:Start()
-		for _, ply in pairs(player.GetAll()) do
+		for _, ply in ipairs(player.GetAll()) do
 			ply:Give(self.RandomWeaponClass)
 
 			for _, w in ipairs(ply:GetWeapons()) do
