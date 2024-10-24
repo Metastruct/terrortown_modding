@@ -193,6 +193,37 @@ util.OnInitialize(function()
 		ENT.Base = "weapon_ttt_defib"
 	end
 
+	-- Newton Launcher: Replace the charged shot with a pulling shot, update help text too (English only, sorry!)
+	ENT = weapons.GetStored("weapon_ttt_push")
+	if ENT then
+		function ENT:Initialize()
+			if SERVER then
+				self:SetSkin(1)
+			else
+				self:AddTTT2HUDHelp("Pushing shot", "Pulling shot")
+			end
+
+			self.IsCharging = false
+			self:SetCharge(0)
+
+			return BaseClass.Initialize(self)
+		end
+
+		function ENT:PrimaryAttack()
+			self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
+			self:SetNextSecondaryFire(CurTime() + self.Primary.Delay)
+
+			self:FirePulse(750, 300)
+		end
+
+		function ENT:SecondaryAttack()
+			self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
+			self:SetNextSecondaryFire(CurTime() + self.Primary.Delay)
+
+			self:FirePulse(-750, 300)
+		end
+	end
+
 	if SERVER then
 		-- Serverside only tweaks
 
