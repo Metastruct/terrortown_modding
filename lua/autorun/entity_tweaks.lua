@@ -206,7 +206,7 @@ util.OnInitialize(function()
 			self.IsCharging = false
 			self:SetCharge(0)
 
-			return BaseClass.Initialize(self)
+			return self.BaseClass.Initialize(self)
 		end
 
 		function ENT:PrimaryAttack()
