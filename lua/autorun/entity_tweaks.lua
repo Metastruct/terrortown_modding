@@ -34,6 +34,20 @@ util.OnInitialize(function()
 		end
 	end
 
+	-- Decoy: Allow people to carry 3 decoys at a time, and get 3 decoys when they buy them
+	ENT = weapons.GetStored("weapon_ttt_decoy")
+	if ENT then
+		ENT.Primary.Ammo = "none"
+		ENT.Primary.ClipSize = 3
+		ENT.Primary.DefaultClip = 1
+
+		if SERVER then
+			function ENT:WasBought()
+				self:SetClip1(self.Primary.ClipSize)
+			end
+		end
+	end
+
 	-- Identity Disguiser: Make disguiser invisible in hand and make user stand straight, add fire delays, hide PACs and steal outfitter models while in use
 	ENT = weapons.GetStored("weapon_ttt_identity_disguiser")
 	if ENT then
