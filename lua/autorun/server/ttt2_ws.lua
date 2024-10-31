@@ -28,7 +28,6 @@ local addons = {
 	"3003509443",	-- Detective Toy Car (Cozy Coupe)
 
 	-- We may not keep these but testing for Halloween
-	"3298985434",	-- Baker & Famine Role
 	"2646495752",	-- Flashcut
 }
 
