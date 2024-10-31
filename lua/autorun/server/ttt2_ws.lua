@@ -19,16 +19,14 @@ local addons = {
 	"2620700649", 	-- Sacrifice Role
 	"1959850321", 	-- Occultist Role
 	"2086831737", 	-- Medigun (for the Medic role)
-	"3048226332", 	-- green demon
-	"2846938449", 	-- kiss weapon
-	"1641605106", 	-- beartrap
-	"1615324913", 	-- demonic possession
+	"3048226332", 	-- Green Demon
+	"2846938449", 	-- Kiss
+	"1641605106", 	-- Beartrap
+	"1615324913", 	-- Demonic Possession
 	"2807269633", 	-- Laser Phaser
 	"2893718679",	-- Cozy Coupe simfphys car
 	"3003509443",	-- Detective Toy Car (Cozy Coupe)
-
-	-- We may not keep these but testing for Halloween
-	"2646495752",	-- Flashcut
+	"3166539189",	-- Spring Mine
 }
 
 for _, id in ipairs(addons) do
