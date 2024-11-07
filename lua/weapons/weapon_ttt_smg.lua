@@ -13,7 +13,7 @@ SWEP.Base = "weapon_tttbase"
 SWEP.HoldType = "smg"
 
 SWEP.Primary.Ammo = "Pistol"
-SWEP.Primary.Delay = 0.07
+SWEP.Primary.Delay = 0.075
 SWEP.Primary.Recoil = 0.5
 SWEP.Primary.Cone = 0.026
 SWEP.Primary.Damage = 15
@@ -39,14 +39,18 @@ SWEP.AllowDrop = true
 SWEP.IsSilent = false
 SWEP.NoSights = false
 
--- Redefine weapon_tttbase's SWEP:Reload() here with one extra line to explicitly emit a
--- reload sound. HL2 weapon models need this because the instruction to emit this sound is not
--- baked into the models unlike with CS:S weapon models. Keep in mind that updates to
--- weapon_tttbase's SWEP:Reload() might break this code and should be pulled from
--- Facepunch/garrysmod if made.
+SWEP.HeadshotMultiplier = 2.4
+
+-- Replace Reload to make a sound. The return statement at the top needs to be replicated.
 function SWEP:Reload()
-    if (self:Clip1() == self.Primary.ClipSize or self:GetOwner():GetAmmoCount(self.Primary.Ammo) <= 0) then return end
-    self:DefaultReload(self.ReloadAnim)
-    self:EmitSound("Weapon_SMG1.Reload") -- My added line
-    self:SetIronsights(false)
+    if
+        self:Clip1() == self.Primary.ClipSize
+        or self:GetOwner():GetAmmoCount(self.Primary.Ammo) <= 0
+    then
+        return
+    end
+
+    BaseClass.Reload(self)
+
+    self:EmitSound("Weapon_SMG1.Reload")
 end
