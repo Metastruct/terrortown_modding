@@ -36,7 +36,7 @@ SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Delay = 0.5
 SWEP.Primary.Ammo = "none"
-SWEP.Primary.HitRange = 80
+SWEP.Primary.HitRange = 72
 
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
@@ -113,8 +113,8 @@ function SWEP:TraceStab()
 	local owner = self:GetOwner()
 	local spos = owner:GetShootPos()
 	local sdest = spos + owner:GetAimVector() * self.Primary.HitRange
-	local kmins = Vector(-5, -5, -5)
-	local kmaxs = Vector(5, 5, 5)
+	local kmins = Vector(-4, -4, -4)
+	local kmaxs = Vector(4, 4, 4)
 
 	local tr = util.TraceHull({
 		start = spos,
