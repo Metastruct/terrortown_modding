@@ -68,7 +68,15 @@ function SWEP:SetupDataTables()
 				end)
 
 				if IsFirstTimePredicted() and ent:GetOwner() == LocalPlayer() then
-					ent:EmitSound(ent.Secondary.Sound, 70, IsValid(newVal) and 120 or 50, 0.6)
+					local isValid = IsValid(newVal)
+
+					if isValid then
+						chat.AddText(color_white, "Your swapper has targeted: " .. newVal:Name())
+					else
+						chat.AddText(color_white, "Your swapper target has been cleared")
+					end
+
+					ent:EmitSound(ent.Secondary.Sound, 70, isValid and 120 or 50, 0.6)
 				end
 			end
 		end)
