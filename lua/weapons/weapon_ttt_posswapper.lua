@@ -151,7 +151,19 @@ function SWEP:SecondaryAttack()
 	local owner = self:GetOwner()
 	if not IsValid(owner) then return end
 
-	local tr = owner:GetEyeTraceNoCursor()
+	owner:LagCompensation(true)
+
+	local pos = owner:GetShootPos()
+
+	local tr = util.TraceLine({
+		start = pos,
+		endpos = pos + (owner:GetAimVector() * 5000),
+		filter = owner,
+		mask = MASK_SHOT
+	})
+
+	owner:LagCompensation(false)
+
 	local ent = tr.Entity
 
 	if IsValid(ent) and ent:IsPlayer() and ent:IsTerror() then
