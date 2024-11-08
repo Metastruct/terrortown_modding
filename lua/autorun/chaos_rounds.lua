@@ -233,6 +233,7 @@ if CLIENT then
 				timer.Simple(10, function()
 					sound.PlayURL("https://github.com/Metastruct/garrysmod-chatsounds/raw/master/sound/chatsounds/autoadd/capsadmin/casino2.ogg", "mono", function(station2)
 						if not IsValid(station2) then return end
+
 						station2:SetPos(LocalPlayer():GetPos())
 						station2:SetVolume(SOUND_VOLUME:GetFloat())
 						station2:Play()
@@ -240,6 +241,7 @@ if CLIENT then
 
 						timer.Simple(8, function()
 							if not IsValid(station2) then return end
+
 							station2:Stop()
 						end)
 					end)
@@ -249,29 +251,45 @@ if CLIENT then
 			local words = table.GetKeys(ROUNDS)
 			local friction = 0.01
 			local next_word = 0
-			local last_word = words[math.random(#words)]
 			function body:Paint(w, h)
 				surface.SetFont("TTT2_ChaosRoundsFontMega")
 
 				if casino_time then
-					if isfunction(ACTIVE_CHAOS_ROUND.DrawSelection) then
-						ACTIVE_CHAOS_ROUND:DrawSelection(w, h)
+					local active_round = ACTIVE_CHAOS_ROUND or { Name = "???" }
+
+					if isfunction(active_round.DrawSelection) then
+						active_round:DrawSelection(w, h)
 						paint_bg(w, h, 0, 0, 0, 0) -- paints the outline on top of the custom thing
 						return
 					end
 
-					surface.SetDrawColor(0, 0, 0, 255)
+					-- Add pulsing background effect
+					local pulse = math.sin(CurTime() * 4) * 20
+					surface.SetDrawColor(20 + pulse, 0, 0, 255)
 					surface.DrawRect(0, 0, w, h)
 
+					-- Rainbow text with glow effect
 					local rgb = HSVToColor((CurTime() * 300) % 360, 1, 1)
-					surface.SetTextColor(rgb.r, rgb.g, rgb.b, 255)
-
-					local word = ACTIVE_CHAOS_ROUND.Name:upper()
+					local word = active_round.Name:upper()
 					local tw, th = surface.GetTextSize(word)
+
+					-- Draw glow
+					for i = 1, 5 do
+						surface.SetTextColor(rgb.r, rgb.g, rgb.b, 50 - i * 10)
+						surface.SetTextPos(w / 2 - tw / 2 + i, h / 2 - th / 2)
+						surface.DrawText(word)
+						surface.SetTextPos(w / 2 - tw / 2 - i, h / 2 - th / 2)
+						surface.DrawText(word)
+					end
+
+					-- Draw main text
+					surface.SetTextColor(rgb.r, rgb.g, rgb.b, 255)
 					surface.SetTextPos(w / 2 - tw / 2, h / 2 - th / 2)
 					surface.DrawText(word)
 
-					surface.SetDrawColor(rgb.r, rgb.g, rgb.b, 255)
+					-- Animated border
+					local border_color = HSVToColor((CurTime() * 200) % 360, 1, 1)
+					surface.SetDrawColor(border_color.r, border_color.g, border_color.b, 255)
 					surface.DrawOutlinedRect(0, 0, w, h, 4)
 				else
 					paint_bg(w, h, 0, 0, 0, 255)
@@ -366,4 +384,6 @@ if CLIENT then
 			end)
 		end
 	end)
+
+	show_selection()
 end

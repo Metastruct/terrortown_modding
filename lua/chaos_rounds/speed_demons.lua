@@ -12,6 +12,8 @@ if SERVER then
 	function ROUND:Start()
 		-- Increase player speeds
 		for _, ply in ipairs(player.GetAll()) do
+			if not ply:IsTerror() then continue end
+
 			local baseWalk = ply:GetWalkSpeed()
 			local baseRun = ply:GetRunSpeed()
 
@@ -29,6 +31,19 @@ if SERVER then
 		end)
 	end
 
+	-- Handle player respawns/revives to reapply speed benefits
+	hook.Add("PlayerSpawn", TAG, function(ply)
+		if IsValid(ply) and ply:IsTerror() then
+			local baseWalk = ply:GetWalkSpeed()
+			local baseRun = ply:GetRunSpeed()
+
+			ply:SetWalkSpeed(baseWalk * SPEED_MULTIPLIER)
+			ply:SetRunSpeed(baseRun * SPEED_MULTIPLIER)
+			ply:SetLadderClimbSpeed(baseRun * SPEED_MULTIPLIER)
+			ply:SetJumpPower(200 * SPEED_MULTIPLIER)
+		end
+	end)
+
 	function ROUND:Finish()
 		-- Reset player speeds
 		for _, ply in ipairs(player.GetAll()) do
@@ -39,7 +54,7 @@ if SERVER then
 		end
 
 		hook.Remove("EntityTakeDamage", TAG)
-		hook.Remove("Think", TAG)
+		hook.Remove("PlayerSpawn", TAG)
 	end
 end
 
