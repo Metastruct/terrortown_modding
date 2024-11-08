@@ -59,7 +59,7 @@ if SERVER then
 end
 
 if CLIENT then
-	function ROUND:OnPostSelection()
+	function ROUND:Start()
 		-- Add motion blur effect
 		hook.Add("RenderScreenspaceEffects", TAG, function()
 			if LocalPlayer():GetVelocity():Length() > 100 then
