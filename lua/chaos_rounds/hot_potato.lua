@@ -186,4 +186,4 @@ if CLIENT then
     end
 end
 
-return ROUND
+return RegisterChaosRound(ROUND)
