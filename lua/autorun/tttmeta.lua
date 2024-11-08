@@ -9,22 +9,22 @@ do
 		__index = function(self, k)
 			local t = {}
 			self[k] = t
-	
+
 			return t
 		end
 	})
-	
+
 	HOOK_FIXER_ENABLED = true
-	
+
 	timer.Create("tttfix_hook_amnesty_experiment", 0.997, 0, function()
 		if HOOK_FIXER_ENABLED == false then return end
-	
+
 		for hook_name, failed_hooks in pairs(hook.GetFailed and hook.GetFailed() or {}) do
 			for hook_cb_name, faildata in pairs(failed_hooks) do
 				if not restored[hook_name][hook_cb_name] then
 					local existing_func = hook.GetTable()[hook_name][hook_cb_name]
 					restored[hook_name][hook_cb_name] = faildata
-	
+
 					if not existing_func then
 						hook.Restore(hook_name, hook_cb_name)
 					end
@@ -151,6 +151,17 @@ if SERVER then
 		if ply:IsTerror() then return false end
 	end)
 
+	-- Give more detailed karma feedback
+	util.AddNetworkString("TTT_KarmaFeedback")
+	hook.Add("TTTKarmaGivePenalty", "DetailedKarma", function(ply, penalty, victim)
+		if not IsValid(ply) then return end
+
+		net.Start("TTT_KarmaFeedback")
+		net.WriteUInt(math.Round(penalty), 8)
+		net.WriteString(victim:Nick())
+		net.Send(ply)
+	end)
+
 	-- Disable alternative way of using "aowl push"
 	concommand.Add("push", emptyFunc)
 
@@ -257,6 +268,18 @@ if SERVER then
 		timer.Remove("physgun_crosstreams")
 	end)
 else
+	net.Receive("TTT_KarmaFeedback", function()
+		local penalty = net.ReadUInt(8)
+		local victimName = net.ReadString()
+
+		chat.AddText(
+			Color(255, 180, 0),
+			"[Karma] ",
+			Color(255, 255, 255),
+			string.format("Lost %d karma for harming %s", penalty, victimName)
+		)
+	end)
+
 	-- Tell PAC to load a TTT autoload
 	hook.Add("PAC3Autoload", Tag, function(name)
 		return "autoload_ttt"
@@ -387,7 +410,7 @@ else
 	hook.Add("TTTPrepareRound", Tag, function()
 		Msg"[TTT Fix] hook.Run() " print("TTTPrepareRound")
 	end)
-	
+
 	hook.Add("TTTBeginRound", Tag, function()
 		Msg"[TTT Fix] hook.Run() " print("TTTBeginRound")
 		SetPerfMode(true)
