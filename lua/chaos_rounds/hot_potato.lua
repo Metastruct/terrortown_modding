@@ -151,26 +151,29 @@ if CLIENT then
             -- Draw red square with timer for bomb holder
             if bomb_holder == LocalPlayer() then
                 local screenW, screenH = ScrW(), ScrH()
-                local timerText = string.format("BOMB: %.1fs", time_ms / 1000)  -- Show one decimal place
+                local timerText = string.format("TICK TOCK... %.1f SECONDS LEFT!", time_ms / 1000)  -- Show one decimal place
 
                 surface.SetFont("DermaLarge")
                 local textW, textH = surface.GetTextSize(timerText)
+                local textX, textY = screenW / 2, screenH / 3
 
                 local padding = 10
                 local boxW, boxH = textW + padding * 2, textH + padding * 2
-                local boxX = screenW / 2 - boxW / 2
-                local boxY = screenH / 2 - boxH / 2
+                local boxX = textX - boxW / 2
+                local boxY = textY - boxH / 2
 
+                surface.SetDrawColor(0, 0, 0, 200)
+                surface.DrawRect(boxX, boxY, boxW, boxH)
                 surface.SetDrawColor(255, 0, 0, 255)
                 surface.DrawOutlinedRect(boxX, boxY, boxW, boxH, 2)
 
-                draw.SimpleText(timerText, "DermaLarge", screenW / 2, screenH / 2, Color(255, 0, 0), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+                draw.SimpleText(timerText, "DermaLarge", textX, textY, Color(255, 0, 0), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
             else
                 -- Draw holder indicator with timer
                 if bomb_holder:Alive() then
                     local pos = bomb_holder:WorldSpaceCenter()
                     local screenPos = pos:ToScreen()
-                    local text = string.format("BOMB: %.1fs", time_ms / 1000)  -- Show one decimal place
+                    local text = string.format("BOMB [%.1fs]", time_ms / 1000)  -- Show one decimal place
                     draw.SimpleText(text, "DermaLarge", screenPos.x, screenPos.y, Color(255, 0, 0), TEXT_ALIGN_CENTER)
                 end
             end
