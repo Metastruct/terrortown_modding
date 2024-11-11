@@ -208,10 +208,17 @@ if CLIENT then
 		}, 12)
 	end)
 
-	local lang_names = { "default", "english" }
-	for _, lang in ipairs(lang_names) do
-		local L = LANG.GetLanguageTableReference(lang)
-		L["CRATE_FOUND"] = "{name} has found a {item}!"
+	local added_translations = false
+	local function add_crate_translation()
+		if added_translations then return end
+
+		local lang_names = { "default", "english" }
+		for _, lang in ipairs(lang_names) do
+			local L = LANG.GetLanguageTableReference(lang)
+			L["CRATE_FOUND"] = "{name} has found a {item}!"
+		end
+
+		added_translations = true
 	end
 
 	net.Receive(TAG .. "_Collected", function()
@@ -231,6 +238,8 @@ if CLIENT then
 		if wep_name then
 			wep_name = LANG.TryTranslation(wep_name)
 		end
+
+		add_crate_translation()
 
 		LANG.Msg("CRATE_FOUND", {
 			name = ply:Nick(),
