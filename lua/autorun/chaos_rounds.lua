@@ -72,6 +72,10 @@ if SERVER then
 		end
 	end
 
+	function GetActiveChaosRound()
+		return ACTIVE_CHAOS_ROUND
+	end
+
 	local function select_chaos_round()
 		if not force_chaos_round then
 			if CHAOS_ROUND_DONE then return end

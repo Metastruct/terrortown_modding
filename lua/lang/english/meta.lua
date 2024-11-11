@@ -1,0 +1,1 @@
+L["CRATE_FOUND"] = "{name} has found a {item}!"
