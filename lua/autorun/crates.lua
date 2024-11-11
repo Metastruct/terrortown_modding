@@ -208,6 +208,12 @@ if CLIENT then
 		}, 12)
 	end)
 
+	local lang_names = { "default", "english" }
+	for _, lang in ipairs(lang_names) do
+		local L = LANG.GetLanguageTableReference(lang)
+		L["CRATE_FOUND"] = "{name} has found a {item}!"
+	end
+
 	net.Receive(TAG .. "_Collected", function()
 		local ply = net.ReadEntity()
 		local type = net.ReadString()
@@ -229,7 +235,7 @@ if CLIENT then
 		LANG.Msg("CRATE_FOUND", {
 			name = ply:Nick(),
 			item = type == "supply" and wep_name or "credit"
-		}, MSG_MSTACK_ROLE)
+		}, MSG_MSTACK_ROLE, CRATE_COLOR)
 	end)
 
 	hook.Add("TTTRenderEntityInfo", TAG, function(tData)
