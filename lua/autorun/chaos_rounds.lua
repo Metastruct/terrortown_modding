@@ -388,6 +388,4 @@ if CLIENT then
 			end)
 		end
 	end)
-
-	show_selection()
 end
