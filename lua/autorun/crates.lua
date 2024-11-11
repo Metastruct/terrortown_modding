@@ -56,18 +56,6 @@ if SERVER then
 	end
 
 	local special_ents = {}
-	local function spawn_credit_crate(pos)
-		local crate = ents.Create("prop_physics")
-		crate:SetModel("models/props_junk/cardboard_box004a.mdl")
-		crate:SetPos(pos + Vector(0, 0, 20))
-		crate:Spawn()
-		table.insert(special_ents, crate)
-		crate.CrateType = "credits"
-		crate.IsBonusCrate = true
-
-		return crate
-	end
-
 	local function spawn_supply_crate(pos)
 		local crate = ents.Create("prop_physics")
 		crate:SetModel("models/props_junk/wood_crate001a.mdl")
@@ -105,14 +93,8 @@ if SERVER then
 
 		-- After 1-2 minutes and only once per round
 		timer.Create(TAG, DEBUG and 1 or math.random(60, 120), 1, function()
-			local crate, msg
-			if math.random() > 0.5 then
-				crate = spawn_credit_crate(pos)
-				msg = "A credit crate has been hidden on the map! Collect it for an extra credit."
-			else
-				crate = spawn_supply_crate(pos)
-				msg = "A supply crate has been dropped! Find it to get special equipment."
-			end
+			local crate = spawn_supply_crate(pos)
+			local msg = "A supply crate has been dropped! Find it to get special equipment."
 
 			timer.Simple(1, function()
 				if not IsValid(crate) then return end
@@ -135,18 +117,7 @@ if SERVER then
 	end)
 
 	local function handle_crate_collection(ply, crate)
-		if crate.CrateType == "credits" then
-			local credits = math.random(1, 2)
-			ply:AddCredits(credits)
-
-			net.Start(TAG .. "_Collected")
-			net.WriteEntity(ply)
-			net.WriteString("credits")
-			net.Broadcast()
-
-			SafeRemoveEntity(crate)
-			return true
-		elseif crate.CrateType == "supply" then
+		if crate.CrateType == "supply" then
 			local equipment = {}
 			for k, v in pairs(weapons.GetList()) do
 				if v.CanBuy and #v.CanBuy > 0 then
@@ -160,7 +131,7 @@ if SERVER then
 
 				net.Start(TAG .. "_Collected")
 				net.WriteEntity(ply)
-				net.WriteString("supply")
+				net.WriteString(crate.CrateType)
 				net.WriteString(wep)
 				net.Broadcast()
 
@@ -224,6 +195,7 @@ if CLIENT then
 	net.Receive(TAG .. "_Collected", function()
 		local ply = net.ReadEntity()
 		local type = net.ReadString()
+		local wep = type == "supply" and net.ReadString() or nil
 
 		if not IsValid(ply) then return end
 
@@ -233,7 +205,6 @@ if CLIENT then
 			end
 		end
 
-		local wep = type == "supply" and net.ReadString() or nil
 		local wep_name = wep and weapons.Get(wep) and weapons.Get(wep).PrintName or wep
 		if wep_name then
 			wep_name = LANG.TryTranslation(wep_name)
@@ -241,12 +212,13 @@ if CLIENT then
 
 		add_crate_translation()
 
+		local item = type == "supply" and wep_name or "???"
 		LANG.Msg("CRATE_FOUND", {
 			name = ply:Nick(),
-			item = type == "supply" and wep_name or "credit"
+			item = item
 		}, MSG_MSTACK_ROLE, CRATE_COLOR)
 
-		chat.AddText(CRATE_COLOR, "Bonus Crate", Color(255, 255, 255), (": %s has found a %s!"):format(ply:Nick(), type == "supply" and wep_name or "credit"))
+		chat.AddText(CRATE_COLOR, "Bonus Crate", Color(255, 255, 255), (": %s has found a %s!"):format(ply:Nick(), item))
 	end)
 
 	hook.Add("TTTRenderEntityInfo", TAG, function(tData)
