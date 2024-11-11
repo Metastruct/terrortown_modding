@@ -206,8 +206,6 @@ if CLIENT then
 			text = desc,
 			color = Color(255, 255, 255)
 		}, 12)
-
-		chat.AddText(CRATE_COLOR, "[Bonus Crate]", Color(255, 255, 255), ": " .. desc)
 	end)
 
 	local added_translations = false
@@ -248,7 +246,7 @@ if CLIENT then
 			item = type == "supply" and wep_name or "credit"
 		}, MSG_MSTACK_ROLE, CRATE_COLOR)
 
-		chat.AddText(CRATE_COLOR, "[Bonus Crate]", Color(255, 255, 255), (": %s has found a %s!"):format(ply:Nick(), type == "supply" and wep_name or "credit"))
+		chat.AddText(CRATE_COLOR, "Bonus Crate", Color(255, 255, 255), (": %s has found a %s!"):format(ply:Nick(), type == "supply" and wep_name or "credit"))
 	end)
 
 	hook.Add("TTTRenderEntityInfo", TAG, function(tData)

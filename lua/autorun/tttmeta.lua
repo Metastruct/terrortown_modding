@@ -281,9 +281,9 @@ else
 
 		chat.AddText(
 			Color(255, 0, 0),
-			"[Karma] ",
+			"Karma",
 			Color(255, 255, 255),
-			string.format("Lost %d karma for harming %s", penalty, victimName)
+			string.format(": Lost %d karma for harming %s", penalty, victimName)
 		)
 	end)
 
