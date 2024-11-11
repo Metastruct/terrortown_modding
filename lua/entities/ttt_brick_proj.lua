@@ -61,11 +61,11 @@ if SERVER then
 
 	local utilTraceLine = util.TraceLine
 
-	ENT.DamageMin = 2
-	ENT.DamageMax = 32
+	ENT.DamageMin = 3
+	ENT.DamageMax = 33
 
 	-- The amount of time the brick projectile has to exist before dealing full speed-scaled damage
-	ENT.DamageGraceTime = 0.08
+	ENT.DamageGraceTime = 0.075
 
 	ENT.SpeedScaleMin = 300
 	ENT.SpeedScaleMax = 1750
