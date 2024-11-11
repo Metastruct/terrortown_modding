@@ -153,13 +153,20 @@ if SERVER then
 
 	-- Give more detailed karma feedback
 	util.AddNetworkString("TTT_KarmaFeedback")
+
+	local total_karma = 0
 	hook.Add("TTTKarmaGivePenalty", "DetailedKarma", function(ply, penalty, victim)
 		if not IsValid(ply) then return end
 
-		net.Start("TTT_KarmaFeedback")
-		net.WriteUInt(math.Round(penalty), 8)
-		net.WriteString(victim:Nick())
-		net.Send(ply)
+		total_karma = total_karma + penalty
+		timer.Create("TTT_KarmaFeedback", 1, 1, function()
+			net.Start("TTT_KarmaFeedback")
+			net.WriteUInt(math.Round(total_karma), 8)
+			net.WriteString(victim:Nick())
+			net.Send(ply)
+
+			total_karma = 0
+		end)
 	end)
 
 	-- Disable alternative way of using "aowl push"
@@ -273,7 +280,7 @@ else
 		local victimName = net.ReadString()
 
 		chat.AddText(
-			Color(255, 180, 0),
+			Color(255, 0, 0),
 			"[Karma] ",
 			Color(255, 255, 255),
 			string.format("Lost %d karma for harming %s", penalty, victimName)

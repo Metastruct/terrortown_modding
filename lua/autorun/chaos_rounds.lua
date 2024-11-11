@@ -322,9 +322,13 @@ if CLIENT then
 			if ACTIVE_CHAOS_ROUND then
 				if _G.EPOP then
 					_G.EPOP:AddMessage({
-						text = ("[CHAOS ROUND] %s: %s"):format(ACTIVE_CHAOS_ROUND.Name:upper(), ACTIVE_CHAOS_ROUND.Description or "???"),
-						color = COLOR_RED
-					}, nil, 10)
+						text = "CHAOS ROUND",
+						color = Color(255, 0, 0),
+					},
+					{
+						text = ACTIVE_CHAOS_ROUND.Description or "???",
+						color = Color(255, 255, 255),
+					}, 12)
 				else
 					chat.AddText(Color(255, 0, 0), "[CHAOS ROUND] ", ACTIVE_CHAOS_ROUND.Name:upper(), ": ", ACTIVE_CHAOS_ROUND.Description or "???")
 				end
