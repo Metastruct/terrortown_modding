@@ -21,7 +21,7 @@ if SERVER then
 					mask = MASK_SOLID
 				})
 
-				if tr.Hit then
+				if tr.Hit and util.IsInWorld(pos) then
 					table.insert(points, pos)
 				end
 			end
@@ -46,7 +46,7 @@ if SERVER then
 				mask = MASK_PLAYERSOLID
 			})
 
-			if not tr.Hit then
+			if not tr.Hit and util.IsInWorld(pos) then
 				table.insert(valid_points, pos)
 			end
 		end
@@ -95,16 +95,16 @@ if SERVER then
 	hook.Add("TTTBeginRound", TAG, function()
 		if not DEBUG and math.random() > cvar_chance:GetFloat() then return end
 
+		local pos
+		for _ = 1, 3 do -- retry 3 times
+			pos = get_random_spawn_pos()
+			if pos then break end
+		end
+
+		if not pos then return end
+
 		-- After 1-2 minutes and only once per round
 		timer.Create(TAG, DEBUG and 1 or math.random(60, 120), 1, function()
-			local pos
-			for _ = 1, 3 do -- retry 3 times
-				pos = get_random_spawn_pos()
-				if pos then break end
-			end
-
-			if not pos then return end
-
 			local crate, msg
 			if math.random() > 0.5 then
 				crate = spawn_credit_crate(pos)
