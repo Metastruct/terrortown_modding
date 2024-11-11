@@ -9,7 +9,7 @@ local TAG = "ChaosRoundGravityWells"
 local WELL_COUNT = 4
 local WELL_LIFETIME = 20
 local WELL_RADIUS = 600
-local PULL_FORCE = 2000
+local PULL_FORCE = 1300
 local MIN_SPAWN_INTERVAL = 5
 local MAX_SPAWN_INTERVAL = 15
 
@@ -17,6 +17,21 @@ if SERVER then
 	util.AddNetworkString(TAG .. "_NewWell")
 	local activeWells = {}
 	local playerPositions = {}
+
+	timer.Create(TAG .. "_TrackPlayers", 1, 0, function()
+		for _, ply in ipairs(player.GetAll()) do
+			if ply:IsTerror() and ply:IsOnGround() then
+				local target_pos = ply:EyePos() + Vector(math.random(-1000, 1000), math.random(-1000, 1000), 0)
+				if util.IsInWorld(target_pos) then
+					table.insert(playerPositions, target_pos)
+
+					if #playerPositions > 250 then
+						table.remove(playerPositions, 1)
+					end
+				end
+			end
+		end
+	end)
 
 	local function TryPosition()
 		-- Get random position from where players have been
@@ -72,19 +87,6 @@ if SERVER then
 	end
 
 	function ROUND:Start()
-		-- Start tracking player positions
-		playerPositions = {}
-		timer.Create(TAG .. "_TrackPlayers", 1, 0, function()
-			for _, ply in ipairs(player.GetAll()) do
-				if ply:IsTerror() then
-					local target_pos = ply:EyePos() + Vector(math.random(-1000, 1000), math.random(-1000, 1000), 0)
-					if util.IsInWorld(target_pos) then
-						table.insert(playerPositions, target_pos)
-					end
-				end
-			end
-		end)
-
 		-- Create initial wells
 		for i = 1, WELL_COUNT do
 			CreateGravityWell()
@@ -130,7 +132,7 @@ if SERVER then
 						ent:SetVelocity(force * 0.1)
 
 						-- Random chance to lose weapon grip
-						if math.random() < 0.01 then
+						if math.random() < 0.005 then
 							local wep = ent:GetActiveWeapon()
 							if IsValid(wep) then
 								ent:DropWeapon(wep)
