@@ -90,7 +90,7 @@ if SERVER then
 		end
 	end)
 
-	local DEBUG = true
+	local DEBUG = false
 	local cvar_chance = CreateConVar("ttt_bonus_crates_chance", "0.25", {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Chance for a bonus crate to spawn")
 	hook.Add("TTTBeginRound", TAG, function()
 		if not DEBUG and math.random() > cvar_chance:GetFloat() then return end
