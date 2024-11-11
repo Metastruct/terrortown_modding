@@ -81,18 +81,28 @@ if SERVER then
 	end
 
 	hook.Add("SetupPlayerVisibility", TAG, function()
-		for _, ent in ipairs(special_ents) do
-			AddOriginToPVS(ent:GetPos())
+		for i, ent in ipairs(special_ents) do
+			if not IsValid(ent) then
+				table.remove(special_ents, i)
+			else
+				AddOriginToPVS(ent:GetPos())
+			end
 		end
 	end)
 
 	local DEBUG = true
+	local cvar_chance = CreateConVar("ttt_bonus_crates_chance", "0.25", {FCVAR_NOTIFY, FCVAR_ARCHIVE}, "Chance for a bonus crate to spawn")
 	hook.Add("TTTBeginRound", TAG, function()
-		if not DEBUG and math.random() > 0.25 then return end -- 25% chance to spawn anything
+		if not DEBUG and math.random() > cvar_chance:GetFloat() then return end
 
 		-- After 1-2 minutes and only once per round
 		timer.Create(TAG, DEBUG and 1 or math.random(60, 120), 1, function()
-			local pos = get_random_spawn_pos()
+			local pos
+			for _ = 1, 3 do -- retry 3 times
+				pos = get_random_spawn_pos()
+				if pos then break end
+			end
+
 			if not pos then return end
 
 			local crate, msg
