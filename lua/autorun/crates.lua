@@ -220,9 +220,15 @@ if CLIENT then
 			end
 		end
 
+		local wep = type == "supply" and net.ReadString() or nil
+		local wep_name = wep and weapons.Get(wep) and weapons.Get(wep).PrintName or wep
+		if wep_name then
+			wep_name = LANG.TryTranslation(wep_name)
+		end
+
 		LANG.Msg("CRATE_FOUND", {
 			name = ply:Nick(),
-			item = type == "supply" and weapons.Get(wep).PrintName or "credit"
+			item = type == "supply" and wep_name or "credit"
 		}, MSG_MSTACK_ROLE)
 	end)
 
