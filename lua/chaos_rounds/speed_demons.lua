@@ -29,21 +29,18 @@ if SERVER then
 				dmginfo:ScaleDamage(DAMAGE_MULTIPLIER)
 			end
 		end)
+
+		-- Handle player respawns/revives to reapply speed benefits
+		hook.Add("PlayerSpawn", TAG, function(ply)
+			local baseWalk = ply:GetWalkSpeed()
+			local baseRun = ply:GetRunSpeed()
+
+			ply:SetWalkSpeed(baseWalk * SPEED_MULTIPLIER)
+			ply:SetRunSpeed(baseRun * SPEED_MULTIPLIER)
+			ply:SetLadderClimbSpeed(baseRun * SPEED_MULTIPLIER)
+			ply:SetJumpPower(200 * SPEED_MULTIPLIER)
+		end)
 	end
-
-	-- Handle player respawns/revives to reapply speed benefits
-	hook.Add("PlayerSpawn", TAG, function(ply)
-		local active_round = GetActiveChaosRound()
-		if not active_round or active_round.Name ~= ROUND.Name then return end
-
-		local baseWalk = ply:GetWalkSpeed()
-		local baseRun = ply:GetRunSpeed()
-
-		ply:SetWalkSpeed(baseWalk * SPEED_MULTIPLIER)
-		ply:SetRunSpeed(baseRun * SPEED_MULTIPLIER)
-		ply:SetLadderClimbSpeed(baseRun * SPEED_MULTIPLIER)
-		ply:SetJumpPower(200 * SPEED_MULTIPLIER)
-	end)
 
 	function ROUND:Finish()
 		-- Reset player speeds
