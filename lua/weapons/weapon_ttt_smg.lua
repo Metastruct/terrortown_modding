@@ -9,7 +9,8 @@ else
     resource.AddFile("materials/vgui/ttt/icon_smg.vmt")
 end
 
-SWEP.Base = "weapon_tttbase"
+DEFINE_BASECLASS("weapon_tttbase")
+
 SWEP.HoldType = "smg"
 
 SWEP.Primary.Ammo = "Pistol"
