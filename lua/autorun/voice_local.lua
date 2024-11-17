@@ -32,15 +32,14 @@ if SERVER then
 	end
 else
 	local voiceFactors = {}
+
 	-- HACK: Override SetVoiceVolumeScale to actually adjust an internal value
 	-- since we manually use SetVoiceVolumeScale every tick
 	local plyMetatable = FindMetaTable("Player")
-	if plyMetatable.SetVoiceVolumeScale_Original then
-		plyMetatable.SetVoiceVolumeScale = plyMetatable.SetVoiceVolumeScale_Original
-		plyMetatable.GetVoiceVolumeScale = plyMetatable.GetVoiceVolumeScale_Original
-	end
-	plyMetatable.SetVoiceVolumeScale_Original = plyMetatable.SetVoiceVolumeScale
-	plyMetatable.GetVoiceVolumeScale_Original = plyMetatable.GetVoiceVolumeScale
+
+	plyMetatable.SetVoiceVolumeScale_Original = plyMetatable.SetVoiceVolumeScale_Original or plyMetatable.SetVoiceVolumeScale
+	plyMetatable.GetVoiceVolumeScale_Original = plyMetatable.GetVoiceVolumeScale_Original or plyMetatable.GetVoiceVolumeScale
+
 	plyMetatable.SetVoiceVolumeScale = function(self, scale)
 		voiceFactors[self] = math.Clamp(scale, 0, 1)
 	end
@@ -119,8 +118,8 @@ else
 		for k, v in ipairs(player.GetAll()) do
 			if v.VoiceChatting or (pl ~= v and now >= (v.VoiceChatNextTick or 0)) then
 				local scale = (roundNotActive or not v:IsTerror() or IsRoleChatting(v))
-					and 1
-					or VoiceScale(plPos, v:GetPos())
+					and (voiceFactors[v] or 1)
+					or VoiceScale(plPos, v:GetPos(), v)
 
 				v:SetVoiceVolumeScale_Original(scale)
 
