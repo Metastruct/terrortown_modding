@@ -117,6 +117,9 @@ if SERVER then
 	end)
 
 	local function handle_crate_collection(ply, crate)
+		if not IsValid(ply) or not IsValid(crate) then return end
+		if not ply:IsTerror() then return end
+
 		if crate.CrateType == "supply" then
 			local equipment = {}
 			for k, v in pairs(weapons.GetList()) do
