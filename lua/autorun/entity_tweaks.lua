@@ -224,6 +224,13 @@ util.OnInitialize(function()
 		end
 	end
 
+	-- SLAM: Make it use the c_ version of the SLAM viewmodel
+	ENT = weapons.GetStored("weapon_ttt_slam")
+	if ENT then
+		ENT.ViewModel = "models/weapons/c_slam.mdl"
+		ENT.UseHands = true
+	end
+
 	if SERVER then
 		-- Serverside only tweaks
 
