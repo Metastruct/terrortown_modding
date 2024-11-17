@@ -1,8 +1,11 @@
--- The Jester role gains buddha to certain damage types
+-- Jester role tweaks (serverside only)
 
 require("hookextras")
 
 util.OnInitialize(function()
+	if not ROLE_JESTER or not roles.JESTER then return end
+
+	-- 1. Give Jester buddha to certain damage types
 	local buddhaDamageTypes = {
 		[DMG_BURN] = true,
 		[DMG_BLAST] = true
@@ -48,4 +51,18 @@ util.OnInitialize(function()
 	else
 		ErrorNoHalt("TTT's ARMOR table was not found! Jester Buddha won't be working!")
 	end
+
+	-- 2. Make Jester wins not count towards rounds played
+	-- Override the Jester's CheckForWin hook to be able to make this happen at the right time
+	-- Using any of the EndRound hooks is too late, since TTT checks if the map should change before calling any of those
+	hook.Add("TTTCheckForWin", "JesterCheckWin", function()
+		if roles.JESTER.shouldWin then
+			roles.JESTER.shouldWin = false
+
+			-- Additions to the hook go here - increase the round count by 1 just before the round ends (the count will then decrease as normal when the round actually changes)
+			gameloop.DecreaseRoundsLeft(-1)
+
+			return TEAM_JESTER
+		end
+	end)
 end)
