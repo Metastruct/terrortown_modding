@@ -276,15 +276,15 @@ if SERVER then
 	end)
 else
 	net.Receive("TTT_KarmaFeedback", function()
-		local penalty = net.ReadUInt(8)
-		local victimName = net.ReadString()
+		--local penalty = net.ReadUInt(8)
+		--local victimName = net.ReadString()
 
-		chat.AddText(
+		--[[chat.AddText(
 			Color(255, 0, 0),
 			"Karma",
 			Color(255, 255, 255),
 			string.format(": Lost %d karma for harming %s", penalty, victimName)
-		)
+		)]]
 	end)
 
 	-- Tell PAC to load a TTT autoload
