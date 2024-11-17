@@ -212,13 +212,13 @@ if CLIENT then
 
 		add_crate_translation()
 
-		local item = type == "supply" and wep_name or "???"
+		local item = "special item"--type == "supply" and wep_name or "???"
 		LANG.Msg("CRATE_FOUND", {
 			name = ply:Nick(),
 			item = item
 		}, MSG_MSTACK_ROLE, CRATE_COLOR)
 
-		chat.AddText(CRATE_COLOR, "Bonus Crate", Color(255, 255, 255), (": %s has found a %s!"):format(ply:Nick(), item))
+		chat.AddText(CRATE_COLOR, "Bonus Crate", Color(255, 255, 255), (": %s has found a special item!"):format(ply:Nick()))
 	end)
 
 	hook.Add("TTTRenderEntityInfo", TAG, function(tData)
