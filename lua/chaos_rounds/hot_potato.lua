@@ -50,6 +50,34 @@ if SERVER then
                 dmg:SetDamage(0)
             end
         end)
+
+        -- Handle player death
+        hook.Add("PlayerDeath", "HotPotatoPlayerDeath", function(victim, inflictor, attacker)
+            -- Only handle if the dying player had the bomb
+            if victim == self.current_holder then
+                -- Create explosion effect at victim's position
+                local explosion = ents.Create("env_explosion")
+                explosion:SetPos(victim:GetPos())
+                explosion:SetOwner(victim)
+                explosion:Spawn()
+                explosion:SetKeyValue("iMagnitude", "100")
+                explosion:Fire("Explode", 0, 0)
+
+                -- Get all living players except the victim
+                local potential_holders = {}
+                for _, ply in ipairs(player.GetAll()) do
+                    if ply:IsTerror() and ply ~= victim then
+                        table.insert(potential_holders, ply)
+                    end
+                end
+
+                -- Pass bomb to random living player if any exist
+                if #potential_holders > 0 then
+                    local new_holder = potential_holders[math.random(#potential_holders)]
+                    self:PassBomb(new_holder, true)
+                end
+            end
+        end)
     end
 
     function ROUND:PassBomb(new_holder, reinitialize_timer)
