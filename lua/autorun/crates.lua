@@ -153,6 +153,8 @@ if SERVER then
 
 	hook.Add("EntityTakeDamage", TAG, function(target, dmginfo)
 		if not target.IsBonusCrate then return end
+		-- Only allow melee damage
+		if dmginfo:GetDamageType() ~= DMG_CLUB then return end
 
 		local attacker = dmginfo:GetAttacker()
 		if IsValid(attacker) and attacker:IsPlayer() and attacker:IsTerror() then
