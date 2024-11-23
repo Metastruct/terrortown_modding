@@ -7,6 +7,7 @@ local BOMB_TIMER = 60 -- Initial time before explosion
 local TIMER_REDUCTION = 3 -- Seconds reduced from timer on each pass
 local MIN_TIMER = 10 -- Minimum seconds before explosion
 local EXPLOSION_RADIUS = 300 -- Units for explosion radius
+local HOLDER_SPEED_MULTIPLIER = 1.3 -- How much faster the bomb holder moves
 
 if SERVER then
     util.AddNetworkString("TTT_HotPotato_Holder")
@@ -19,6 +20,9 @@ if SERVER then
         self.current_holder = initial_holder
         self.time_left = BOMB_TIMER
         self.passes = 0
+
+        initial_holder:SetWalkSpeed(initial_holder:GetWalkSpeed() * HOLDER_SPEED_MULTIPLIER)
+        initial_holder:SetRunSpeed(initial_holder:GetRunSpeed() * HOLDER_SPEED_MULTIPLIER)
 
         -- Give bomb to initial player
         net.Start("TTT_HotPotato_Holder")
@@ -55,35 +59,26 @@ if SERVER then
         hook.Add("PlayerDeath", "HotPotatoPlayerDeath", function(victim, inflictor, attacker)
             -- Only handle if the dying player had the bomb
             if victim == self.current_holder then
-                -- Create explosion effect at victim's position
-                local explosion = ents.Create("env_explosion")
-                explosion:SetPos(victim:GetPos())
-                explosion:SetOwner(victim)
-                explosion:Spawn()
-                explosion:SetKeyValue("iMagnitude", "100")
-                explosion:Fire("Explode", 0, 0)
-
-                -- Get all living players except the victim
-                local potential_holders = {}
-                for _, ply in ipairs(player.GetAll()) do
-                    if ply:IsTerror() and ply ~= victim then
-                        table.insert(potential_holders, ply)
-                    end
-                end
-
-                -- Pass bomb to random living player if any exist
-                if #potential_holders > 0 then
-                    local new_holder = potential_holders[math.random(#potential_holders)]
-                    self:PassBomb(new_holder, true)
-                end
+                self:ExplodeBomb()
             end
         end)
     end
 
     function ROUND:PassBomb(new_holder, reinitialize_timer)
+        -- Reset previous holder's speed if they're still valid
+        if IsValid(self.current_holder) then
+            self.current_holder:SetWalkSpeed(self.current_holder:GetWalkSpeed() / HOLDER_SPEED_MULTIPLIER)
+            self.current_holder:SetRunSpeed(self.current_holder:GetRunSpeed() / HOLDER_SPEED_MULTIPLIER)
+        end
+
         -- Update holder
         self.current_holder = new_holder
         self.passes = self.passes + 1
+
+        -- Increase new holder's speed
+        new_holder:SetWalkSpeed(new_holder:GetWalkSpeed() * HOLDER_SPEED_MULTIPLIER)
+        new_holder:SetRunSpeed(new_holder:GetRunSpeed() * HOLDER_SPEED_MULTIPLIER)
+
         -- Reduce timer
         self.time_left = reinitialize_timer and BOMB_TIMER / 2 or math.max(MIN_TIMER, self.time_left - TIMER_REDUCTION)
 
@@ -97,6 +92,12 @@ if SERVER then
     end
 
     function ROUND:ExplodeBomb()
+        -- Reset holder's speed before explosion if they're still valid
+        if IsValid(self.current_holder) then
+            self.current_holder:SetWalkSpeed(self.current_holder:GetWalkSpeed() / HOLDER_SPEED_MULTIPLIER)
+            self.current_holder:SetRunSpeed(self.current_holder:GetRunSpeed() / HOLDER_SPEED_MULTIPLIER)
+        end
+
         if not IsValid(self.current_holder) then return end
         -- Create explosion effect
         local explosion = ents.Create("env_explosion")
@@ -142,6 +143,12 @@ if SERVER then
     end
 
     function ROUND:Finish()
+        -- Reset holder's speed when round ends if they're still valid
+        if IsValid(self.current_holder) then
+            self.current_holder:SetWalkSpeed(self.current_holder:GetWalkSpeed() / HOLDER_SPEED_MULTIPLIER)
+            self.current_holder:SetRunSpeed(self.current_holder:GetRunSpeed() / HOLDER_SPEED_MULTIPLIER)
+        end
+
         timer.Remove("HotPotatoTimer")
         hook.Remove("EntityTakeDamage", "HotPotatoPass")
     end
