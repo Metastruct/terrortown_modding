@@ -1,3 +1,24 @@
+local currentGamemode = engine.ActiveGamemode()
+if currentGamemode ~= "terrortown" then
+	-- this should never happen but here are some polyfills to prevent errors everywhere
+
+	local PLY = FindMetaTable("Player")
+	function PLY:IsTerror() return true end
+
+	function GetRoundState() return 3 end -- always active
+
+	LANG = {
+		GetNameParam = function(str) return str end,
+		Msg = function(arg1, arg2, arg3, arg4) end,
+		MsgAll = function(name, params, mode) end,
+		NameParam = function(name) return name end,
+		Param = function(name) return name end,
+		ProcessMsg = function(send_to, name, params, mode) end
+	}
+
+	return
+end
+
 local Tag = "tttfix"
 
 require("hookextras")
