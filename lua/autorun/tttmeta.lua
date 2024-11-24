@@ -9,11 +9,12 @@ if currentGamemode ~= "terrortown" then
 
 	LANG = {
 		GetNameParam = function(str) return str end,
-		Msg = function(arg1, arg2, arg3, arg4) end,
-		MsgAll = function(name, params, mode) end,
+		Msg = function(...) end,
+		MsgAll = function(...) end,
 		NameParam = function(name) return name end,
 		Param = function(name) return name end,
-		ProcessMsg = function(send_to, name, params, mode) end
+		ProcessMsg = function(...) end,
+		AddToLanguage = function(...) end
 	}
 
 	return
