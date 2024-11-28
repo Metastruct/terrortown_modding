@@ -1,24 +1,24 @@
-local currentGamemode = engine.ActiveGamemode()
-if currentGamemode ~= "terrortown" then
-	-- this should never happen but here are some polyfills to prevent errors everywhere
+hook.Add("Initialize", "tttmeta-polyfill", function()
+	local currentGamemode = engine.ActiveGamemode()
+	if currentGamemode ~= "terrortown" then
+		-- this should never happen but here are some polyfills to prevent errors everywhere
 
-	local PLY = FindMetaTable("Player")
-	function PLY:IsTerror() return true end
+		local PLY = FindMetaTable("Player")
+		function PLY:IsTerror() return true end
 
-	function GetRoundState() return 3 end -- always active
+		function GetRoundState() return 3 end -- always active
 
-	LANG = {
-		GetNameParam = function(str) return str end,
-		Msg = function(...) end,
-		MsgAll = function(...) end,
-		NameParam = function(name) return name end,
-		Param = function(name) return name end,
-		ProcessMsg = function(...) end,
-		AddToLanguage = function(...) end
-	}
-
-	return
-end
+		LANG = {
+			GetNameParam = function(str) return str end,
+			Msg = function(...) end,
+			MsgAll = function(...) end,
+			NameParam = function(name) return name end,
+			Param = function(name) return name end,
+			ProcessMsg = function(...) end,
+			AddToLanguage = function(...) end
+		}
+	end
+end)
 
 local Tag = "tttfix"
 
