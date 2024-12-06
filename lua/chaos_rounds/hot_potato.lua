@@ -20,6 +20,7 @@ if SERVER then
         self.current_holder = initial_holder
         self.time_left = BOMB_TIMER
         self.passes = 0
+        self.exploded_players = {}
 
         initial_holder:SetWalkSpeed(initial_holder:GetWalkSpeed() * HOLDER_SPEED_MULTIPLIER)
         initial_holder:SetRunSpeed(initial_holder:GetRunSpeed() * HOLDER_SPEED_MULTIPLIER)
@@ -57,6 +58,8 @@ if SERVER then
     end
 
     function ROUND:PassBomb(new_holder, reinitialize_timer)
+        if self.exploded_players[new_holder] then return end
+
         -- Reset previous holder's speed if they're still valid
         if IsValid(self.current_holder) then
             self.current_holder:SetWalkSpeed(self.current_holder:GetWalkSpeed() / HOLDER_SPEED_MULTIPLIER)
@@ -86,11 +89,15 @@ if SERVER then
     function ROUND:ExplodeBomb()
         -- Reset holder's speed before explosion if they're still valid
         if IsValid(self.current_holder) then
+            if self.exploded_players[self.current_holder] then return end
+
             self.current_holder:SetWalkSpeed(self.current_holder:GetWalkSpeed() / HOLDER_SPEED_MULTIPLIER)
             self.current_holder:SetRunSpeed(self.current_holder:GetRunSpeed() / HOLDER_SPEED_MULTIPLIER)
+            self.exploded_players[self.current_holder] = true
         end
 
         if not IsValid(self.current_holder) then return end
+
         -- Create explosion effect
         local explosion = ents.Create("env_explosion")
         explosion:SetPos(self.current_holder:GetPos())
@@ -143,6 +150,7 @@ if SERVER then
 
         timer.Remove("HotPotatoTimer")
         hook.Remove("EntityTakeDamage", "HotPotatoPass")
+        self.exploded_players = {}
     end
 end
 
