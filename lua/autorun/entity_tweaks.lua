@@ -179,6 +179,16 @@ util.OnInitialize(function()
 		end
 	end
 
+	-- Silenced Pistol: Increase fire-rate and slightly increase accuracy, slightly decrease damage
+	ENT = weapons.GetStored("weapon_ttt_sipistol")
+	if ENT then
+		ENT.Primary.Damage = 26
+		ENT.HeadshotMultiplier = 2.65
+
+		ENT.Primary.Delay = 0.3
+		ENT.Primary.Cone = 0.0125
+	end
+
 	-- Medigun: Re-enable use of lastinv
 	ENT = weapons.GetStored("weapon_ttt_medigun")
 	if ENT then
