@@ -34,7 +34,7 @@ if SERVER then
         timer.Create("HotPotatoTimer", 1, 0, function()
             self.time_left = self.time_left - 1
 
-            if self.time_left <= 0 then
+            if self.time_left <= 0 or not IsValid(self.current_holder) or not self.current_holder:IsTerror() then
                 self:ExplodeBomb()
             end
         end)
@@ -52,14 +52,6 @@ if SERVER then
             if attacker == self.current_holder then
                 self:PassBomb(target)
                 dmg:SetDamage(0)
-            end
-        end)
-
-        -- Handle player death
-        hook.Add("PlayerDeath", "HotPotatoPlayerDeath", function(victim, inflictor, attacker)
-            -- Only handle if the dying player had the bomb
-            if victim == self.current_holder then
-                self:ExplodeBomb()
             end
         end)
     end
