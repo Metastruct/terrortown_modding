@@ -3,6 +3,10 @@
 
 require("hookextras")
 
+if SERVER then
+	AddCSLuaFile()
+end
+
 util.OnInitialize(function()
 	local ENT
 
