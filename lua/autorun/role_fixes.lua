@@ -11,6 +11,13 @@ local function updateRoleSettings()
 	local ROLE = roles.GetStored("defective")
 	if ROLE then
 		ROLE.color = Color(255, 131, 164)
+
+		-- Need to update the other color fields too on client
+		if CLIENT then
+			ROLE.dkcolor = util.ColorDarken(ROLE.color, 30)
+			ROLE.ltcolor = util.ColorLighten(ROLE.color, 30)
+			ROLE.bgcolor = util.ColorComplementary(ROLE.color)
+		end
 	end
 end
 
