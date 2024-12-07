@@ -6,12 +6,19 @@ if SERVER then
 	AddCSLuaFile()
 end
 
-util.OnInitialize(function()
+local function updateRoleSettings()
+	-- Update the defective role's color so it's easier to distinguish
 	local ROLE = roles.GetStored("defective")
 	if ROLE then
-		-- Update the defective role's color so it's easier to distinguish
-		ROLE.color = Color(230, 120, 255)
+		ROLE.color = Color(255, 131, 164)
 	end
+end
+
+util.OnInitialize(function()
+	updateRoleSettings()
+
+	-- Also run updateRoleSettings through this hook
+	hook.Add("TTT2RolesLoaded", "TTTRoleFixes", updateRoleSettings)
 
 	if SERVER then
 		-- Serverside only tweaks
