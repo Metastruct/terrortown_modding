@@ -4,8 +4,20 @@ require("hookextras")
 
 if SERVER then
 	AddCSLuaFile()
+end
 
-	util.OnInitialize(function()
+util.OnInitialize(function()
+	if ROLE_DEFECTIVE then
+		local ROLE = roles.GetStored("defective")
+		if ROLE then
+			-- Update the defective role's color so it's easier to distinguish
+			ROLE.color = Color(166, 70, 255)
+		end
+	end
+
+	if SERVER then
+		-- Serverside only tweaks
+
 		-- Vampire related fixes
 		if PIGEON then
 			-- Fix vampire bat still showing PACs
@@ -190,13 +202,15 @@ if SERVER then
 				end
 			end
 		end
-	end)
-else
-	util.OnInitialize(function()
-		-- Fix vampire bat bind not being created in the TTT2FinishedLoading hook by re-running it here
-		local hookTable = hook.GetTable().TTT2FinishedLoading
-		if hookTable and hookTable.TTTRoleVampireInit then
-			hookTable.TTTRoleVampireInit()
-		end
-	end)
-end
+	else
+		-- Clientside only tweaks
+
+		util.OnInitialize(function()
+			-- Fix vampire bat bind not being created in the TTT2FinishedLoading hook by re-running it here
+			local hookTable = hook.GetTable().TTT2FinishedLoading
+			if hookTable and hookTable.TTTRoleVampireInit then
+				hookTable.TTTRoleVampireInit()
+			end
+		end)
+	end
+end)
