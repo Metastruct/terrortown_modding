@@ -172,14 +172,16 @@ if SERVER then
 
 					local tr = util.TraceLine(trTable)
 
-					if tr.Entity != self	-- Has the player looked away from the station?
-						or not self:GiveHealth(v, self.HealRate)	-- Attempt to heal them, returns true if it succeeded
-						or v:Health() >= v:GetMaxHealth()   -- Are they at max health after healing just now?
-					then
-						v:EmitSound(soundFail)
-					else
-						-- All passed, keep them in the list
-						continue
+					-- Is the player still looking at the station?
+					if tr.Entity == self then
+						if self:GiveHealth(v, self.HealRate)	-- Attempt to heal them, returns true if it succeeded
+							or v:Health() < v:GetMaxHealth()	-- Do they still need healing?
+						then
+							-- All passed, keep them in the list
+							continue
+						else
+							v:EmitSound(soundFail)
+						end
 					end
 				end
 
