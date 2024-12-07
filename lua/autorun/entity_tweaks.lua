@@ -193,8 +193,14 @@ util.OnInitialize(function()
 		ENT.Primary.Cone = 0.0125
 	end
 
-	-- Medigun: Re-enable use of lastinv
+	-- Medigun / Medic's Medigun: Re-enable use of lastinv
 	ENT = weapons.GetStored("weapon_ttt_medigun")
+	if ENT then
+		function ENT:Deploy()
+			return true
+		end
+	end
+	ENT = weapons.GetStored("weapon_ttt2_medic_medigun")
 	if ENT then
 		function ENT:Deploy()
 			return true
