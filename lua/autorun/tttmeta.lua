@@ -569,6 +569,10 @@ else
 		hook.Remove("CalcView", "rearview")
 		hook.Remove("PreDrawViewModel", "rearview")
 
+		-- Disable Metastruct nametag rendering
+		hook.Remove("PostDrawTranslucentRenderables", "nametags")
+		hook.Remove("UpdateAnimation", "nametags")
+
 		-- Disable clientside hooks from other things that don't work or are obsolete in TTT - remove hook bloat and free up some processing
 		hook.Remove("CalcView", "DeathView")
 		hook.Remove("ShouldDrawLocalPlayer", "DeathView")
