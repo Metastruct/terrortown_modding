@@ -29,6 +29,7 @@ local addons = {
 	"3166539189",	-- Spring Mine
 	"3274577332",	-- Janitor Role
 	"2817879135",   -- Ragmod Reworked
+	"3021464449"	-- Glue Trap
 }
 
 for _, id in ipairs(addons) do
