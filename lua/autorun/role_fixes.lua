@@ -214,6 +214,12 @@ util.OnInitialize(function()
 				end
 			end
 		end
+
+		-- Sacrifice related fixes
+		if ROLE_SACRIFICE then
+			-- The sacrifice's defib references this convar but it's never defined so it errors, create it here to fix the error
+			CreateConVar("ttt2_sacrificedefi_res_thrall", 1, {FCVAR_ARCHIVE, FCVAR_NOTIFY})
+		end
 	else
 		-- Clientside only tweaks
 
