@@ -180,7 +180,7 @@ function CLGAMEMODESUBMENU:CreateRoleList()
 				s:CalcExpandHeight()
 
 				-- Sometimes the scrollbar appearing is just enough for text to wrap onto a new line, check for this roughly 2 ticks later
-				timer.Simple(0.025, function()
+				timer.Simple(0.03, function()
 					if IsValid(s) and s.Expanded then
 						s:CalcExpandHeight()
 						baseContainer:SetTall(s.ExpandHeight)
@@ -477,7 +477,7 @@ AddCustomExplanation(ROLE_VAMPIRE,
 Harm people in any way to fulfill your bloodlust.
 Like the usual traitor, your goal is to eliminate all the innocents with the help of your traitor buddies.
 
-If you melee someone, you will consume their blood and heal up!
+You will heal based on the amount of damage you deal while you have bloodlust!
 You can overheal a sizeable amount if you're already at max health. Don't worry, other people will still see you as "Healthy" while you're overhealed.
 
 Press [{vampirebatkey}] to turn into a "bat", letting you fly around quickly and escape from danger! You can change this bind in the F1's Key Bindings menu.
@@ -532,30 +532,12 @@ If someone important has gone down, you can revive them with your one-time use d
 
 Try not to get yourself involved by killing someone! If you break your oath, you will be stripped of your medical supplies and lose some karma!]])
 
-AddCustomExplanation(ROLE_AMNESIAC,
-	[[You are suffering from amnesia and don't remember what role you are. Finding and confirming an unidentified body will surely jog your memory.
-
-Once you've confirmed a body, you will discretely become that body's role.
-
-While you are an amnesiac, you are on neither side. You can still contribute to the killing, but you could weaken the side you end up joining...]])
-
 AddCustomExplanation(ROLE_WRATH,
 	[[You are an innocent with a short fuse. If you are wrongly killed, you will come back with a vengeance.
 
 Being killed by another innocent vexes you, thus you will awaken as a traitor. Kill the fuckers.
 
 You aren't aware of your wrath nature. You will only discover it in death. Unless, of course, a traitor kills you.]])
-
-AddCustomExplanation(ROLE_CUPID,
-	[[You are Cupid! You want to make two people fall in love and work together! Til death do them part...
-
-Take out your Cupid Crossbow and shoot someone to mark them for love. You can then either choose to shoot another person to make those two people lovers, or you can shoot yourself to become lovers with that person!
-
-Lovers are bound by their hearts. If one takes damage, the other will take damage too. If one dies, the other will soon die from shock.
-
-If one lover is a traitor, the other non-traitor lover will help them as their current role. Love wins!
-
-Once you have used up your crossbow, you will act as an ordinary innocent.]])
 
 AddCustomExplanation(ROLE_BOMBER,
 	[[You are an innocent rigged with C4. When you die, you'll leave your C4 on the floor ready to explode!
@@ -566,14 +548,6 @@ AddCustomExplanation(ROLE_SACRIFICE,
 	[[You are an innocent who is willing to trade their life for someone more important.
 
 You have a special defib that can bring someone back to life, killing you in the process! Be sure to make the right choice!]])
-
-AddCustomExplanation(ROLE_SEANCE,
-	[[You are an innocent that can see spirits. Could the dead be trying to tell you something?
-
-You will see yellow floating orbs around where dead players are spectating. If you see many orbs in one area, there's probably something interesting there!
-You can try calling out to the spirits to have them relay information!
-
-You can feel when someone has died. This can be useful information for your team if they haven't noticed yet.]])
 
 AddCustomExplanation(ROLE_OCCULTIST,
 	[[You are an innocent part of the occult! You've performed a ritual successfully, now you will come back to life when you fall below 25 HP.
@@ -587,6 +561,20 @@ AddCustomExplanation(ROLE_PARANOID,
 	[[You are an paranoid innocent. You've equipped yourself with a dead man's switch that will alert the others of your death.
 
 Even if you're killed silently, everyone will know you have died somewhere. Try not to wander off too far!]])
+
+AddCustomExplanation(ROLE_ELDERLY,
+	[[You are an old, frail person. You don't care who wins, you'll join them when they do! But only if you survive to the end...
+
+You need to be careful! Your frail body can't take much damage.]])
+
+AddCustomExplanation(ROLE_REVOLUTIONARY,
+	[[You are a detective... sort of. You don't have a DNA scanner, but you've managed to gain access to the traitor's shop!
+
+Everyone knows you're a revolutionary - you have the hat and everything!
+
+You can buy equipment using credits by pressing [{menukey}].
+
+You'll start with a few credits - you can get more credits by killing traitors, and by looting unused credits off corpses.]])
 
 AddCustomExplanation(ROLE_ZOMBIE,
 	[[(This role is only available in special conditions.)
