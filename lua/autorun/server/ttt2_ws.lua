@@ -28,7 +28,6 @@ local addons = {
 	"3003509443",	-- Detective Toy Car (Cozy Coupe)
 	"3166539189",	-- Spring Mine
 	"3274577332",	-- Janitor Role
-	"2817879135",   -- Ragmod Reworked
 	"3021464449"	-- Glue Trap
 }
 
