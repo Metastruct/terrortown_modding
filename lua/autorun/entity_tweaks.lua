@@ -207,12 +207,6 @@ util.OnInitialize(function()
 		end
 	end
 
-	-- Medic's Defib: Correct its BaseClass since TTT2 changed the base defib's classname lol
-	ENT = weapons.GetStored("weapon_ttt2_medic_defibrillator")
-	if ENT then
-		ENT.Base = "weapon_ttt_defib"
-	end
-
 	-- Newton Launcher: Replace the charged shot with a pulling shot, update help text too (English only, sorry!)
 	ENT = weapons.GetStored("weapon_ttt_push")
 	if ENT then
