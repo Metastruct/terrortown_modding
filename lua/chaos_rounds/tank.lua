@@ -595,49 +595,52 @@ function ROUND:Start()
 end
 
 function ROUND:Finish()
-	timer.Simple(gameloop.GetPhaseEnd() - CurTime() - 0.5, function()
-		-- When the chaos round is over, remove all its logic when the next round is being prepared
-		-- This allows people to mess around with the Tank a bit more when the round is over :)
+	-- I have to delay the removal timer because funny latency I guess :)))
+	timer.Simple(0.5, function()
+		timer.Simple(gameloop.GetPhaseEnd() - CurTime() - 0.5, function()
+			-- When the chaos round is over, remove all its logic when the next round is being prepared
+			-- This allows people to mess around with the Tank a bit more when the round is over :)
 
-		hook.Remove("PlayerFootstep", tankHookTag)
-		hook.Remove("PlayerStepSoundTime", tankHookTag)
-		hook.Remove("TranslateActivity", tankHookTag)
-		hook.Remove("CalcMainActivity", tankHookTag)
-		hook.Remove("SetupMove", tankHookTag)
-		hook.Remove("ScalePlayerDamage", tankHookTag)
-		hook.Remove("TTTPlayerSpeedModifier", tankHookTag)
+			hook.Remove("PlayerFootstep", tankHookTag)
+			hook.Remove("PlayerStepSoundTime", tankHookTag)
+			hook.Remove("TranslateActivity", tankHookTag)
+			hook.Remove("CalcMainActivity", tankHookTag)
+			hook.Remove("SetupMove", tankHookTag)
+			hook.Remove("ScalePlayerDamage", tankHookTag)
+			hook.Remove("TTTPlayerSpeedModifier", tankHookTag)
 
-		if SERVER then
-			hook.Remove("TTT2ModifyFinalRoles", tankHookTag)
-			hook.Remove("TTT2CanOrderEquipment", tankHookTag)
-			hook.Remove("TTTCanSearchCorpse", tankHookTag)
+			if SERVER then
+				hook.Remove("TTT2ModifyFinalRoles", tankHookTag)
+				hook.Remove("TTT2CanOrderEquipment", tankHookTag)
+				hook.Remove("TTTCanSearchCorpse", tankHookTag)
 
-			hook.Remove("PlayerCanPickupWeapon", tankHookTag)
-			hook.Remove("PlayerUse", tankHookTag)
-			hook.Remove("TTT2OnButtonUse", tankHookTag)
-			hook.Remove("OnPlayerHitGround", tankHookTag)
-			hook.Remove("EntityTakeDamage", tankHookTag)
-			hook.Remove("DoPlayerDeath", tankHookTag)
+				hook.Remove("PlayerCanPickupWeapon", tankHookTag)
+				hook.Remove("PlayerUse", tankHookTag)
+				hook.Remove("TTT2OnButtonUse", tankHookTag)
+				hook.Remove("OnPlayerHitGround", tankHookTag)
+				hook.Remove("EntityTakeDamage", tankHookTag)
+				hook.Remove("DoPlayerDeath", tankHookTag)
 
-			timer.Remove(tankHookTag .. "_IdleVoice")
+				timer.Remove(tankHookTag .. "_IdleVoice")
 
-			-- Disable all tank related NW variables on all players
-			for k, v in ipairs(player.GetAll()) do
-				v:SetNWBool(tankHitSlowNwTag, false)
+				-- Disable all tank related NW variables on all players
+				for k, v in ipairs(player.GetAll()) do
+					v:SetNWBool(tankHitSlowNwTag, false)
 
-				TTTStopBeingTank(v)
+					TTTStopBeingTank(v)
+				end
+
+				TTTChosenTank = nil
+			else
+				hook.Remove("TTT2PreventAccessShop", tankHookTag)
+				hook.Remove("TTTRenderEntityInfo", tankHookTag)
+
+				if IsValid(TTTTankMusic) then
+					TTTTankMusic:Stop()
+					TTTTankMusic = nil
+				end
 			end
-
-			TTTChosenTank = nil
-		else
-			hook.Remove("TTT2PreventAccessShop", tankHookTag)
-			hook.Remove("TTTRenderEntityInfo", tankHookTag)
-
-			if IsValid(TTTTankMusic) then
-				TTTTankMusic:Stop()
-				TTTTankMusic = nil
-			end
-		end
+		end)
 	end)
 
 	-- Fade out the music if it's there :)

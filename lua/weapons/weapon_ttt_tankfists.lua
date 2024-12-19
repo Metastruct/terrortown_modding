@@ -212,7 +212,9 @@ function SWEP:TraceAttack()
 					if droppedByStick then
 						-- Force has to be applied a frame later if it was dropped
 						timer.Simple(0, function()
-							applyPunchForce(ent, force)
+							if IsValid(ent) then
+								applyPunchForce(ent, force)
+							end
 						end)
 					else
 						applyPunchForce(ent, force)
