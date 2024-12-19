@@ -59,7 +59,10 @@ if SERVER then
 
 	local force_chaos_round = nil
 	function ForceChaosRound(round_name)
-		if round_name == nil then
+		if round_name == false then
+			force_chaos_round = nil
+			return
+		elseif round_name == nil then
 			force_chaos_round = true
 		else
 			if not ROUNDS[round_name] then
