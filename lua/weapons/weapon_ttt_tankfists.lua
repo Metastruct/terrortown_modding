@@ -13,6 +13,9 @@ if CLIENT then
 
 	SWEP.ViewModelFlip = false
 	SWEP.ViewModelFOV = 45
+
+	SWEP.Icon = "vgui/ttt/icon_skull"
+	SWEP.IconLetter = "h"
 end
 
 SWEP.HoldType = "normal"
@@ -172,10 +175,13 @@ function SWEP:TraceAttack()
 			if SERVER then
 				ent = self:AffectSpecialEntity(ent, tr) or ent
 
-				local force = eyeAim * 700
-				force.z = 200
+				local isPlayer = ent:IsPlayer()
 
-				if ent:IsPlayer() then
+				local force = eyeAim * (isPlayer and 700 or 900)
+
+				if isPlayer then
+					force.z = 200
+
 					ent:SetGroundEntity(NULL)
 					ent:SetVelocity(force)
 
