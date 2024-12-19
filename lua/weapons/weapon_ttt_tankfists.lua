@@ -33,7 +33,7 @@ SWEP.Primary.SwingSteps = 10
 
 SWEP.Primary.HitSound = "infected/tank_punch.ogg"
 
-SWEP.Secondary.Delay = 8
+SWEP.Secondary.Delay = 999
 SWEP.Secondary.ThrowDelay = 2.3
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
@@ -67,6 +67,13 @@ SWEP.AttackVoiceLines = {
 function SWEP:SetupDataTables()
 	self:NetworkVar("Float", "PunchTime")
 	self:NetworkVar("Float", "RockThrowTime")
+end
+
+function SWEP:Initialize()
+	-- Because of some Meta code shenanigans, this has to be set here or else it's stuck at 1s
+	self.Secondary.Delay = 8
+
+	BaseClass.Initialize(self)
 end
 
 function SWEP:PrimaryAttack()
