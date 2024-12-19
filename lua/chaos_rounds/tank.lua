@@ -444,15 +444,15 @@ function ROUND:Start()
 			end
 		end)
 
-		hook.Add("TTTCanUseTraitorButton", tankHookTag, function(pl)
-			if IsValid(pl) and pl:GetNWBool(tankNwTag) then
-				return false
-			end
-		end)
-
 		hook.Add("PlayerCanPickupWeapon", tankHookTag, function(pl, wep, dropBlockingWeapon, isPickupProbe)
 			if IsValid(pl) and pl:GetNWBool(tankNwTag) and IsValid(wep) and wep:GetClass() != tankWeaponClass then
 				return false, 3
+			end
+		end)
+
+		hook.Add("TTT2OnButtonUse", tankHookTag, function(pl, ent)
+			if pl:GetNWBool(tankNwTag) then
+				return false
 			end
 		end)
 
@@ -611,10 +611,10 @@ function ROUND:Finish()
 			hook.Remove("TTT2ModifyFinalRoles", tankHookTag)
 			hook.Remove("TTT2CanOrderEquipment", tankHookTag)
 			hook.Remove("TTTCanSearchCorpse", tankHookTag)
-			hook.Remove("TTTCanUseTraitorButton", tankHookTag)
 
 			hook.Remove("PlayerCanPickupWeapon", tankHookTag)
 			hook.Remove("PlayerUse", tankHookTag)
+			hook.Remove("TTT2OnButtonUse", tankHookTag)
 			hook.Remove("OnPlayerHitGround", tankHookTag)
 			hook.Remove("EntityTakeDamage", tankHookTag)
 			hook.Remove("DoPlayerDeath", tankHookTag)
