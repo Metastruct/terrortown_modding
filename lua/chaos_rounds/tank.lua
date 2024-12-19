@@ -366,7 +366,7 @@ function ROUND:Start()
 		if not pl:GetNWBool(tankNwTag) then
 			local attacker = dmg:GetAttacker()
 
-			if IsValid(attacker) and attacker:IsPlayer() then
+			if IsValid(attacker) and attacker:IsPlayer() and not attacker:GetNWBool(tankNwTag) then
 				dmg:ScaleDamage(0.25)
 			end
 		end
@@ -585,7 +585,7 @@ function ROUND:Start()
 		sound.PlayFile("sound/infected/tank_bg.ogg", "noplay noblock", function(audio)
 			if IsValid(audio) then
 				audio:EnableLooping(true)
-				audio:SetVolume(0.7)
+				audio:SetVolume(0.6)
 				audio:Play()
 
 				TTTTankMusic = audio
