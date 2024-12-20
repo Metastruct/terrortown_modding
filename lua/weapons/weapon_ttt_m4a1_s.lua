@@ -10,7 +10,7 @@ end
 SWEP.Base = "weapon_tttbase"
 SWEP.HoldType = "ar2"
 
-SWEP.Primary.Ammo = "Pistol"
+SWEP.Primary.Ammo = "SMG1"
 SWEP.Primary.Delay = 0.12
 SWEP.Primary.Recoil = 1.2
 SWEP.Primary.Cone = 0.018
@@ -32,7 +32,7 @@ SWEP.IronSightsAng = Vector(2.599, -1.3, -3.6)
 
 SWEP.Kind = WEAPON_EQUIP1
 SWEP.AutoSpawnable = false
-SWEP.AmmoEnt = "item_ammo_pistol_ttt"
+SWEP.AmmoEnt = "item_ammo_smg1_ttt"
 SWEP.CanBuy = {ROLE_TRAITOR}
 SWEP.InLoadoutFor = {nil}
 SWEP.LimitedStock = true
