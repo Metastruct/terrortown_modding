@@ -1,28 +1,28 @@
 local ROUND = {}
 ROUND.Name = "Tank!"
-ROUND.Description = "[BETA] What is that thing!? Take it out before it kills us all!"
+ROUND.Description = "What is that thing!? Take it out before it kills us all!"
 
 local tankHookTag = "TTTL4DTank"
 local tankNetTag = "TTTUpdateL4DTank"
 local tankNwTag = "TTTIsL4DTank"
 local tankVoiceNwTag = "TTTL4DTankNextVoiceLine"
 local tankRockThrowNwTag = "TTTL4DTankRockThrowStart"
-local tankModel = "models/infected/hulk.mdl"
-local tankWeaponClass = "weapon_ttt_tankfists"
-
 local tankHitSlowNwTag = "TTTL4DTankHitSlow"
+
+local tankModel = "models/infected/hulk_ttt.mdl"
+local tankWeaponClass = "weapon_ttt_tankfists"
 
 if SERVER then
 	util.AddNetworkString(tankNetTag)
 
 	-- Include all the tank stuff here instead of sprawling it around multiple files
-	resource.AddFile("models/infected/hulk.mdl")
-	resource.AddFile("models/v_models/weapons/v_claw_hulk.mdl")
-	resource.AddSingleFile("materials/models/infected/hulk_01.vmt")
-	resource.AddSingleFile("materials/models/infected/tank_color.vtf")
-	resource.AddSingleFile("materials/models/infected/tank_normal.vtf")
-	resource.AddSingleFile("materials/models/v_models/infected/v_hulk.vmt")
-	resource.AddSingleFile("materials/models/v_models/infected/v_hulk_t.vmt")
+	resource.AddFile("models/infected/hulk_ttt.mdl")
+	resource.AddFile("models/infected/v_hulk_ttt.mdl")
+	resource.AddSingleFile("materials/models/infected/hulk_ttt/hulk_01.vmt")
+	resource.AddSingleFile("materials/models/infected/hulk_ttt/tank_color.vtf")
+	resource.AddSingleFile("materials/models/infected/hulk_ttt/tank_normal.vtf")
+	resource.AddSingleFile("materials/models/infected/hulk_ttt/v_hulk.vmt")
+	resource.AddSingleFile("materials/models/infected/hulk_ttt/v_hulk_t.vmt")
 	resource.AddSingleFile("sound/infected/tank_bg.ogg")
 	resource.AddSingleFile("sound/infected/tank_punch.ogg")
 	resource.AddSingleFile("sound/infected/tank_rock_hit.ogg")
@@ -90,7 +90,7 @@ if SERVER then
 			end
 		end
 
-		local newHP = 500 + (2500 * plMultiplier)
+		local newHP = 1000 + (1500 * plMultiplier)
 		pl:SetMaxHealth(newHP)
 		pl:SetHealth(newHP)
 
@@ -106,7 +106,7 @@ if SERVER then
 		if plPhys:IsValid() then
 			pl.l4dTankInfo.OldMass = plPhys:GetMass()
 
-			plPhys:SetMass(200)
+			plPhys:SetMass(250)
 		end
 
 		net.Start(tankNetTag)
@@ -123,16 +123,7 @@ if SERVER then
 
 		if not pl.l4dTankInfo then return end
 
-		local oldModel = pl.l4dTankInfo.OldModel
-
-		pl:SetModel(oldModel)
-
-		-- For some reason, this needs to be done for clients to see them normally again
-		timer.Simple(0.2, function()
-			if IsValid(pl) then
-				pl:SetModel(oldModel)
-			end
-		end)
+		pl:SetModel(pl.l4dTankInfo.OldModel)
 
 		if pac and pac.TogglePartDrawing then
 			pac.TogglePartDrawing(pl, true)
@@ -215,16 +206,35 @@ else
 				OldModel = oldModel
 			}
 
-			-- If outfitter is present, use it to ensure it overrides the user chosen outfit
+			-- If outfitter is present, disable it on them and spam setting the model because outfitter loves to ignore SetModel for some time after
 			if outfitter then
-				pl:SetModel(tankModel)
-				pl:EnforceModel(tankModel)
+				pl:EnforceModel()
+
+				local timerName = tankNetTag .. tostring(pl:EntIndex())
+				timer.Create(timerName, 0, 80, function()
+					if IsValid(pl) then
+						pl:SetModel(tankModel)
+					else
+						timer.Remove(timerName)
+					end
+				end)
+			end
+
+			-- If the localplayer is the tank and PAC is present, force the pac to be cleared - sorry but PAC causes too much bullshit :(
+			if pl == LocalPlayer() and pac and pace and pace.ClearParts then
+				pace.ClearParts()
+
+				chat.AddText(
+					Color(255, 60, 60), "NOTE: ",
+					Color(255, 180, 180), "To avoid visual glitches as the Tank, any PACs you were wearing have been cleared.")
 			end
 		else
 			if not pl.l4dTankInfo then return end
 
 			-- If outfitter is present, set their model back to their chosen outfit
 			if outfitter then
+				timer.Remove(tankNetTag .. tostring(pl:EntIndex()))
+
 				if pl.l4dTankInfo.UsingOutfitter then
 					pl:EnforceModel(pl.l4dTankInfo.OldModel)
 				else
@@ -232,11 +242,15 @@ else
 				end
 			end
 
-			local oldModel = pl.l4dTankInfo.OldModel
-
-			pl:SetModel(oldModel)
+			pl:SetModel(pl.l4dTankInfo.OldModel)
 
 			pl.l4dTankInfo = nil
+
+			if pl == LocalPlayer() and pac then
+				chat.AddText(
+					Color(255, 60, 60), "NOTE: ",
+					Color(150, 255, 150), "Any PACs you were wearing before controlling the Tank were cleared. It is now safe to wear PACs again.")
+			end
 		end
 	end)
 end
@@ -251,13 +265,15 @@ local footstepSounds = {
 }
 
 local activityTranslations = {
-	[ACT_MP_STAND_IDLE]	= 6,
-	[ACT_MP_CROUCH_IDLE] = 12,
-	[ACT_MP_WALK] = 6,
-	[ACT_MP_CROUCHWALK] = 12,
-	[ACT_MP_RUN] = 10,
-	[ACT_MP_JUMP] = 30,
-	[ACT_LAND] = 119
+	[ACT_MP_STAND_IDLE]	= ACT_WALK,
+	[ACT_MP_CROUCH_IDLE] = ACT_RUN_CROUCH,
+	[ACT_MP_WALK] = ACT_WALK,
+	[ACT_MP_CROUCHWALK] = ACT_RUN_CROUCH,
+	[ACT_MP_RUN] = ACT_RUN,
+	[ACT_MP_JUMP] = ACT_JUMP,
+	[ACT_LAND] = ACT_FLINCH_STOMACH,
+	[ACT_MP_ATTACK_STAND_PRIMARYFIRE] = ACT_RANGE_ATTACK1,
+	[ACT_MP_ATTACK_CROUCH_PRIMARYFIRE] = ACT_RANGE_ATTACK1
 }
 
 local climbUpSeqId, climbDownSeqId, throwSeqId
@@ -295,14 +311,6 @@ function ROUND:Start()
 
 	hook.Add("TranslateActivity", tankHookTag, function(pl, act)
 		if pl:GetNWBool(tankNwTag) then
-			-- The attack animations keep changing activity IDs, so find the ID and add it to the list when loaded
-			if not activityTranslations[ACT_MP_ATTACK_STAND_PRIMARYFIRE] and pl:GetModel() == tankModel then
-				local id = pl:GetSequenceActivity(pl:LookupSequence("Attack_Moving"))
-
-				activityTranslations[ACT_MP_ATTACK_STAND_PRIMARYFIRE] = id
-				activityTranslations[ACT_MP_ATTACK_CROUCH_PRIMARYFIRE] = id
-			end
-
 			return activityTranslations[act] or 1
 		end
 	end)
@@ -379,6 +387,13 @@ function ROUND:Start()
 			elseif pl:GetNWBool(tankHitSlowNwTag) then
 				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 0.5
 			end
+		end
+	end)
+
+	hook.Add("PACMutateEntity", tankHookTag, function(owner, mutatorClass, ent)
+		-- Disallow tanks from being mutated by PAC
+		if IsValid(ent) and ent:IsPlayer() and ent:GetNWBool(tankNwTag) then
+			return false
 		end
 	end)
 
@@ -503,6 +518,42 @@ function ROUND:Start()
 			end
 		end)
 
+		hook.Add("TTT2ModifyRagdollVelocity", tankHookTag, function(pl, rag, vel)
+			-- If a player dies from a tank punch, pass the intended velocity to their corpse
+			if pl.TankPunchedVelocity then
+				vel.x = pl.TankPunchedVelocity.x
+				vel.y = pl.TankPunchedVelocity.y
+				vel.z = pl.TankPunchedVelocity.z
+			end
+		end)
+
+		local propRagdollClass = "prop_ragdoll"
+
+		-- If for whatever reason a ragdoll of the tank is spawned (eg. tank is tased), disallow it from being picked up with the magneto-stick, plus make it heavier
+		hook.Add("OnEntityCreated", tankHookTag, function(ent)
+			if IsValid(ent) and ent:GetClass() == propRagdollClass then
+				timer.Simple(0, function()
+					if IsValid(ent) and ent:GetModel() == tankModel then
+						ent.CanPickup = false
+
+						for i = 0, ent:GetPhysicsObjectCount() - 1 do
+							local phys = ent:GetPhysicsObjectNum(i)
+
+							if phys:IsValid() then
+								phys:SetMass(250)
+							end
+						end
+					end
+				end)
+			end
+		end)
+
+		hook.Add("PrePACConfigApply", tankHookTag, function(pl)
+			if IsValid(pl) and pl:GetNWBool(tankNwTag) then
+				return false, "to avoid visual glitches as the Tank, you can't wear PACs. You can once the round is over."
+			end
+		end)
+
 		timer.Create(tankHookTag .. "_IdleVoice", 6, 0, function()
 			local now = CurTime()
 
@@ -566,6 +617,10 @@ function ROUND:Start()
 		rf:AddPlayer(plTank)
 
 		plTank:EmitSound("ui/pickup_guitarriff10.wav", 75, 100, 1, CHAN_AUTO, 0, 0, rf)
+
+		-- Spawn extra ammo from every ammo spawnpoint
+		local ammoForTypes, ammo = WEPS.GetAmmoForSpawnTypes()
+		entspawn.SpawnEntities(map.GetAmmoSpawns(), ammoForTypes, ammo, AMMO_TYPE_RANDOM)
 	else
 		hook.Add("TTT2PreventAccessShop", tankHookTag, function(pl)
 			if pl:GetNWBool(tankNwTag) then
@@ -573,19 +628,51 @@ function ROUND:Start()
 			end
 		end)
 
+		local traitorButtonClass = "ttt_traitor_button"
+		local infoClassBlacklist = {
+			prop_ragdoll = true
+		}
+
+		local materialLMB = Material("vgui/ttt/hudhelp/lmb")
+		local smashText, smashRed = "SMASH...", Color(255, 80, 80)
+
 		hook.Add("TTTRenderEntityInfo", tankHookTag, function(tData)
 			local pl = LocalPlayer()
 			local ent = tData:GetEntity()
 
-			if pl:GetNWBool(tankNwTag) and IsValid(ent) and not ent:IsPlayer() then
-				tData.params.drawInfo = false
+			if pl:GetNWBool(tankNwTag) and IsValid(ent) then
+				if not ent:IsPlayer() and ent:GetClass() != traitorButtonClass then
+					if tData.params.drawInfo then
+						if ent:IsWeapon() or infoClassBlacklist[ent:GetClass()] then
+							tData.params.drawInfo = false
+							tData.params.drawOutline = false
+						else
+							if tData.params.displayInfo then
+								if tData.params.displayInfo.key then
+									tData.params.displayInfo.key = nil
+									tData.params.displayInfo.icon = {}
+
+									tData:AddIcon(materialLMB)
+								end
+
+								if tData.params.displayInfo.subtitle then
+									tData:SetSubtitle(smashText, smashRed)
+								end
+
+								if tData.params.displayInfo.desc then
+									tData.params.displayInfo.desc = {}
+								end
+							end
+						end
+					end
+				end
 			end
 		end)
 
 		sound.PlayFile("sound/infected/tank_bg.ogg", "noplay noblock", function(audio)
 			if IsValid(audio) then
 				audio:EnableLooping(true)
-				audio:SetVolume(0.6)
+				audio:SetVolume(0.5)
 				audio:Play()
 
 				TTTTankMusic = audio
@@ -597,7 +684,11 @@ end
 function ROUND:Finish()
 	-- I have to delay the removal timer because funny latency I guess :)))
 	timer.Simple(0.5, function()
-		timer.Simple(gameloop.GetPhaseEnd() - CurTime() - 0.5, function()
+		local removeTime = gameloop.GetPhaseEnd() - CurTime() - 0.5
+
+		print("[TTTTank] Removing chaos round hooks in " .. tostring(removeTime) .. "s...")
+
+		timer.Simple(removeTime, function()
 			-- When the chaos round is over, remove all its logic when the next round is being prepared
 			-- This allows people to mess around with the Tank a bit more when the round is over :)
 
@@ -608,6 +699,8 @@ function ROUND:Finish()
 			hook.Remove("SetupMove", tankHookTag)
 			hook.Remove("ScalePlayerDamage", tankHookTag)
 			hook.Remove("TTTPlayerSpeedModifier", tankHookTag)
+
+			hook.Remove("PACMutateEntity", tankHookTag)
 
 			if SERVER then
 				hook.Remove("TTT2ModifyFinalRoles", tankHookTag)
@@ -620,6 +713,10 @@ function ROUND:Finish()
 				hook.Remove("OnPlayerHitGround", tankHookTag)
 				hook.Remove("EntityTakeDamage", tankHookTag)
 				hook.Remove("DoPlayerDeath", tankHookTag)
+				hook.Remove("TTT2ModifyRagdollVelocity", tankHookTag)
+				hook.Remove("OnEntityCreated", tankHookTag)
+
+				hook.Remove("PrePACConfigApply", tankHookTag)
 
 				timer.Remove(tankHookTag .. "_IdleVoice")
 
@@ -640,6 +737,8 @@ function ROUND:Finish()
 					TTTTankMusic = nil
 				end
 			end
+
+			print("[TTTTank] Removed chaos round hooks")
 		end)
 	end)
 

@@ -16,6 +16,8 @@ ENT.ClassName = className
 
 ENT.Model = "models/props_debris/concrete_chunk01a.mdl"
 
+ENT.Damage = 50
+
 -- Magneto-stick isn't allowed to pick this up
 ENT.CanPickup = false
 ENT.Projectile = true
@@ -69,7 +71,24 @@ if SERVER then
 			mask = MASK_SOLID_BRUSHONLY
 		}
 
-		for k, v in ipairs(ents.FindInSphere(hitPos, 32)) do
+		local hitList = ents.FindInSphere(hitPos, 32)
+
+		if IsValid(data.HitEntity) then
+			local hasHitEnt = false
+
+			for k, v in ipairs(hitList) do
+				if v == data.HitEntity then
+					hasHitEnt = true
+					break
+				end
+			end
+
+			if not hasHitEnt then
+				hitList[#hitList + 1] = data.HitEntity
+			end
+		end
+
+		for k, v in ipairs(hitList) do
 			if v != self
 				and v != owner
 				and v:IsValid()
@@ -90,7 +109,7 @@ if SERVER then
 
 					dmg:SetInflictor(self)
 					dmg:SetAttacker(attacker)
-					dmg:SetDamage(50)
+					dmg:SetDamage(self.Damage)
 					dmg:SetDamageType(DMG_CLUB)
 					dmg:SetDamagePosition(hitPos)
 					dmg:SetDamageForce(forceVel)
@@ -175,7 +194,7 @@ else
 	local particleColor = Color(200, 200, 200)
 
 	local gibModel = "models/props_debris/concrete_chunk03a.mdl"
-	local gibLifeTime, gibFadeTime = 5, 3
+	local gibLifeTime, gibFadeTime = 9, 3
 
 	local emitter
 
