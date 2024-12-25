@@ -461,17 +461,18 @@ else
 		local radius = 5
 
 		for i = 1, 50 do
-			local randPos = VectorRand() * radius
+			local randPos = VectorRand(-radius, radius)
 
 			local p = em:Add(particleTex, pos + randPos)
 			if p then
 				local gray = math.random(20, 80)
+				local velRand = math.Rand(250, 500)
 
 				p:SetColor(gray, gray, gray)
 				p:SetStartAlpha(255)
 				p:SetEndAlpha(10)
 				p:SetAirResistance(300)
-				p:SetVelocity((VectorRand() * math.Rand(250, 500)) + (normal * 40 * i))
+				p:SetVelocity(VectorRand(-velRand, velRand) + (normal * 40 * i))
 
 				p:SetLifeTime(0)
 				p:SetDieTime(math.Rand(30, 35))
