@@ -4,6 +4,7 @@ end
 
 local tankVoiceNwTag = "TTTL4DTankNextVoiceLine"
 local tankRockThrowNwTag = "TTTL4DTankRockThrowStart"
+local tankHitSlowNwTag = "TTTL4DTankHitSlow"
 
 DEFINE_BASECLASS("weapon_tttbase")
 
@@ -36,7 +37,9 @@ SWEP.Primary.SwingSteps = 10
 
 SWEP.Primary.HitSound = "infected/tank_punch.ogg"
 
-SWEP.Secondary.Delay = 999
+local intendedRockThrowDelay = 8
+
+SWEP.Secondary.Delay = intendedRockThrowDelay
 SWEP.Secondary.ThrowDelay = 2.3
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
@@ -46,7 +49,7 @@ SWEP.Secondary.Ammo = "none"
 SWEP.Secondary.Sound = "infected/tank_rock_pickup.ogg"
 
 SWEP.UseHands = false
-SWEP.ViewModel = "models/v_models/weapons/v_claw_hulk.mdl"
+SWEP.ViewModel = "models/infected/v_hulk_ttt.mdl"
 SWEP.WorldModel = "models/weapons/w_grenade.mdl"
 SWEP.idleResetFix = true
 
@@ -74,9 +77,13 @@ end
 
 function SWEP:Initialize()
 	-- Because of some Meta code shenanigans, this has to be set here or else it's stuck at 1s
-	self.Secondary.Delay = 8
+	self.Secondary.Delay = intendedRockThrowDelay
 
 	BaseClass.Initialize(self)
+
+	if CLIENT then
+		self:AddTTT2HUDHelp("Smash", "Throw rock")
+	end
 end
 
 function SWEP:PrimaryAttack()
@@ -119,11 +126,15 @@ function SWEP:PrimaryAttack()
 end
 
 local applyPunchForce = SERVER and function(ent, force)
-	local phys = ent:GetPhysicsObject()
+	local angleVel = VectorRand(-800, 800)
 
-	if phys:IsValid() then
-		phys:AddVelocity(force)
-		phys:AddAngleVelocity(VectorRand() * 800)
+	for i = 0, ent:GetPhysicsObjectCount() - 1 do
+		local phys = ent:GetPhysicsObjectNum(i)
+
+		if phys:IsValid() then
+			phys:AddVelocity(force)
+			phys:AddAngleVelocity(angleVel)
+		end
 	end
 end or nil
 
@@ -187,8 +198,36 @@ function SWEP:TraceAttack()
 
 					ent:ViewPunch(Angle(-30, 0, math.random(-30, 30)))
 
-					ent:SetNWBool("TTTL4DTankHitSlow", true)
+					ent:SetNWBool(tankHitSlowNwTag, true)
+
+					-- Run this later in case the player skidded along the ground and didn't trigger OnPlayerHitGround to remove the slow
+					timer.Simple(0.5, function()
+						if ent:GetNWBool(tankHitSlowNwTag) and ent:OnGround() then
+							local timerName = tankHitSlowNwTag .. tostring(ent:EntIndex())
+
+							if not timer.Exists(timerName) then
+								timer.Create(timerName, 0.5, 1, function()
+									if IsValid(ent) then
+										ent:SetNWBool(tankHitSlowNwTag, false)
+									end
+								end)
+							end
+						end
+					end)
+
+					-- Use this to pass the punch force to the victim player's corpse if they die
+					ent.TankPunchedVelocity = force * 0.7
+
+					timer.Simple(0, function()
+						if IsValid(ent) then
+							ent.TankPunchedVelocity = nil
+						end
+					end)
 				else
+					if ent:IsRagdoll() then
+						force:Mul(0.7)
+					end
+
 					ent:ForcePlayerDrop()
 
 					local droppedByStick = false
@@ -291,16 +330,36 @@ function SWEP:Think()
 	end
 
 	local throwTime = self:GetRockThrowTime()
-	if throwTime > 0 and CurTime() >= throwTime then
-		self:SetRockThrowTime(0)
+	if throwTime > 0 then
+		local now = CurTime()
 
-		if SERVER then
-			self:SpawnThrowRock()
+		if SERVER and not self.ThrowVoiceLinePlayed and now >= (throwTime - 0.5) then
+			self:PlayThrowVoiceLine()
+			self.ThrowVoiceLinePlayed = true
+		elseif now >= throwTime then
+			self:SetRockThrowTime(0)
+
+			if SERVER then
+				self:SpawnThrowRock()
+				self.ThrowVoiceLinePlayed = nil
+			end
 		end
 	end
 end
 
 if SERVER then
+	SWEP.ThrowVoiceLines = {
+		"player/tank/voice/yell/tank_throw_01.wav",
+		"player/tank/voice/yell/tank_throw_02.wav",
+		"player/tank/voice/yell/tank_throw_03.wav",
+		"player/tank/voice/yell/tank_throw_04.wav",
+		"player/tank/voice/yell/tank_throw_05.wav",
+		"player/tank/voice/yell/tank_throw_06.wav",
+		"player/tank/voice/yell/tank_throw_09.wav",
+		"player/tank/voice/yell/tank_throw_10.wav",
+		"player/tank/voice/yell/tank_throw_11.wav"
+	}
+
 	local function breakOffDoor(ent)
 		-- Just in case this somehow trips twice
 		if ent.isBroken then return end
@@ -344,6 +403,17 @@ if SERVER then
 		return prop
 	end
 
+	local function findAndOpenAreaPortal(ent)
+		local doorName = ent:GetName()
+		if doorName != "" then
+			for k, v in ipairs(ents.FindByClass("func_areaportal")) do
+				if v:GetInternalVariable("target") == doorName then
+					v:Fire("Open")
+				end
+			end
+		end
+	end
+
 	local specialEntityActions = {
 		prop_door_rotating = function(ent)
 			-- Only allow punching it off if it isn't ignoring +use
@@ -351,44 +421,40 @@ if SERVER then
 
 			local prop = breakOffDoor(ent)
 
-			-- Doors can be associated with areaportals, which will leave a void if the door is removed
-			-- If the door is named, find all areaportals linked to this door and force them open
-			local doorName = ent:GetName()
-			if doorName != "" then
-				for k, v in ipairs(ents.FindByClass("func_areaportal")) do
-					if v:GetInternalVariable("target") == doorName then
-						v:Fire("Open")
-					end
+			if IsValid(prop) then
+				-- Doors can be associated with areaportals, which will leave a void if the door is removed
+				-- If the door is named, find all areaportals linked to this door and force them open
+				findAndOpenAreaPortal(ent)
+
+				-- TTT2 already finds paired doors and set them in this handy field on the door entity
+				-- If there's a paired door, break that off too
+				if IsValid(ent.otherPairDoor) then
+					local prop2 = breakOffDoor(ent.otherPairDoor)
+
+					timer.Simple(0, function()
+						if not IsValid(prop) or not IsValid(prop2) then return end
+
+						local phys = prop2:GetPhysicsObject()
+						if phys:IsValid() then
+							phys:AddVelocity(prop:GetVelocity())
+						end
+					end)
 				end
+
+				return prop
 			end
-
-			-- TTT2 already finds paired doors and set them in this handy field on the door entity
-			-- If there's a paired door, break that off too
-			if IsValid(ent.otherPairDoor) then
-				local prop2 = breakOffDoor(ent.otherPairDoor)
-
-				timer.Simple(0, function()
-					if not IsValid(prop) or not IsValid(prop2) then return end
-
-					local phys = prop2:GetPhysicsObject()
-					if phys:IsValid() then
-						phys:AddVelocity(prop:GetVelocity())
-					end
-				end)
-			end
-
-			return prop
 		end,
 		func_door = function(ent)
 			-- Only allow punching it open if it can be opened with +use or by touch (to not break maps)
 			if not ent:HasSpawnFlags(256) and not ent:HasSpawnFlags(1024) then return end
 
-			local speed = ent:GetInternalVariable("speed")
+			local prop = breakOffDoor(ent)
 
-			ent:Fire("SetSpeed", 300)
-			ent:Fire("Toggle")
+			if IsValid(prop) then
+				findAndOpenAreaPortal(ent)
 
-			ent:Fire("SetSpeed", speed, 0.05)
+				return prop
+			end
 		end,
 		func_breakable_surf = function(ent)
 			-- Just break it all
@@ -484,6 +550,16 @@ if SERVER then
 		if phys:IsValid() then
 			phys:SetVelocityInstantaneous(dir * 1250)
 		end
+	end
+
+	function SWEP:PlayThrowVoiceLine()
+		local owner = self:GetOwner()
+		if not IsValid(owner) then return end
+
+		owner:SetNWFloat(tankVoiceNwTag, CurTime() + 2.25)
+
+		-- Intentionally play sound on owner so other tank voicelines can be interrupted by this one and vice versa
+		owner:EmitSound(self.ThrowVoiceLines[math.random(1, #self.ThrowVoiceLines)], 90, 100, 1, CHAN_VOICE2)
 	end
 else
 	local loweredY = 32
@@ -619,4 +695,17 @@ else
 	end
 
 	SWEP.OnReloaded = SWEP.OnRemove
+
+	local propPhysicsClass = "prop_physics"
+
+	-- Props that are given brush models don't get any render bounds set, so grab them from "GetModelRenderBounds" (this feels so silly)
+	hook.Add("NetworkEntityCreated", "TTTL4DTankDoors", function(ent)
+		if ent:GetClass() == propPhysicsClass and string.StartsWith(ent:GetModel(), "*") then
+			local mins, maxs = ent:GetRenderBounds()
+
+			if mins == vector_origin and maxs == vector_origin then
+				ent:SetRenderBounds(ent:GetModelRenderBounds())
+			end
+		end
+	end)
 end

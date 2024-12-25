@@ -1,0 +1,4 @@
+VertexLitGeneric
+{
+$baseTexture "models\infected\hulk_ttt\tank_color"
+}

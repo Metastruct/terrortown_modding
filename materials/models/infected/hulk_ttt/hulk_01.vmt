@@ -1,7 +1,7 @@
 VertexLitGeneric
 {
-$baseTexture "models/infected/hulk/tank_color"
-$bumpmap "models/infected/hulk/tank_normal"
+$baseTexture "models/infected/hulk_ttt/tank_color"
+$bumpmap "models/infected/hulk_ttt/tank_normal"
 $halflambert 0
 $diffuseexp 1
 $phong 1
