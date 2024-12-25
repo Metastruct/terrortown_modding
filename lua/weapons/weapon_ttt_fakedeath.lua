@@ -606,7 +606,7 @@ if SERVER then
 		end
 
 		for i = 1, 10 do
-			local jitter = VectorRand() * 60
+			local jitter = VectorRand(-60, 60)
 			jitter.z = 20
 
 			util.PaintDown(rag:GetPos() + jitter, "Blood", rag)

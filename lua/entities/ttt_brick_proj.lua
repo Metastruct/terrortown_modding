@@ -351,7 +351,7 @@ else
 		emitter:SetPos(pos)
 
 		for i = 1, 25 do
-			local p = emitter:Add(particleFleck, pos + (VectorRand() * 3))
+			local p = emitter:Add(particleFleck, pos + VectorRand(-3, 3))
 
 			if p then
 				p:SetDieTime(3)
@@ -365,7 +365,7 @@ else
 				p:SetLighting(true)
 
 				p:SetGravity(particleFleckGravity)
-				p:SetVelocity(VectorRand() * 128)
+				p:SetVelocity(VectorRand(-128, 128))
 				p:SetBounce(0.333)
 				p:SetCollide(true)
 			end
@@ -386,7 +386,7 @@ else
 				p:SetLighting(true)
 
 				p:SetGravity(particleDustGravity)
-				p:SetVelocity(VectorRand() * 200)
+				p:SetVelocity(VectorRand(-200, 200))
 				p:SetAirResistance(800)
 				p:SetCollide(true)
 			end
@@ -405,7 +405,7 @@ else
 		emitter:SetPos(pos)
 
 		for i = 1, 12 do
-			local p = emitter:Add(bstrdParticle, pos + (VectorRand() * 3))
+			local p = emitter:Add(bstrdParticle, pos + VectorRand(-3, 3))
 
 			if p then
 				p:SetDieTime(2)
@@ -417,7 +417,7 @@ else
 				p:SetEndAlpha(0)
 
 				p:SetGravity(bstrdGravity)
-				p:SetVelocity(VectorRand() * 100)
+				p:SetVelocity(VectorRand(-100, 100))
 				p:SetAirResistance(200)
 				p:SetBounce(1)
 				p:SetCollide(true)
