@@ -24,7 +24,6 @@ local Tag = "tttfix"
 
 require("hookextras")
 
-
 do
 	-- Attempt restoring failed hooks once
 	local restored = setmetatable({}, {
@@ -242,6 +241,20 @@ if SERVER then
 				tttRevive(pl, ent)
 			end,
 			"developers", true)
+
+			-- Helper command to quickly save the current MapVote config values
+			if MapVote then
+				aowl.AddCommand("savemapvoteconfig", "Writes the current MapVote.Config table to MapVote's config.txt file", function(pl, line, target)
+					if not istable(MapVote.Config) then
+						MapVote.Config = {}
+					end
+
+					file.Write("mapvote/config.txt", util.TableToJSON(MapVote.Config))
+
+					print("Wrote MapVote.Config table to 'mapvote/config.txt'. Called by " .. (IsValid(pl) and tostring(pl) or "CONSOLE"))
+				end,
+				"developers", true)
+			end
 		end
 
 		if PROPSPEC then
