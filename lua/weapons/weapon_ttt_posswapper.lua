@@ -3,6 +3,8 @@ local className = "weapon_ttt_posswapper"
 if SERVER then
 	AddCSLuaFile()
 
+	util.AddNetworkString(className)
+
 	resource.AddFile("materials/vgui/ttt/icon_posswapper.vmt")
 else
 	SWEP.PrintName = "Position Swapper"
@@ -21,6 +23,8 @@ else
 
 	SWEP.Icon = "vgui/ttt/icon_posswapper"
 	SWEP.IconLetter = "h"
+
+	SWEP.NullIcon = Material("null")
 end
 
 DEFINE_BASECLASS("weapon_tttbase")
@@ -35,15 +39,17 @@ SWEP.WorldModel = "models/weapons/w_pistol.mdl"
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = false
-SWEP.Primary.Delay = 0.2
+SWEP.Primary.Delay = 0.125
 SWEP.Primary.Ammo = "none"
 SWEP.Primary.Sound = "ambient/machines/thumper_hit.wav"
-SWEP.Primary.SoundFail = "buttons/button2.wav"
+SWEP.Primary.SoundProcessing = "ambient/machines/thumper_top.wav"
+SWEP.Primary.SoundUnavailable = "buttons/button8.wav"
+SWEP.Primary.SoundFail = "player/suit_denydevice.wav"
 
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
-SWEP.Secondary.Delay = 0.025
+SWEP.Secondary.Delay = 0.05
 SWEP.Secondary.Ammo = "none"
 SWEP.Secondary.Sound = "buttons/button14.wav"
 
@@ -53,45 +59,27 @@ SWEP.LimitedStock = true
 
 SWEP.NoSights = true
 
-function SWEP:SetupDataTables()
-	BaseClass.SetupDataTables(self)
-
-	self:NetworkVar("Entity", "TargetPlayer")
-
-	if CLIENT then
-		self:NetworkVarNotify("TargetPlayer", function(ent, name, oldVal, newVal)
-			if oldVal != newVal then
-				timer.Simple(0, function()
-					if IsValid(ent) then
-						ent:RefreshHUDHelp()
-					end
-				end)
-
-				if IsFirstTimePredicted() and ent:GetOwner() == LocalPlayer() then
-					local isValid = IsValid(newVal)
-
-					if isValid then
-						chat.AddText(color_white, "Your swapper has targeted: " .. newVal:Name())
-					else
-						chat.AddText(color_white, "Your swapper target has been cleared")
-					end
-
-					ent:EmitSound(ent.Secondary.Sound, 70, isValid and 120 or 50, 0.6)
-				end
-			end
-		end)
-	end
-end
-
 function SWEP:PrimaryAttack()
 	local owner = self:GetOwner()
 	if not IsValid(owner) then return end
 
-	local target = self:GetTargetPlayer()
-	if not IsValid(target) then return end
-
 	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 	self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
+
+	local target = self.Target
+	if not IsValid(target) then
+		local filter
+
+		if SERVER then
+			filter = RecipientFilter()
+			filter:AddPlayer(owner)
+		end
+
+		-- Play failure sound
+		self:EmitSound(self.Primary.SoundFail, 70, 100, 0.25, CHAN_AUTO, 0, 0, filter)
+
+		return
+	end
 
 	if target:IsTerror() then
 		-- Position swap time!
@@ -137,18 +125,20 @@ function SWEP:PrimaryAttack()
 			EmitSound(self.Primary.Sound, target:WorldSpaceCenter(), 0, CHAN_AUTO, 0.2, 64, 0, 95, 0, filter)
 
 			-- Finally, remove the weapon :)
+			self:StopSound(self.Primary.SoundProcessing)
 			self:Remove()
-		end
-	else
-		local filter
+		elseif not self.ProcessingSwap then
+			-- While we stop the client from attempting to update their target any further while the server handles the swap, give the client some feedback in their latency
+			self.ProcessingSwap = true
 
-		if SERVER then
-			filter = RecipientFilter()
-			filter:AddPlayer(owner)
-		end
+			self:EmitSound(self.Primary.SoundProcessing, 70, 110, 0.25)
 
-		-- Play failure sound
-		self:EmitSound(self.Primary.SoundFail, 70, 86, 0.4, CHAN_AUTO, 0, 0, filter)
+			self:ClearHUDHelp()
+			self:AddHUDHelpLine("Swapping with " .. target:Name() .. "...", self.NullIcon)
+		end
+	elseif SERVER then
+		-- Somehow the target has died without the hooks noticing, handle this now
+		self:SetTargetAsUnavailable()
 	end
 end
 
@@ -156,39 +146,28 @@ function SWEP:SecondaryAttack()
 	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 	self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
 
-	local owner = self:GetOwner()
-	if not IsValid(owner) then return end
+	if CLIENT and IsFirstTimePredicted() and not self.ProcessingSwap then
+		local owner = self:GetOwner()
+		if not IsValid(owner) then return end
 
-	owner:LagCompensation(true)
+		local pos = owner:GetShootPos()
 
-	local pos = owner:GetShootPos()
+		local tr = util.TraceLine({
+			start = pos,
+			endpos = pos + (owner:GetAimVector() * 5000),
+			filter = owner,
+			mask = MASK_SHOT
+		})
 
-	local tr = util.TraceLine({
-		start = pos,
-		endpos = pos + (owner:GetAimVector() * 5000),
-		filter = owner,
-		mask = MASK_SHOT
-	})
-
-	owner:LagCompensation(false)
-
-	local ent = tr.Entity
-
-	if IsValid(ent) and ent:IsPlayer() and ent:IsTerror() then
-		self:SetTargetPlayer(ent)
-	end
-end
-
-function SWEP:Reload()
-	if IsValid(self:GetTargetPlayer()) then
-		self:SetTargetPlayer(NULL)
+		if tr.Entity != self.Target then
+			self:UpdateTarget(tr.Entity)
+		end
 	end
 end
 
 function SWEP:Deploy()
 	if SERVER then
-		-- Call this from the server in case Deploy isn't called properly on the client
-		self:CallOnClient("RefreshHUDHelp")
+		self:SyncTargetWithOwner()
 	else
 		self:RefreshHUDHelp()
 	end
@@ -196,9 +175,126 @@ function SWEP:Deploy()
 	return true
 end
 
-if CLIENT then
+if SERVER then
+	function SWEP:Reload() end
+
+	function SWEP:SetTargetAsUnavailable()
+		local oldTarget = self.Target
+
+		self.Target = nil
+
+		local owner = self:GetOwner()
+		if not IsValid(owner) then return end
+
+		net.Start(className)
+		net.WriteBool(true)
+		net.WriteUInt(IsValid(oldTarget) and oldTarget:EntIndex() or 0, 8) -- EntIndex for verification if possible
+
+		net.Send(owner)
+	end
+
+	function SWEP:SyncTargetWithOwner()
+		local owner = self:GetOwner()
+		if not IsValid(owner) then return end
+
+		local targetValid = IsValid(self.Target)
+
+		net.Start(className)
+		net.WriteBool(false)
+		net.WriteBool(not targetValid)
+
+		if targetValid then
+			net.WritePlayer(self.Target)
+		else
+			-- The target isn't valid, make sure the field is nil on server
+			self.Target = nil
+		end
+
+		net.Send(owner)
+	end
+
+	net.Receive(className, function(_, pl)
+		local wep = pl:GetActiveWeapon()
+		if not IsValid(wep) or wep:GetClass() != className then return end
+
+		local shouldClear = net.ReadBool()
+
+		if shouldClear then
+			wep.Target = nil
+		else
+			local target = net.ReadPlayer()
+
+			if IsValid(target) then
+				wep.Target = target
+			end
+		end
+	end)
+
+	local function clearPlayerFromAllPosSwappers(pl)
+		for k, v in ipairs(ents.FindByClass(className)) do
+			if v.Target == pl then
+				v:SetTargetAsUnavailable()
+			end
+		end
+	end
+
+	-- Handle clearing the target if they die or disconnect
+	hook.Add("PostPlayerDeath", className, clearPlayerFromAllPosSwappers)
+	hook.Add("PlayerDisconnected", className, clearPlayerFromAllPosSwappers)
+else
+	function SWEP:Reload()
+		if self.ProcessingSwap or not IsFirstTimePredicted() then return end
+
+		local owner = self:GetOwner()
+
+		-- KeyDownLast will disallow holding Reload to run it every tick
+		if not IsValid(owner) or owner:KeyDownLast(IN_RELOAD) then return end
+
+		if self.Target then
+			self:UpdateTarget()
+
+			net.Start(className)
+			net.WriteBool(true)
+			net.SendToServer()
+		end
+	end
+
+	local nameColor = Color(255, 200, 0)
+	local deathColor = Color(255, 120, 120)
+
+	function SWEP:UpdateTarget(ent)
+		local shouldClear = ent == nil
+
+		if shouldClear then
+			self.Target = nil
+
+			net.Start(className)
+			net.WriteBool(true)
+			net.SendToServer()
+
+			chat.AddText(color_white, "Your swapper target has been cleared.")
+		else
+			if not (IsValid(ent) and ent:IsPlayer() and ent:IsTerror()) then return end
+
+			self.Target = ent
+
+			net.Start(className)
+			net.WriteBool(false)
+			net.WritePlayer(ent)
+			net.SendToServer()
+
+			chat.AddText(
+				color_white, "Your swapper has targeted: ",
+				nameColor, ent:Name())
+		end
+
+		self:EmitSound(self.Secondary.Sound, 70, shouldClear and 50 or 120, 0.5)
+
+		self:RefreshHUDHelp()
+	end
+
 	function SWEP:RefreshHUDHelp()
-		local target = self:GetTargetPlayer()
+		local target = self.Target
 		local hasTarget = IsValid(target)
 
 		self:AddTTT2HUDHelp(hasTarget and ("Swap with " .. target:Name()) or nil, "Choose target")
@@ -207,4 +303,43 @@ if CLIENT then
 			self:AddHUDHelpLine("Clear target", Key("+reload", "R"))
 		end
 	end
+
+	net.Receive(className, function()
+		local pl = LocalPlayer()
+		local wep = pl:GetWeapon(className)
+		if not IsValid(wep) then return end
+
+		local becameUnavailable = net.ReadBool()
+
+		if becameUnavailable then
+			-- The server is telling us the target isn't available because they've died, sync things up on the client and show feedback
+			if IsValid(wep.Target) then
+				local targetId = net.ReadUInt(8)
+
+				-- Make sure we haven't changed target before the message got here
+				if wep.Target:EntIndex() != targetId then return end
+			end
+
+			wep.Target = nil
+			wep.ProcessingSwap = nil -- Reset this just in case
+
+			pl:EmitSound(wep.Primary.SoundUnavailable, 70, 110)
+
+			chat.AddText(
+				color_white, "Your swapper target has ",
+				deathColor, "died",
+				color_white, "!")
+		else
+			local isClear = net.ReadBool()
+			local target = net.ReadPlayer()
+
+			if isClear then
+				wep.Target = nil
+			else
+				wep.Target = target
+			end
+		end
+
+		wep:RefreshHUDHelp()
+	end)
 end
