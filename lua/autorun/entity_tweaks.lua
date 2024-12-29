@@ -248,6 +248,17 @@ util.OnInitialize(function()
 	if SERVER then
 		-- Serverside only tweaks
 
+		-- No Fall Damage Item: Re-enable passthrough of fall damage when landing on players
+		hook.Add("OnPlayerHitGround", "TTT2NoFallDmg", function(pl)
+			if pl:Alive() and pl:IsTerror() and pl:HasEquipmentItem("item_ttt_nofalldmg") then
+				local ground = pl:GetGroundEntity()
+
+				if not IsValid(ground) or not ground:IsPlayer() then
+					return false
+				end
+			end
+		end)
+
 		-- Jihad Bomb: Set explosion radius and disable damage behind walls
 		-- PS: this is terrible unfortunately the developer of this weapon left no configuration possible...
 		ENT = weapons.GetStored("weapon_ttt_jihad_bomb")
@@ -261,11 +272,11 @@ util.OnInitialize(function()
 
 				self:EmitSound("weapons/jihad_bomb/big_explosion.wav", 400, math.random(100, 125))
 
-				-- change body to a random charred body
+				-- Change body to a random charred body
 				local model = "models/humans/charple0" .. math.random(1, 4) .. ".mdl"
 				self:GetOwner():SetModel(model)
 
-				-- explosion damage
+				-- Explosion damage
 				util.BlastDamage(self, dmgowner, pos, r_outer, dmg)
 
 				local effect = EffectData()
@@ -276,10 +287,8 @@ util.OnInitialize(function()
 				effect:SetMagnitude(dmg)
 				util.Effect("Explosion", effect, true, true)
 
-				-- make sure the owner dies anyway
-				if SERVER and IsValid(dmgowner) and dmgowner:Alive() then
-					dmgowner:Kill()
-				end
+				-- Make sure the owner dies anyway
+				dmgowner:Kill()
 
 				--BurnOwnersBody(model)
 				self:Remove()
