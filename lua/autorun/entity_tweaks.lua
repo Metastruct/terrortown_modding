@@ -288,7 +288,9 @@ util.OnInitialize(function()
 				util.Effect("Explosion", effect, true, true)
 
 				-- Make sure the owner dies anyway
-				dmgowner:Kill()
+				if IsValid(dmgowner) and dmgowner:Alive() then
+					dmgowner:Kill()
+				end
 
 				--BurnOwnersBody(model)
 				self:Remove()
