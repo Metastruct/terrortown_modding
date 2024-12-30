@@ -4,10 +4,8 @@ local className = "weapon_ttt_squirtbottle"
 local hookTag = "TTTSprayBottle"
 
 local CurTime = CurTime
-local IsFirstTimePredicted = IsFirstTimePredicted
 local math = math
 local random = math.random
-local tableCount = table.Count
 
 if SERVER then
 	AddCSLuaFile()
@@ -29,7 +27,7 @@ else
 
 	SWEP.EquipMenuData = {
 		type = "item_weapon",
-		desc = "A spray bottle filled with water.\n\nTerrorists don't like being sprayed."
+		desc = "A spray bottle filled with... something.\n\nTerrorists don't like being sprayed."
 	}
 
 	SWEP.Icon = "vgui/ttt/icon_squirtbottle"
@@ -44,33 +42,36 @@ SWEP.HoldType = "pistol"
 SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/tw1stal1cky/c_squirtbottle.mdl"
 SWEP.WorldModel = "models/weapons/tw1stal1cky/w_squirtbottle.mdl"
+SWEP.idleResetFix = true
 
+SWEP.Primary.Range = 86
+SWEP.Primary.Delay = 0.25
+SWEP.Primary.Automatic = false
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
-SWEP.Primary.Automatic = false
-SWEP.Primary.Delay = 0.25
 SWEP.Primary.Ammo = "none"
 SWEP.Primary.Sound = "weapons/tw1stal1cky/squirtbottle_use.wav"
 
+SWEP.Secondary.Delay = 0.1
+SWEP.Secondary.Automatic = false
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
-SWEP.Secondary.Automatic = false
-SWEP.Secondary.Delay = 0.1
 SWEP.Secondary.Ammo = "none"
 
 SWEP.Kind = WEAPON_EXTRA
 SWEP.CanBuy = {ROLE_DETECTIVE}
 SWEP.LimitedBuy = false
 
-SWEP.DeploySpeed = 1.8
+SWEP.DeploySpeed = 2
 SWEP.NoSights = true
 
-SWEP.StunDuration = 1
-SWEP.StunDurationMin = 0.175
-SWEP.StunDurationStepAmount = 0.08
+SWEP.StunDuration = 1.2
+SWEP.StunDurationMin = 0.15
+SWEP.StunDurationStepAmount = 0.075
 
-SWEP.LastSpray = 0
-SWEP.LastNetSend = 0
+function SWEP:SetupDataTables()
+	self:NetworkVar("Float", "LastSpray")
+end
 
 function SWEP:PrimaryAttack()
 	local now = CurTime()
@@ -82,13 +83,7 @@ function SWEP:PrimaryAttack()
 	if not IsValid(owner) then return end
 
 	owner:SetAnimation(PLAYER_ATTACK1)
-
-	self:SendWeaponAnim(ACT_VM_IDLE)
 	self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
-
-	self:_addTimer(0.5, function()
-		self:SendWeaponAnim(ACT_VM_IDLE)
-	end, "idle")
 
 	local wLvl = owner:WaterLevel()
 
@@ -99,69 +94,16 @@ function SWEP:PrimaryAttack()
 
 	self:EmitSound(self.Primary.Sound, 68, random(97, 103))
 
-	self.LastSpray = now
+	self:SetLastSpray(now)
 
-	if CLIENT then return end
-
-	self:HandleSpray()
+	if SERVER then
+		self:HandleSpray()
+	end
 end
 
 function SWEP:SecondaryAttack() end
 
 function SWEP:Reload() end
-
-function SWEP:Deploy()
-	self._predictedTimers = {}
-
-	self:SendWeaponAnim(ACT_VM_DRAW)
-
-	self:_addTimer(0.833, function()
-		self:SendWeaponAnim(ACT_VM_IDLE)
-	end, "idle")
-
-	return true
-end
-
-SWEP._predictedTimers = {}
-
-function SWEP:_addTimer(time, func, id)
-	if id then
-		self._predictedTimers[id] = {
-			time = CurTime() + time,
-			func = func
-		}
-	else
-		table.insert(self._predictedTimers, {
-			time = CurTime() + time,
-			func = func
-		})
-	end
-end
-
-function SWEP:_removeTimer(id)
-	self._predictedTimers[id] = nil
-end
-
-function SWEP:Tick()
-	if not IsFirstTimePredicted() then return end
-	if tableCount(self._predictedTimers) == 0 then return end
-
-	local owner = self:GetOwner()
-
-	if not IsValid(owner) or owner:GetActiveWeapon() != self then
-		self._predictedTimers = {}
-		return
-	end
-
-	local now = CurTime()
-
-	for k, v in pairs(self._predictedTimers) do
-		if v.time <= now then
-			pcall(v.func)
-			self._predictedTimers[k] = nil
-		end
-	end
-end
 
 hook.Add("StartCommand", hookTag, function(pl, cm)
 	if pl._SprayedEffectEnd and pl._SprayedEffectEnd > CurTime() and pl:Alive() then
@@ -182,28 +124,21 @@ if SERVER then
 		gmod_hands = true
 	}
 
+	local hullSize = Vector(4, 4, 4)
+
 	function SWEP:HandleSpray()
 		local now = CurTime()
 		local owner = self:GetOwner()
 
-		if (self.LastNetSend or 0) + 0.08 <= now then
-			net.Start(hookTag)
-			net.WriteEntity(self)
-			net.SendOmit(owner)
-
-			self.LastNetSend = now
-		end
-
 		owner:LagCompensation(true)
 
 		local pos = owner:GetShootPos()
-		local size = Vector(5, 5, 5)
 
 		local tr = util.TraceHull({
 			start = pos,
-			endpos = pos + (owner:GetAimVector() * 80),
-			mins = -size,
-			maxs = size,
+			endpos = pos + (owner:GetAimVector() * self.Primary.Range),
+			mins = -hullSize,
+			maxs = hullSize,
 			filter = owner,
 			mask = MASK_SHOT_HULL
 		})
@@ -221,10 +156,12 @@ if SERVER then
 				ent:SetEyeAngles(ent:EyeAngles() + Angle(random(-10, 10), random(-15, 15), 0))
 				ent:ViewPunch(Angle(1, 0, random() < 0.5 and 5 or -5))
 
+				ent:AnimRestartGesture(GESTURE_SLOT_FLINCH, ACT_FLINCH_HEAD, true)
+
 				net.Start(hookTag)
-				net.WriteEntity(ent)
+				net.WritePlayer(ent)
 				net.WriteFloat(ent._SprayedEffectEnd)
-				net.Send(ent)
+				net.Broadcast()
 			end
 		end
 
@@ -309,15 +246,12 @@ else
 	end)
 
 	net.Receive(hookTag, function()
-		local wep = net.ReadEntity()
-		local endTime = net.ReadFloat()
-
 		pl = pl or LocalPlayer()
 
-		if wep == pl then
-			pl._SprayedEffectEnd = endTime
-		elseif IsValid(wep) and wep:IsWeapon() then
-			wep.LastSpray = CurTime()
+		local victim = net.ReadPlayer()
+
+		if IsValid(victim) then
+			victim:AnimRestartGesture(GESTURE_SLOT_FLINCH, ACT_FLINCH_HEAD, true)
 		end
 	end)
 
@@ -328,7 +262,7 @@ else
 
 		local boneAF, boneAR, boneAU = boneA:Forward(), boneA:Right(), boneA:Up()
 
-		for i=1,8 do
+		for i = 1, 8 do
 			local p = pe:Add(particleMat, boneP)
 
 			p:SetDieTime(0.65)
@@ -360,9 +294,7 @@ else
 
 		if not IsValid(owner) then return end
 
-		self.LastSpray = self.LastSpray or 0
-
-		if self.LastSpray + 0.1 >= CurTime() then
+		if self:GetLastSpray() + 0.1 >= CurTime() then
 			local bone = owner:LookupBone(handBoneName)
 			if not bone then return end
 
@@ -378,9 +310,7 @@ else
 	end
 
 	function SWEP:PostDrawViewModel(vm, _, pl)
-		self.LastSpray = self.LastSpray or 0
-
-		if self.LastSpray + 0.125 >= CurTime() then
+		if self:GetLastSpray() + 0.125 >= CurTime() then
 			local p, a = pl:GetShootPos(), pl:EyeAngles()
 
 			p:Add(a:Forward() * 12)
