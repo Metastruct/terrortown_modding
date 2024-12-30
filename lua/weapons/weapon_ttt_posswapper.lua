@@ -133,10 +133,20 @@ function SWEP:PrimaryAttack()
 
 			-- Make them swap vehicles too if applicable
 			if IsValid(ownerVeh) then
-				target:EnterVehicle(ownerVeh)
+				if isfunction(target.Sit) and ownerVeh.playerdynseat then
+					-- Owner's vehicle is a SitAnywhere seat, sit in their spot
+					target:Sit(ownerVeh:GetPos() - ownerVeh:GetUp() * 18, ownerVeh:GetAngles(), ownerVeh:GetParent())
+				else
+					target:EnterVehicle(ownerVeh)
+				end
 			end
 			if IsValid(targetVeh) then
-				owner:EnterVehicle(targetVeh)
+				if isfunction(owner.Sit) and targetVeh.playerdynseat then
+					-- Target's vehicle is a SitAnywhere seat, sit in their spot
+					owner:Sit(targetVeh:GetPos() - targetVeh:GetUp() * 18, targetVeh:GetAngles(), targetVeh:GetParent())
+				else
+					owner:EnterVehicle(targetVeh)
+				end
 			end
 
 			-- Finally, remove the weapon :)
