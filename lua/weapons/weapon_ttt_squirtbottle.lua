@@ -256,7 +256,7 @@ else
 
 		if IsValid(victim) then
 			if victim == pl then
-				pl._SprayedEffectEnd = endTime
+				pl._SprayedEffectEnd = net.ReadFloat()
 			end
 
 			victim:AnimRestartGesture(GESTURE_SLOT_FLINCH, ACT_FLINCH_HEAD, true)
