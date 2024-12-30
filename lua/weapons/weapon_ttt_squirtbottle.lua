@@ -238,7 +238,9 @@ else
 	local pl
 
 	hook.Add("RenderScreenspaceEffects", hookTag, function()
-		pl = pl or LocalPlayer()
+		if not pl then
+			pl = LocalPlayer()
+		end
 
 		if pl._SprayedEffectEnd and pl._SprayedEffectEnd > CurTime() and pl:Alive() then
 			DrawMaterialOverlay("effects/water_warp01", math.min((pl._SprayedEffectEnd - CurTime()) * 0.18, 0.16))
@@ -246,11 +248,17 @@ else
 	end)
 
 	net.Receive(hookTag, function()
-		pl = pl or LocalPlayer()
+		if not pl then
+			pl = LocalPlayer()
+		end
 
 		local victim = net.ReadPlayer()
 
 		if IsValid(victim) then
+			if victim == pl then
+				pl._SprayedEffectEnd = endTime
+			end
+
 			victim:AnimRestartGesture(GESTURE_SLOT_FLINCH, ACT_FLINCH_HEAD, true)
 		end
 	end)
