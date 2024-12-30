@@ -67,7 +67,7 @@ function SWEP:PrimaryAttack()
 	self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
 
 	local target = self.Target
-	if not IsValid(target) then
+	if target == nil then
 		local filter
 
 		if SERVER then
@@ -81,15 +81,22 @@ function SWEP:PrimaryAttack()
 		return
 	end
 
-	if target:IsTerror() then
+	if IsValid(target) and (not target:IsPlayer() or target:IsTerror()) then
 		-- Position swap time!
 		if SERVER then
 			local screenFadeColor = Color(15, 15, 120, 180)
 
 			local filter = RecipientFilter()
 
-			local ownerPos, ownerAng = owner:GetPos(), owner:EyeAngles()
-			local targetPos, targetAng = target:GetPos(), target:EyeAngles()
+			local ownerPos, ownerAng, ownerVeh = owner:GetPos(), owner:EyeAngles(), owner.GetVehicle and owner:GetVehicle() or NULL
+			local targetPos, targetAng, targetVeh = target:GetPos(), target:EyeAngles(), target.GetVehicle and target:GetVehicle() or NULL
+
+			if owner:InVehicle() then
+				owner:ExitVehicle()
+			end
+			if target:InVehicle() then
+				target:ExitVehicle()
+			end
 
 			-- Move owner and do screenfade
 			owner:SetPos(targetPos)
@@ -123,6 +130,14 @@ function SWEP:PrimaryAttack()
 			filter:RemovePlayer(target)
 
 			EmitSound(self.Primary.Sound, target:WorldSpaceCenter(), 0, CHAN_AUTO, 0.2, 64, 0, 95, 0, filter)
+
+			-- Make them swap vehicles too if applicable
+			if IsValid(ownerVeh) then
+				target:EnterVehicle(ownerVeh)
+			end
+			if IsValid(targetVeh) then
+				owner:EnterVehicle(targetVeh)
+			end
 
 			-- Finally, remove the weapon :)
 			self:StopSound(self.Primary.SoundProcessing)
