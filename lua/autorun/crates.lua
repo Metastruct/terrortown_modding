@@ -123,7 +123,7 @@ if SERVER then
 		if crate.CrateType == "supply" then
 			local equipment = {}
 			for k, v in pairs(weapons.GetList()) do
-				if v.CanBuy and #v.CanBuy > 0 then
+				if v.CanBuy and #v.CanBuy > 0 and v.Base ~= "weapon_tttbasegrenade" then
 					table.insert(equipment, v.ClassName)
 				end
 			end
