@@ -10,7 +10,7 @@ local function updateRoleSettings()
 	-- Update the defective role's color so it's easier to distinguish
 	local ROLE = roles.GetStored("defective")
 	if ROLE then
-		ROLE.color = Color(255, 131, 164)
+		ROLE.color = Color(255, 0, 40)
 
 		-- Need to update the other color fields too on client
 		if CLIENT then
