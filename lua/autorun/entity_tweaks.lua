@@ -142,6 +142,13 @@ util.OnInitialize(function()
 							owner.disguiserOriginalIsOutfitter = owner.outfitter_mdl != nil
 							owner.disguiserOriginalModel = owner.outfitter_mdl or owner:GetModel()
 
+							-- Clear any PAC outfits due to custom playermodels conflicting
+							if owner == LocalPlayer() and pac and pace and pace.ClearParts then
+								pace.ClearParts()
+
+								chat.AddText(Color(255, 120, 120), "Your PAC has been cleared to avoid any playermodel conflicts with the Identity Disguiser. You can rewear your PAC once you're done.")
+							end
+
 							-- Use outfitter to enforce it because a simple SetModel isn't effective
 							owner:EnforceModel(mdl)
 						end
@@ -160,6 +167,10 @@ util.OnInitialize(function()
 
 							owner.disguiserOriginalIsOutfitter = nil
 							owner.disguiserOriginalModel = nil
+
+							if owner == LocalPlayer() and pac then
+								chat.AddText(Color(150, 255, 150), "It's now safe to rewear your PAC.")
+							end
 						end
 					end
 				end)
