@@ -37,8 +37,13 @@ if SERVER then
 		if pl[shushedVarName] then return true end
 	end)
 
-	-- Support for Metastruct: don't let them use chatsounds
+	-- Support for Metastruct: don't let shushed players use chatsounds
 	hook.Add("ChatsoundsShouldNetwork", hookName, function(pl)
+		if pl[shushedVarName] then return false end
+	end)
+
+	-- Support for Metastruct: don't let shushed players emit hurt sounds
+	hook.Add("ShouldPlayerEmitHurtSound", hookName, function(pl)
 		if pl[shushedVarName] then return false end
 	end)
 
@@ -101,6 +106,11 @@ else
 			VOICE.SetSpeaking(false)
 			return true
 		end
+	end)
+
+	-- Support for Metastruct: don't show shushed players' overhead chat
+	hook.Add("ShouldShowRTChat", hookName, function(pl)
+		if pl[shushedVarName] then return false end
 	end)
 
 	hook.Add("TTT2RenderMarkerVisionInfo", "HUDDrawMarkerVisionShushed", function(mvData)
