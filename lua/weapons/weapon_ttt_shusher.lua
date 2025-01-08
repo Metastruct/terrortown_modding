@@ -110,7 +110,7 @@ else
 
 	-- Support for Metastruct: don't show shushed players' overhead chat
 	hook.Add("ShouldShowRTChat", hookName, function(pl)
-		if pl[shushedVarName] then return false end
+		if pl:GetNWBool(shushedVarName) then return false end
 	end)
 
 	hook.Add("TTT2RenderMarkerVisionInfo", "HUDDrawMarkerVisionShushed", function(mvData)
