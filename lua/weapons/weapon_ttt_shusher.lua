@@ -64,6 +64,13 @@ if SERVER then
 	-- Remove Shushed effect when respawned or killed
 	hook.Add("PlayerSpawn", hookName, removeSushedEffect)
 	hook.Add("PostPlayerDeath", hookName, removeSushedEffect)
+
+	-- Remove Shushed effect when the round ends
+	hook.Add("TTTEndRound", hookName, function()
+		for k, v in ipairs(player.GetAll()) do
+			removeSushedEffect(v)
+		end
+	end)
 else
 	local TryT = LANG.TryTranslation
 	local materialSushed = Material("vgui/ttt/perks/hud_shushed.png")
