@@ -277,6 +277,9 @@ if SERVER then
 		-- Disable autorepairing windows
 		hook.Remove("OnEntityCreated", "func_breakable_surf_autorepair")
 
+		-- Disable Meta sandbox's fall crushing script - TTT handles this already
+		hook.Remove("OnPlayerHitGround", "crush_players_npcs")
+
 		-- Disable serverside hooks from other things that don't work or are obsolete in TTT - remove hook bloat and free up some processing
 		hook.Remove("PlayerInitialSpawn", "__R4gM0d__")
 		hook.Remove("PlayerSpawn", "__R4gM0d__")
@@ -306,6 +309,7 @@ if SERVER then
 		hook.Remove("EntityRemoved", "useful_commands_ragdollize_cleanup")
 		hook.Remove("EntityRemoved", "useful_commands_ragdollize_ragdollremove")
 		hook.Remove("FindUseEntity", "useless")
+		hook.Remove("PlayerSay", "playersay_emitsound")
 		timer.Remove("AowlJail")
 		timer.Remove("physgun_crosstreams")
 	end)
@@ -528,7 +532,7 @@ else
 				ply:SetVoiceVolumeScale(out_vol)
 
 				-- Once our version of TTT2 updates, we won't need this patch - this console print will remind us
-				if GAMEMODE.Version != "0.14.0b" then
+				if GAMEMODE.Version != "0.13.1b" then
 					MsgC(Color(255, 50, 50), "The VOICE.UpdatePlayerVoiceVolume patch should no longer be needed on this version of TTT2! It can be removed safely.\n")
 				end
 
@@ -627,6 +631,14 @@ else
 		hook.Remove("entity_killed", "tobecontinued")
 		hook.Remove("player_spawn", "tobecontinued")
 		hook.Remove("PlayerBindPress", "ToolMenuFix")
+		hook.Remove("CalcView", "hands_thirdperson")
+		hook.Remove("OnPlayerPhysicsPickup", "hands_thirdperson")
+		hook.Remove("OnPlayerPhysicsDrop", "hands_thirdperson")
+		hook.Remove("KeyPress", "hands_thirdperson")
+		hook.Remove("InputMouseApply", "hands_thirdperson")
+		hook.Remove("PlayerBindPress", "hands_thirdperson")
+		hook.Remove("Think", "hands_thirdperson")
+		hook.Remove("KeyPress", "sent_slots")
 	end)
 end
 
@@ -683,9 +695,10 @@ end)
 
 -- Run these patches when things have initialized
 util.OnInitialize(function()
+	local PLAYER = FindMetaTable("Player")
+
 	-- Since it's being disabled, completely rip out the "boxify" code since it adds several hooks worth of bloat on both realms
 	do
-		local PLAYER = FindMetaTable("Player")	-- pull this out of the do statement if we need to remove more player functions
 		local boxifyTag = "boxify"
 
 		for k,v in next, hook.GetTable() do
@@ -743,6 +756,14 @@ util.OnInitialize(function()
 	-- Disable processing the widgets module - nothing uses it in TTT and no addons use it, so let's free up a bit of processing
 	hook.Remove("PlayerTick", "TickWidgets")
 	hook.Remove("PostDrawEffects", "RenderWidgets")
+
+	-- Disable GoldSrc movement quirk replication - shouldn't have this in TTT
+	hook.Remove("SetupMove", "GoldSrcGStrafe")
+	hook.Remove("SetupMove", "GoldSrcUnduck")
+
+	-- Disable custom footsteps script
+	concommand.Add("footstep_sound", emptyFunc)
+	hook.Remove("PlayerFootstep", "customfootstep")
 
 	-- Disable shared hooks from other things that don't work or are obsolete in TTT - remove hook bloat and free up some processing
 	hook.Remove("EntityRemoved", "npcspec")
