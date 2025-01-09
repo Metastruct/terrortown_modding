@@ -772,6 +772,7 @@ util.OnInitialize(function()
 	hook.Remove("PlayerFly", "restrictors")
 	hook.Remove("PlayerNoClip", "restrictors")
 	hook.Remove("PlayerNoClip", "TC")
+	hook.Remove("EntityEmitSound", "weapon_stunstick")
 
 	PlayerAFKIdle = nil -- Cleanup global func from npcspec/wandercam
 end)
