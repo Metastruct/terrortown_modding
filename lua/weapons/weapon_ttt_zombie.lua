@@ -117,7 +117,7 @@ function SWEP:DealDamage()
 
 		dmg_info:SetAttacker(attacker)
 		dmg_info:SetInflictor(self)
-		dmg_info:SetDamage(15)
+		dmg_info:SetDamage(5)
 
 		SuppressHostEvents(NULL) -- Let the breakable gibs spawn in multiplayer on client
 		tr.Entity:TakeDamageInfo(dmg_info)
