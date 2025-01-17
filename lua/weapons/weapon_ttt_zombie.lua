@@ -70,6 +70,7 @@ function SWEP:SecondaryAttack()
 	if not IsValid(owner) then return end
 	if owner:GetGroundEntity() == NULL then return end -- in the air
 
+	owner:SetGroundEntity(NULL)
 	owner:SetVelocity(owner:GetAimVector() * 1250)
 	owner:EmitSound("npc/fast_zombie/fz_scream1.wav", 80, math.random(95, 105))
 
