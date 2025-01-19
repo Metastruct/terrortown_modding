@@ -7,7 +7,8 @@ local convarDurationName = "ttt_shusher_duration"
 local convarDurationHeadshotName = "ttt_shusher_duration_headshot"
 
 local statusId = "ttt_shushed_status"
-local markerVisionId = "shushed_alert"
+local markerVisionId = "shushed_alert_team"
+local markerVisionSelfId = "shushed_alert_self"
 
 if SERVER then
 	AddCSLuaFile()
@@ -56,6 +57,7 @@ if SERVER then
 			STATUS:RemoveStatus(pl, statusId)
 
 			pl:RemoveMarkerVision(markerVisionId)
+			pl:RemoveMarkerVision(markerVisionSelfId)
 
 			timer.Remove(shushedVarName .. tostring(pl:EntIndex()))
 		end
@@ -124,7 +126,7 @@ else
         local ent = mvData:GetEntity()
         local mvObject = mvData:GetMarkerVisionObject()
 
-        if not mvObject:IsObjectFor(ent, markerVisionId) then return end
+        if not mvObject:IsObjectFor(ent, markerVisionId) and not mvObject:IsObjectFor(ent, markerVisionSelfId) then return end
 
 		-- Remove the wallhacks glow that Marker Vision applies, we don't want that for this
 		if not mvObject.RemovedGlow then
@@ -200,22 +202,15 @@ local function shushBulletCallback(attacker, tr, dmg)
 	local returnTbl = { effects = false }
 
 	if SERVER then
+		if (gameloop and gameloop.GetRoundState() or GetRoundState()) == ROUND_POST then return end
+
 		local ent = tr.Entity
 
 		if IsValid(ent) and ent:IsPlayer() then
-			local shotByTraitor = attacker:GetTeam() == TEAM_TRAITOR
 			local duration = tr.HitGroup == HITGROUP_HEAD and convarDurationHeadshot:GetInt() or convarDuration:GetInt()
 
 			-- If the shot we're making is about to shorten the Shushed effect rather than extend it, don't continue
 			if CurTime() + duration <= ent:GetNWFloat(shushedDurationVarName) then
-				-- If the shot was shot by a non-traitor, make sure the marker updates so everyone can see it
-				if not shotByTraitor then
-					local mvObject = ent:AddMarkerVision(markerVisionId)
-					mvObject:SetOwner(attacker)
-					mvObject:SetVisibleFor(VISIBLE_FOR_ALL)
-					mvObject:SyncToClients()
-				end
-
 				return returnTbl
 			end
 
@@ -226,16 +221,17 @@ local function shushBulletCallback(attacker, tr, dmg)
 			STATUS:AddTimedStatus(ent, statusId, duration, true)
 
 			local mvObject = ent:AddMarkerVision(markerVisionId)
-
-			if shotByTraitor then
-				mvObject:SetOwner(TEAM_TRAITOR)
-				mvObject:SetVisibleFor(VISIBLE_FOR_TEAM)
-			else
-				mvObject:SetOwner(TEAM_INNOCENT)
-				mvObject:SetVisibleFor(VISIBLE_FOR_ALL)
-			end
-
+			mvObject:SetOwner(TEAM_TRAITOR)
+			mvObject:SetVisibleFor(VISIBLE_FOR_TEAM)
 			mvObject:SyncToClients()
+
+			-- If the attacker was not a traitor, let them see the marker specifically
+			if attacker:IsPlayer() and attacker:GetTeam() != TEAM_TRAITOR then
+				local mvObject = ent:AddMarkerVision(markerVisionSelfId)
+				mvObject:SetOwner(attacker)
+				mvObject:SetVisibleFor(VISIBLE_FOR_PLAYER)
+				mvObject:SyncToClients()
+			end
 
 			timer.Create(shushedVarName .. tostring(ent:EntIndex()), duration, 1, function()
 				if IsValid(ent) then
@@ -244,6 +240,7 @@ local function shushBulletCallback(attacker, tr, dmg)
 					ent:SetNWFloat(shushedDurationVarName, 0)
 
 					ent:RemoveMarkerVision(markerVisionId)
+					ent:RemoveMarkerVision(markerVisionSelfId)
 
 					-- The status should already remove itself since it's timed
 				end
