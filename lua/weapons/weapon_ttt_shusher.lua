@@ -102,7 +102,7 @@ else
 	-- If we have been shushed, don't show our name in the voice chat HUD and tell us what's up
 	local lastMsgTime = 0
 	hook.Add("PlayerStartVoice", hookName, function(pl)
-		if pl == LocalPlayer() and pl:GetNWBool(shushedVarName) then
+		if IsValid(pl) and pl == LocalPlayer() and pl:GetNWBool(shushedVarName) then
 			EmitSound("player/suit_denydevice.wav", vector_origin, -2, CHAN_AUTO, 0.5, 0, 0, 100)
 
 			if RealTime() > lastMsgTime + 3 then
