@@ -26,7 +26,7 @@ SWEP.spawnType = WEAPON_TYPE_SHOTGUN
 
 SWEP.Primary.Ammo = "Buckshot"
 SWEP.Primary.Damage = 11
-SWEP.Primary.Cone = 0.08
+SWEP.Primary.Cone = 0.078
 SWEP.Primary.Delay = 1.2
 SWEP.Primary.ClipSize = 8
 SWEP.Primary.ClipMax = 24
@@ -34,7 +34,7 @@ SWEP.Primary.DefaultClip = 8
 SWEP.Primary.Automatic = true
 SWEP.Primary.NumShots = 9
 SWEP.Primary.Sound = Sound("Weapon_M3.Single")
-SWEP.Primary.Recoil = 6.8
+SWEP.Primary.Recoil = 7
 
 SWEP.AutoSpawnable = true
 SWEP.AmmoEnt = "item_box_buckshot_ttt"

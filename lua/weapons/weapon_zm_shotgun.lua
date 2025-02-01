@@ -34,7 +34,7 @@ SWEP.Primary.DefaultClip = 8
 SWEP.Primary.Automatic = true
 SWEP.Primary.NumShots = 9
 SWEP.Primary.Sound = Sound("Weapon_XM1014.Single")
-SWEP.Primary.Recoil = 7.5
+SWEP.Primary.Recoil = 7.6
 
 SWEP.DryFireSound = ")weapons/shotgun/shotgun_empty.wav"
 
