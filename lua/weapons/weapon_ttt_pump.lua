@@ -34,7 +34,7 @@ SWEP.Primary.DefaultClip = 8
 SWEP.Primary.Automatic = true
 SWEP.Primary.NumShots = 9
 SWEP.Primary.Sound = Sound("Weapon_M3.Single")
-SWEP.Primary.Recoil = 7
+SWEP.Primary.Recoil = 6.8
 
 SWEP.AutoSpawnable = true
 SWEP.AmmoEnt = "item_box_buckshot_ttt"
