@@ -254,7 +254,9 @@ if SERVER then
 	function ENT:OnTakeDamage(dmg)
 		if not IsValid(self) then return end
 
-		if self.ReadyToBite or IsValid(self:GetNWEntity(trappedNwVar)) then
+		local toucher = self:GetNWEntity(trappedNwVar)
+
+		if self.ReadyToBite or IsValid(toucher) then
 			self.dmg = self.dmg + dmg:GetDamage()
 
 			if self.dmg >= healthConVar:GetInt() then
@@ -266,6 +268,10 @@ if SERVER then
 				self.ReadyToBite = false
 
 				self:ReleaseTarget()
+
+				if toucher:Health() > 0 then
+					LangChatPrint(toucher, "ttt_bt_freed")
+				end
 
 				timer.Simple(0.1, function()
 					if not IsValid(self) then return end
