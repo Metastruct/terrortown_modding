@@ -31,7 +31,7 @@ hook.Add("StartCommand", "ttt_beartrap_antimove", function(pl, cm)
 	cm:SetSideMove(0)
 	cm:SetUpMove(0)
 
-	cm:SetButtons(bit.band(cm:GetButtons(), bit.bnot(IN_ATTACK), bit.bnot(IN_ATTACK2)))
+	cm:SetButtons(bit.band(cm:GetButtons(), bit.bnot(IN_ATTACK), bit.bnot(IN_ATTACK2), bit.bnot(IN_RELOAD)))
 end)
 
 hook.Add("SetupMove", "ttt_beartrap_antimove", function(pl, mv, cm)
@@ -49,6 +49,8 @@ if SERVER then
 	local damageConVar = CreateConVar("ttt_beartrap_damage_per_tick", 8, {FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "Amount of damage dealt per tick")
 	local healthConVar = CreateConVar("ttt_beartrap_disarm_health", 80, {FCVAR_SERVER_CAN_EXECUTE, FCVAR_ARCHIVE, FCVAR_NOTIFY}, "How much damage the beartrap can take")
 
+	local damageTimerName = "beartrap_dmg"
+
 	function ENT:Initialize()
 		self:SetModel("models/stiffy360/beartrap.mdl")
 		self:SetRenderMode(RENDERMODE_TRANSCOLOR)
@@ -64,6 +66,8 @@ if SERVER then
 
 		timer.Simple(0.666, function()
 			if not IsValid(self) then return end
+
+			self.ReadyToBite = true
 
 			self:SetSequence("OpenIdle")
 			self:SetColor(Color(255, 255, 255, 80))
@@ -98,13 +102,30 @@ if SERVER then
 		net.Send(pl)
 	end
 
+	function ENT:ReleaseTarget()
+		local pl = self:GetNWEntity(trappedNwVar)
+		if not IsValid(pl) then return end
+
+		timer.Remove(damageTimerName .. pl:EntIndex())
+
+		self:SetNWEntity(trappedNwVar, NULL)
+		pl:SetNWBool(trappedNwVar, false)
+
+		if TTT2 then
+			-- Remove element to HUD if TTT2 is loaded
+			STATUS:RemoveStatus(pl, "ttt2_beartrap")
+		end
+	end
+
 	function ENT:Touch(toucher)
 		if not IsValid(self) or not IsValid(toucher) then return end
 
-		if self:GetSequence() ~= 0 and self:GetSequence() ~= 2 then
+		if self.ReadyToBite then
 			-- Don't trigger from non-physical or frozen entities
 			local toucherPhys = toucher:GetPhysicsObject()
 			if not IsValid(toucherPhys) or not toucherPhys:IsMotionEnabled() then return end
+
+			self.ReadyToBite = false
 
 			self:SetPlaybackRate(1)
 			self:SetCycle(0)
@@ -147,7 +168,7 @@ if SERVER then
 
 			LangChatPrint(toucher, "ttt_bt_catched")
 
-			local timerName = "beartrapdmg" .. toucher:EntIndex()
+			local timerName = damageTimerName .. toucher:EntIndex()
 
 			timer.Create(timerName, 1, 0, function()
 				if not IsValid(toucher) then
@@ -159,16 +180,9 @@ if SERVER then
 				randint = math.Round(randint, 2)
 
 				if randint < escpct then
-					timer.Remove(timerName)
-
-					self:SetNWEntity(trappedNwVar, NULL)
-					toucher:SetNWBool(trappedNwVar, false)
+					self:ReleaseTarget()
 
 					LangChatPrint(toucher, "ttt_bt_escaped")
-
-					if TTT2 then -- remove element to HUD if TTT2 is loaded
-						STATUS:RemoveStatus(toucher, "ttt2_beartrap")
-					end
 
 					return
 				end
@@ -178,17 +192,10 @@ if SERVER then
 					or not toucher:Alive()
 					or not toucher:GetNWBool(trappedNwVar)
 				then
-					timer.Remove(timerName)
-
-					self:SetNWEntity(trappedNwVar, NULL)
-					toucher:SetNWBool(trappedNwVar, false)
+					self:ReleaseTarget()
 
 					if toucher:Health() > 0 then
 						LangChatPrint(toucher, "ttt_bt_freed")
-					end
-
-					if TTT2 then -- remove element to HUD if TTT2 is loaded
-						STATUS:RemoveStatus(toucher, "ttt2_beartrap")
 					end
 
 					return
@@ -247,21 +254,29 @@ if SERVER then
 	function ENT:OnTakeDamage(dmg)
 		if not IsValid(self) then return end
 
-		self.dmg = self.dmg + dmg:GetDamage()
+		if self.ReadyToBite or IsValid(self:GetNWEntity(trappedNwVar)) then
+			self.dmg = self.dmg + dmg:GetDamage()
 
-		if self.dmg >= healthConVar:GetInt() and self:GetSequence() ~= 0 and self:GetSequence() ~= 2 then
-			self:SetPlaybackRate(1)
-			self:SetCycle(0)
-			self:SetSequence("Snap")
-			self:SetColor(color_white)
+			if self.dmg >= healthConVar:GetInt() then
+				self:SetPlaybackRate(1)
+				self:SetCycle(0)
+				self:SetSequence("Snap")
+				self:SetColor(color_white)
 
-			timer.Simple(0.1, function()
-				if not IsValid(self) then return end
+				self.ReadyToBite = false
 
-				self:SetSequence("ClosedIdle")
+				self:ReleaseTarget()
 
-				self:EmitSound("physics/metal/metal_sheet_impact_hard7.wav", 64, math.random(120, 140))
-			end)
+				timer.Simple(0.1, function()
+					if not IsValid(self) then return end
+
+					self:SetSequence("ClosedIdle")
+
+					self:EmitSound("physics/metal/sawblade_stick3.wav", 64, math.random(60, 75))
+				end)
+			else
+				self:EmitSound("physics/metal/metal_box_strain1.wav", 64, math.random(125, 150))
+			end
 		end
 	end
 
@@ -271,6 +286,10 @@ if SERVER then
 			self.InflictorWep = nil
 		end
 	end
+
+	hook.Add("CanPlayerEnterVehicle", "ttt_beartrap_antimove", function(pl)
+		if pl:GetNWBool(trappedNwVar) then return false end
+	end)
 
 	hook.Add("TTTPrepareRound", "ttt_beartrap_destroytimers", function()
 		for _, v in ipairs(player.GetAll()) do
