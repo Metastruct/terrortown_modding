@@ -3,6 +3,8 @@ if SERVER then
 
 	resource.AddFile("materials/vgui/ttt/icon_roids.vmt")
 	resource.AddSingleFile("materials/vgui/ttt/perks/hud_roids.png")
+else
+	LANG.AddToLanguage("en", "item_ttt_roids", "Roids")
 end
 
 game.AddParticles("particles/impact_fx.pcf")
@@ -10,7 +12,7 @@ PrecacheParticleSystem("impact_wood")
 
 ITEM.EquipMenuData = {
     type = "item_passive",
-    name = "Roids",
+    name = "item_ttt_roids",
     desc = "Bulk out your muscles using Roider's Roids! Your melee attacks will do crazy damage, but you won't be able to use most guns with your shakey fingers anymore!",
 }
 ITEM.CanBuy = { ROLE_TRAITOR }
