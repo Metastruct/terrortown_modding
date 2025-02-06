@@ -242,10 +242,17 @@ if SERVER then
 			if IsValid(owner) and owner:IsTerror() and owner ~= act then return end
 
 			local toucher = self:GetNWEntity(trappedNwVar)
-			if IsValid(toucher) and toucher == act then return end
+			local hasToucher = IsValid(toucher)
+
+			if hasToucher and toucher == act then return end
 
 			if not act:HasWeapon("weapon_ttt_beartrap") then
 				act:Give("weapon_ttt_beartrap")
+
+				if hasToucher then
+					LangChatPrint(toucher, "ttt_bt_freed")
+				end
+
 				self:Remove()
 			end
 		end
@@ -291,6 +298,8 @@ if SERVER then
 			SafeRemoveEntity(self.InflictorWep)
 			self.InflictorWep = nil
 		end
+
+		self:ReleaseTarget()
 	end
 
 	hook.Add("CanPlayerEnterVehicle", "ttt_beartrap_antimove", function(pl)
