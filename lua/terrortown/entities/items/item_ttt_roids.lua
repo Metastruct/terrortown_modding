@@ -93,7 +93,7 @@ hook.Add("StartCommand", hookName, function(pl, cm)
 		and pl:HasEquipmentItem("item_ttt_roids")
 		and not CanRoidedUseWeapon(pl:GetActiveWeapon())
 	then
-		if (cm:KeyDown(IN_ATTACK) or cm:KeyDown(IN_ATTACK2) or cm:KeyDown(IN_RELOAD)) and (not noticeTime or noticeTime <= RealTime()) then
+		if CLIENT and (cm:KeyDown(IN_ATTACK) or cm:KeyDown(IN_ATTACK2) or cm:KeyDown(IN_RELOAD)) and (not noticeTime or noticeTime <= RealTime()) then
 			noticeTime = RealTime() + 2
 
 			LANG.Msg("You can't operate this weapon while all roided up!", nil, MSG_MSTACK_WARN)
