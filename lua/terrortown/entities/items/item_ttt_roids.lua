@@ -1,5 +1,8 @@
 if SERVER then
     AddCSLuaFile()
+
+	resource.AddFile("materials/vgui/ttt/icon_roids.vmt")
+	resource.AddSingleFile("materials/vgui/ttt/perks/hud_roids.png")
 end
 
 game.AddParticles("particles/impact_fx.pcf")
