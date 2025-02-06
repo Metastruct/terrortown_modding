@@ -161,7 +161,8 @@ if SERVER then
 				end
 			end
 
-			local wep = attacker:GetActiveWeapon()
+			local wep = dmg:GetInflictor()
+
 			if IsValid(wep) then
 				local func = specialRoiderInteractions[wep:GetClass()]
 
