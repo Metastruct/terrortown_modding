@@ -65,14 +65,14 @@ function SWEP:PrimaryAttack()
     self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
     self:SetNextSecondaryFire(CurTime() + self.Primary.Delay)
 
-    self:FirePulse(750, 300)
+    self:FirePulse(800, 300)
 end
 
 function SWEP:SecondaryAttack()
     self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
     self:SetNextSecondaryFire(CurTime() + self.Primary.Delay)
 
-    self:FirePulse(-750, 300)
+    self:FirePulse(-800, 300)
 end
 
 function SWEP:FirePulse(forceFwd, forceUp)
@@ -111,7 +111,7 @@ function SWEP:FirePulse(forceFwd, forceUp)
 					pushVel.z = math.max(pushVel.z, forceUp)
 
 					ent:SetGroundEntity(nil)
-					ent:SetLocalVelocity(ent:GetVelocity() + pushVel)
+					ent:SetVelocity(-ent:GetVelocity() + pushVel)
 
 					ent.was_pushed = {
 						att = owner,
