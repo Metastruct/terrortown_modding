@@ -511,35 +511,6 @@ else
 			end
 		end
 
-		if VOICE then
-			function VOICE.UpdatePlayerVoiceVolume(ply)
-				local mute = VOICE.GetPreferredPlayerVoiceMuted(ply)
-				if ply.SetMuted then
-					ply:SetMuted(mute)
-				end
-
-				local vol = VOICE.GetPreferredPlayerVoiceVolume(ply)
-				if VOICE.cv.duck_spectator:GetBool() and ply:IsSpec() then
-					vol = vol * (1 - VOICE.cv.duck_spectator_amount:GetFloat())
-				end
-				local out_vol = vol
-
-				local func = VOICE.ScalingFunctions[VOICE.cv.scaling_mode:GetString()]
-				if isfunction(func) then
-					out_vol = func(vol)
-				end
-
-				ply:SetVoiceVolumeScale(out_vol)
-
-				-- Once our version of TTT2 updates, we won't need this patch - this console print will remind us
-				if GAMEMODE.Version != "0.13.1b" then
-					MsgC(Color(255, 50, 50), "The VOICE.UpdatePlayerVoiceVolume patch should no longer be needed on this version of TTT2! It can be removed safely.\n")
-				end
-
-				return out_vol, mute
-			end
-		end
-
 		-- Replace Spectator Deathmatch's invasive PlayerBindPress hook to fix spectators not being able to press use on stuff
 		if SpecDM then
 			hook.Add("PlayerBindPress", "TTTGHOSTDMBINDS", function(ply, bind, pressed)
