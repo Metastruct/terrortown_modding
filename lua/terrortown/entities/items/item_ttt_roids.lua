@@ -111,7 +111,7 @@ if SERVER then
 		weapon_ttt_homebat = function(wep, ent, dmg)
 			if not ent:IsPlayer() then return end
 
-			dmg:SetDamage(100)
+			dmg:SetDamage(200)
 
 			ent.RoidedBatVelocity = wep:GetOwner():GetAimVector() * 2000
 
