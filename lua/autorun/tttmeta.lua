@@ -268,6 +268,28 @@ if SERVER then
 			end
 		end
 
+		-- Impostor Vents: Hide PACs when inside them
+		if IMPO_VENT_DATA then
+			IMPO_VENT_DATA.EnterVent_Original = IMPO_VENT_DATA.EnterVent_Original or IMPO_VENT_DATA.EnterVent
+			IMPO_VENT_DATA.ExitVent_Original = IMPO_VENT_DATA.ExitVent_Original or IMPO_VENT_DATA.ExitVent
+
+			function IMPO_VENT_DATA.EnterVent(pl, vent)
+				IMPO_VENT_DATA.EnterVent_Original(pl, vent)
+
+				if IsValid(pl.impo_in_vent) and pac and pac.TogglePartDrawing then
+					pac.TogglePartDrawing(pl, false)
+				end
+			end
+
+			function IMPO_VENT_DATA.ExitVent(pl)
+				if IsValid(pl.impo_in_vent) and pac and pac.TogglePartDrawing then
+					pac.TogglePartDrawing(pl, true)
+				end
+
+				IMPO_VENT_DATA.ExitVent_Original(pl)
+			end
+		end
+
 		-- Disable an obsolete engine protect hook we have if it's there - all it really does now is print a useless message in console
 		hook.Remove("EntityRemoved", "dont_remove_players")
 
