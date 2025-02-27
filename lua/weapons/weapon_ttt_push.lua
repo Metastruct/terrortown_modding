@@ -25,7 +25,7 @@ SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
-SWEP.Primary.Delay = 3
+SWEP.Primary.Delay = 2
 SWEP.Primary.Cone = 0.005
 SWEP.Primary.Sound = "weapons/ar2/fire1.wav"
 SWEP.Primary.SoundLevel = 54
@@ -34,7 +34,7 @@ SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = true
 SWEP.Secondary.Ammo = "none"
-SWEP.Secondary.Delay = 3
+SWEP.Secondary.Delay = 2
 
 SWEP.NoSights = true
 
