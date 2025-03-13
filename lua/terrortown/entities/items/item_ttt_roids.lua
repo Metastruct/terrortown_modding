@@ -1,10 +1,12 @@
+local itemClassName = "item_ttt_roids"
+
 if SERVER then
     AddCSLuaFile()
 
 	resource.AddFile("materials/vgui/ttt/icon_roids.vmt")
 	resource.AddSingleFile("materials/vgui/ttt/perks/hud_roids.png")
 else
-	LANG.AddToLanguage("en", "item_ttt_roids", "Roids")
+	LANG.AddToLanguage("en", itemClassName, "Roids")
 end
 
 game.AddParticles("particles/impact_fx.pcf")
@@ -12,7 +14,7 @@ PrecacheParticleSystem("impact_wood")
 
 ITEM.EquipMenuData = {
     type = "item_passive",
-    name = "item_ttt_roids",
+    name = itemClassName,
     desc = "Bulk out your muscles using Roider's Roids! Your melee attacks will do crazy damage, but you won't be able to use most guns with your shakey fingers anymore!",
 }
 ITEM.CanBuy = { ROLE_TRAITOR }
@@ -92,7 +94,7 @@ local noticeTime
 hook.Add("StartCommand", hookName, function(pl, cm)
 	if pl:Alive()
 		and pl:IsTerror()
-		and pl:HasEquipmentItem("item_ttt_roids")
+		and pl:HasEquipmentItem(itemClassName)
 		and not CanRoidedUseWeapon(pl:GetActiveWeapon())
 	then
 		if CLIENT and (cm:KeyDown(IN_ATTACK) or cm:KeyDown(IN_ATTACK2) or cm:KeyDown(IN_RELOAD)) and (not noticeTime or noticeTime <= RealTime()) then
@@ -113,7 +115,7 @@ if SERVER then
 
 			dmg:SetDamage(200)
 
-			ent.RoidedBatVelocity = wep:GetOwner():GetAimVector() * 2000
+			ent.RoidedRagdollVelocity = wep:GetOwner():GetAimVector() * 2000
 
 			local pos = wep:GetPos() + Vector(0, 0, 40)
 
@@ -127,20 +129,50 @@ if SERVER then
 			timer.Simple(0.08, function()
 				sound.Play("physics/wood/wood_box_break1.wav", pos, 75, math.random(120, 130))
 
-				SafeRemoveEntity(wep)
+				-- Remove the bat with a delay to let it play its hit sounds without erroring
+				SafeRemoveEntityDelayed(wep, 0.5)
+
+				if IsValid(wep) then
+					ent:DropWeapon(wep)
+
+					wep:SetNoDraw(true)
+					wep:SetSolid(SOLID_NONE)
+					wep:PhysicsDestroy()
+				end
 			end)
 		end
 	}
 
 	hook.Add("TTT2ModifyRagdollVelocity", hookName, function(pl, rag, vel)
-		if IsValid(pl) and isvector(pl.RoidedBatVelocity) then
-			local newVel = pl.RoidedBatVelocity
+		if IsValid(pl) and isvector(pl.RoidedRagdollVelocity) then
+			local newVel = pl.RoidedRagdollVelocity
 
 			vel.x = newVel.x
 			vel.y = newVel.y
 			vel.z = newVel.z
 
-			pl.RoidedBatVelocity = nil
+			pl.RoidedRagdollVelocity = nil
+		end
+	end)
+
+	local convarCrowbarPushForce = GetConVar("ttt_crowbar_pushforce")
+
+	-- Give extra force for crowbar pushes by cheekily using this hook
+	hook.Add("TTT2PlayerPreventPush", hookName, function(pl, victim)
+		if pl:HasEquipmentItem(itemClassName) then
+			-- Replicate what normally happens but mess with the velocity
+			local pushvel = tr.Normal * (convarCrowbarPushForce:GetFloat() * 2)
+            pushvel.z = math.Clamp(pushvel.z, 50, 100)
+
+            victim:SetVelocity(victim:GetVelocity() + pushvel)
+
+            victim.was_pushed = {
+                att = pl,
+                t = CurTime(),
+                wep = "weapon_zm_improvised"
+            }
+
+			return true
 		end
 	end)
 
@@ -152,14 +184,14 @@ if SERVER then
 		if IsValid(attacker)
 			and attacker:IsPlayer()
 			and attacker:IsTerror()
-			and attacker:HasEquipmentItem("item_ttt_roids")
+			and attacker:HasEquipmentItem(itemClassName)
 		then
 			if dmg:IsDamageType(DMG_CLUB) then
 				dmg:ScaleDamage(2)
 
 				if ent:IsPlayer() then
 					ent:SetGroundEntity(nil)
-					ent:SetVelocity(attacker:GetAimVector() * 150)
+					ent:SetVelocity(attacker:GetAimVector() * 80)
 				end
 			end
 
@@ -178,7 +210,7 @@ else
 	hook.Add("CalcViewModelView", hookName, function(wep, vm, oldPos, oldAng, pos, ang)
 		local pl = LocalPlayer()
 
-		if IsValid(pl) and pl:HasEquipmentItem("item_ttt_roids") then
+		if IsValid(pl) and pl:HasEquipmentItem(itemClassName) then
 			return pos + VectorRand(-0.04, 0.04), ang + AngleRand(-0.2, 0.2)
 		end
 	end)
