@@ -1,4 +1,7 @@
 local itemClassName = "item_ttt_roids"
+local hookName = "TTT2RoiderRoids"
+
+local crowbarClassName = "weapon_zm_improvised"
 
 if SERVER then
     AddCSLuaFile()
@@ -22,7 +25,25 @@ ITEM.CanBuy = { ROLE_TRAITOR }
 ITEM.hud = Material("vgui/ttt/perks/hud_roids.png")
 ITEM.material = "vgui/ttt/icon_roids.png"
 
-local hookName = "TTT2RoiderRoids"
+function ITEM:Equip(pl)
+	local crowbar = IsValid(pl) and pl:GetWeapon(crowbarClassName)
+
+	if IsValid(crowbar) then
+		crowbar.Primary.DelayOriginal = crowbar.Primary.Delay
+
+		crowbar.Primary.Delay = 0.4
+	end
+end
+
+function ITEM:Reset(pl)
+	local crowbar = IsValid(pl) and pl:GetWeapon(crowbarClassName)
+
+	if IsValid(crowbar) then
+		crowbar.Primary.Delay = crowbar.Primary.DelayOriginal or 0.5
+
+		crowbar.Primary.DelayOriginal = nil
+	end
+end
 
 -- Weapons will be checked using their .Kind to see if a Roided player can use it.
 local whitelistedKinds = {
@@ -161,7 +182,7 @@ if SERVER then
 	hook.Add("TTT2PlayerPreventPush", hookName, function(pl, victim)
 		if pl:HasEquipmentItem(itemClassName) then
 			-- Replicate what normally happens but mess with the velocity
-			local pushvel = tr.Normal * (convarCrowbarPushForce:GetFloat() * 2)
+			local pushvel = pl:GetAimVector() * (convarCrowbarPushForce:GetFloat() * 2)
             pushvel.z = math.Clamp(pushvel.z, 50, 100)
 
             victim:SetVelocity(victim:GetVelocity() + pushvel)
@@ -169,7 +190,7 @@ if SERVER then
             victim.was_pushed = {
                 att = pl,
                 t = CurTime(),
-                wep = "weapon_zm_improvised"
+                wep = crowbarClassName
             }
 
 			return true
@@ -190,8 +211,7 @@ if SERVER then
 				dmg:ScaleDamage(2)
 
 				if ent:IsPlayer() then
-					ent:SetGroundEntity(nil)
-					ent:SetVelocity(attacker:GetAimVector() * 80)
+					ent:SetVelocity(attacker:GetAimVector() * 100)
 				end
 			end
 
