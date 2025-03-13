@@ -7,7 +7,7 @@ if SERVER then
 end
 
 local function updateRoleSettings()
-	-- Update the defective role's color so it's easier to distinguish
+	-- Defective: Update the role's color so it's easier to distinguish
 	local ROLE = roles.GetStored("defective")
 	if ROLE then
 		ROLE.color = Color(255, 0, 40)
@@ -17,6 +17,14 @@ local function updateRoleSettings()
 			ROLE.dkcolor = util.ColorDarken(ROLE.color, 30)
 			ROLE.ltcolor = util.ColorLighten(ROLE.color, 30)
 			ROLE.bgcolor = util.ColorComplementary(ROLE.color)
+		end
+	end
+
+	-- Defector: Ensure the role is always given a Jihad Bomb
+	ROLE = roles.GetStored("defector")
+	if ROLE then
+		function ROLE:GiveRoleLoadout(pl)
+			pl:Give("weapon_ttt_jihad_bomb")
 		end
 	end
 end
