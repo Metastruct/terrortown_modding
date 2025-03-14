@@ -51,7 +51,7 @@ SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
 SWEP.Secondary.Ammo = "none"
 SWEP.Secondary.Delay = 0.1
-SWEP.Secondary.DelaySuccess = 1.25
+SWEP.Secondary.DelaySuccess = 0.8
 SWEP.Secondary.SoundOn = "npc/scanner/scanner_nearmiss1.wav"
 SWEP.Secondary.SoundOff = "npc/scanner/scanner_nearmiss2.wav"
 SWEP.Secondary.SoundBreathe = ")player/breathe1.wav"
@@ -75,9 +75,9 @@ SWEP.EntityClassWhitelist = {
 local convarBreatheDelay = CreateConVar(convarBreatheDelayName, 45, {FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED})
 
 function SWEP:SetupDataTables()
-	self:NetworkVar("String", 0, "SelectedModelPath")
-	self:NetworkVar("Bool", 0, "Disguised")
-	self:NetworkVar("Entity", 0, "DisguisedProp")
+	self:NetworkVar("String", "SelectedModelPath")
+	self:NetworkVar("Bool", "Disguised")
+	self:NetworkVar("Entity", "DisguisedProp")
 
 	if CLIENT then
 		self:NetworkVarNotify("SelectedModelPath", function(ent, name, oldVal, newVal)
@@ -108,7 +108,7 @@ function SWEP:PrimaryAttack()
 	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 	self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
 
-	if GetRoundState() != ROUND_ACTIVE then return end
+	if gameloop.GetRoundState() != ROUND_ACTIVE then return end
 	if self:GetDisguised() then return end
 
 	local owner = self:GetOwner()
@@ -153,7 +153,7 @@ function SWEP:SecondaryAttack()
 	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 	self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
 
-	if GetRoundState() != ROUND_ACTIVE then return end
+	if gameloop.GetRoundState() != ROUND_ACTIVE then return end
 
 	local owner = self:GetOwner()
 	if not IsValid(owner) or owner:InVehicle() then return end
@@ -251,7 +251,7 @@ hook.Add("SetupMove", hookTag, function(pl, mv, cm)
 
 							p:ForcePlayerDrop()
 
-							-- Being held by a magneto-stick which is unaffected by ForcePlayerDrop, find it and force it to drop
+							-- We're being held by a magneto-stick which is unaffected by ForcePlayerDrop, find it and force it to drop
 							if p:IsPlayerHolding() then
 								local carryClass = "weapon_zm_carry"
 
@@ -406,7 +406,7 @@ if SERVER then
 					if not isPlStuck(pl, newPos, hullMins, hullMaxs) then return newPos end
 				end
 
-				-- Pushing against walls hasn't worked, try finding two good directions and creeping towards them
+				-- Pushing against walls hasn't worked, try finding two good directions and creep towards them
 				local maxTestRange = 64
 				local desiredDirs = {}
 
