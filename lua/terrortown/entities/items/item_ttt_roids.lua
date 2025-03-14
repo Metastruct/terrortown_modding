@@ -4,7 +4,7 @@ local hookName = "TTT2RoiderRoids"
 local crowbarClassName = "weapon_zm_improvised"
 
 if SERVER then
-    AddCSLuaFile()
+	AddCSLuaFile()
 
 	resource.AddFile("materials/vgui/ttt/icon_roids.vmt")
 	resource.AddSingleFile("materials/vgui/ttt/perks/hud_roids.png")
@@ -16,9 +16,9 @@ game.AddParticles("particles/impact_fx.pcf")
 PrecacheParticleSystem("impact_wood")
 
 ITEM.EquipMenuData = {
-    type = "item_passive",
-    name = itemClassName,
-    desc = "Bulk out your muscles using Roider's Roids! Your melee attacks will do crazy damage, but you won't be able to use most guns with your shakey fingers anymore!",
+	type = "item_passive",
+	name = itemClassName,
+	desc = "Bulk out your muscles using Roider's Roids! Your melee attacks will do crazy damage, but you won't be able to use most guns with your shakey fingers anymore!",
 }
 ITEM.CanBuy = { ROLE_TRAITOR }
 
@@ -131,12 +131,12 @@ end)
 
 if SERVER then
 	local specialRoiderInteractions = {
-		weapon_ttt_homebat = function(wep, ent, dmg)
-			if not ent:IsPlayer() then return end
+		weapon_ttt_homebat = function(wep, victim, dmg)
+			if not victim:IsPlayer() then return end
 
 			dmg:SetDamage(200)
 
-			ent.RoidedRagdollVelocity = wep:GetOwner():GetAimVector() * 2000
+			victim.RoidedRagdollVelocity = wep:GetOwner():GetAimVector() * 2000
 
 			local pos = wep:GetPos() + Vector(0, 0, 40)
 
@@ -154,9 +154,17 @@ if SERVER then
 				SafeRemoveEntityDelayed(wep, 0.5)
 
 				if IsValid(wep) then
-					ent:DropWeapon(wep)
+					local pl = wep:GetOwner()
+
+					if IsValid(pl) then
+						pl:DropWeapon(wep)
+
+						wep:SetParent(pl)
+						wep:SetLocalPos(vector_up)
+					end
 
 					wep:SetNoDraw(true)
+					wep:UseTriggerBounds(false)
 					wep:SetSolid(SOLID_NONE)
 					wep:PhysicsDestroy()
 				end
@@ -176,29 +184,31 @@ if SERVER then
 		end
 	end)
 
-	local convarCrowbarPushForce = GetConVar("ttt_crowbar_pushforce")
+	local convarCrowbarPushForce
 
 	-- Give extra force for crowbar pushes by cheekily using this hook
 	hook.Add("TTT2PlayerPreventPush", hookName, function(pl, victim)
 		if pl:HasEquipmentItem(itemClassName) then
+			convarCrowbarPushForce = convarCrowbarPushForce or GetConVar("ttt_crowbar_pushforce")
+
 			-- Replicate what normally happens but mess with the velocity
 			local pushvel = pl:GetAimVector() * (convarCrowbarPushForce:GetFloat() * 2)
-            pushvel.z = math.Clamp(pushvel.z, 50, 100)
+			pushvel.z = math.Clamp(pushvel.z, 50, 100)
 
-            victim:SetVelocity(victim:GetVelocity() + pushvel)
+			victim:SetVelocity(victim:GetVelocity() + pushvel)
 
-            victim.was_pushed = {
-                att = pl,
-                t = CurTime(),
-                wep = crowbarClassName
-            }
+			victim.was_pushed = {
+				att = pl,
+				t = CurTime(),
+				wep = crowbarClassName
+			}
 
 			return true
 		end
 	end)
 
-    hook.Add("EntityTakeDamage", hookName, function(ent, dmg)
-        if not IsValid(ent) then return end
+	hook.Add("EntityTakeDamage", hookName, function(ent, dmg)
+		if not IsValid(ent) then return end
 
 		local attacker = dmg:GetAttacker()
 
@@ -225,7 +235,7 @@ if SERVER then
 				end
 			end
 		end
-    end)
+	end)
 else
 	hook.Add("CalcViewModelView", hookName, function(wep, vm, oldPos, oldAng, pos, ang)
 		local pl = LocalPlayer()
