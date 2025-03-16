@@ -491,6 +491,13 @@ else
 
 	-- Run these patches when things have initialized
 	util.OnInitialize(function()
+		-- Disallow CTP from targeting other players
+		if ctp and ctp.GetPlayer then
+			function ctp:GetPlayer()
+				return LocalPlayer()
+			end
+		end
+
 		-- Make the top-right notifications print to console
 		if MSTACK then
 			MSTACK.AddMessageExOriginal = MSTACK.AddMessageExOriginal or MSTACK.AddMessageEx
