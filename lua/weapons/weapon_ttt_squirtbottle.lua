@@ -27,7 +27,7 @@ else
 
 	SWEP.EquipMenuData = {
 		type = "item_weapon",
-		desc = "A spray bottle filled with... something.\n\nTerrorists don't like being sprayed."
+		desc = "A spray bottle filled with... something. Can be used to clean things and extinguish fires!\n\nTerrorists don't like being sprayed with whatever is in this."
 	}
 
 	SWEP.Icon = "vgui/ttt/icon_squirtbottle"
@@ -182,13 +182,17 @@ if SERVER then
 	end
 
 	function SWEP:SprayEntity(ent)
+		-- Clean away decals from the entity
+		ent:RemoveAllDecals()
+
+		-- Extinguish flames after a number of sprays
 		ent._SprayedTimes = ((ent._SprayedTimesExpiry or 0) >= CurTime() and ent._SprayedTimes or 0) + 1
 		ent._SprayedTimesExpiry = CurTime() + 3
 
 		local ext = false
 
 		if ent:GetClass() == fireClassName then
-			ent._SprayedTimesNeeded = ent._SprayedTimesNeeded or random(3, 5)
+			ent._SprayedTimesNeeded = ent._SprayedTimesNeeded or random(2, 5)
 
 			if ent._SprayedTimes >= ent._SprayedTimesNeeded then
 				ent:Fire("Extinguish")
@@ -199,8 +203,7 @@ if SERVER then
 
 			if onFire then
 				ent._SprayedTimes = onFire == ent._SprayedOnFireLast and ent._SprayedTimes or 1
-				ent._SprayedTimesNeeded = ent._SprayedTimesNeeded or (ent:IsPlayer() and random(6, 12) or math.ceil(ent:GetModelRadius() / 12) + random(0, 2))
-				print(ent._SprayedTimes, ent._SprayedTimesNeeded)
+				ent._SprayedTimesNeeded = ent._SprayedTimesNeeded or (ent:IsPlayer() and random(5, 8) or math.ceil(ent:GetModelRadius() / 12) + random(0, 2))
 
 				if ent._SprayedTimes >= ent._SprayedTimesNeeded then
 					ent:Extinguish()
