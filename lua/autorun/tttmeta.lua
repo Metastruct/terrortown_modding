@@ -242,6 +242,30 @@ if SERVER then
 			end,
 			"developers", true)
 
+			-- Fun command to vote for a forced Tank chaos round
+			if GVote and ForceChaosRound then
+				aowl.AddCommand("votetank", "Creates a vote to make the next TTT round a \"Tank!\" chaos round", function(pl, line, target)
+					local vote = GVote.Vote(
+						(IsValid(pl) and pl:Nick() or "SERVER") .. " wants the next round to be a TANK chaos round! Do you agree?",
+						"Yes",
+						"No",
+						function(results)
+							-- Yes votes > half of all votes
+							if #results[1] > (#results[0] * 0.5) then
+								ForceChaosRound("Tank!")
+
+								PrintMessage(HUD_PRINTTALK, "The next round will be the TANK chaos round!")
+
+								hook.Add("TTTBeginRound", "TankVote", function()
+									hook.Remove("TTTBeginRound", "TankVote")
+									ForceChaosRound(false)
+								end)
+							end
+						end)
+				end,
+				"players", true)
+			end
+
 			-- Helper command to quickly save the current MapVote config values
 			if MapVote then
 				aowl.AddCommand("savemapvoteconfig", "Writes the current MapVote.Config table to MapVote's config.txt file", function(pl, line, target)
