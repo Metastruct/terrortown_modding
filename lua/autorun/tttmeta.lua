@@ -250,7 +250,7 @@ if SERVER then
 						"Yes",
 						"No",
 						function(results)
-							if #results.Yes > (#player.GetHumans() * 0.5) then
+							if table.Count(results.Yes) > (#player.GetHumans() * 0.5) then
 								ForceChaosRound("Tank!")
 
 								EPOP:AddMessage("Vote successful!", "The next round will be the TANK chaos round!")
