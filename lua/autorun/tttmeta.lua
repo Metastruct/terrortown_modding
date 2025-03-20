@@ -246,15 +246,14 @@ if SERVER then
 			if GVote and ForceChaosRound then
 				aowl.AddCommand("votetank", "Creates a vote to make the next TTT round a \"Tank!\" chaos round", function(pl, line, target)
 					local vote = GVote.Vote(
-						(IsValid(pl) and pl:Nick() or "SERVER") .. " wants the next round to be a TANK chaos round! Do you agree?",
+						("Make the next round a TANK chaos round? (voter: %s)"):format(IsValid(pl) and pl:Name() or "SERVER"),
 						"Yes",
 						"No",
 						function(results)
-							-- Yes votes > half of all votes
-							if #results[1] > (#results[0] * 0.5) then
+							if #results.Yes > (#player.GetHumans() * 0.5) then
 								ForceChaosRound("Tank!")
 
-								PrintMessage(HUD_PRINTTALK, "The next round will be the TANK chaos round!")
+								EPOP:AddMessage("Vote successful!", "The next round will be the TANK chaos round!")
 
 								hook.Add("TTTBeginRound", "TankVote", function()
 									hook.Remove("TTTBeginRound", "TankVote")
