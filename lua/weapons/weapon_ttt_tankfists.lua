@@ -5,6 +5,7 @@ end
 local tankVoiceNwTag = "TTTL4DTankNextVoiceLine"
 local tankRockThrowNwTag = "TTTL4DTankRockThrowStart"
 local tankHitSlowNwTag = "TTTL4DTankHitSlow"
+local tankRespawnableNwTag = "TTTL4DTankRespawnable"
 
 DEFINE_BASECLASS("weapon_tttbase")
 
@@ -195,6 +196,12 @@ function SWEP:TraceAttack()
 
 					ent:SetGroundEntity(NULL)
 					ent:SetVelocity(force)
+
+					ent.was_pushed = {
+						att = owner,
+						t = CurTime(),
+						wep = self:GetClass()
+					}
 
 					ent:ViewPunch(Angle(-30, 0, math.random(-30, 30)))
 
@@ -471,6 +478,30 @@ if SERVER then
 	specialEntityActions.func_door_rotating = specialEntityActions.func_door
 	specialEntityActions.func_rot_button = specialEntityActions.func_button
 
+	function SWEP:Reload()
+		local owner = self:GetOwner()
+		if not IsValid(owner) then return end
+
+		if owner:GetNWBool(tankRespawnableNwTag) then
+			owner:SetNWBool(tankRespawnableNwTag, false)
+
+			owner.TankTriggerDamageExpires = 0
+
+			local pos = TTTTank.GetFarthestSpawnPosition(owner) or owner:GetPos()
+
+			owner:SetPos(pos)
+
+			if (owner.TankTriggerDamageAccum or 0) > 0 then
+				owner:SetHealth(math.min(owner:Health() + (owner.TankTriggerDamageAccum * 0.5), owner:GetMaxHealth()))
+			end
+
+			local rf = RecipientFilter()
+			rf:AddPlayer(owner)
+
+			owner:EmitSound("ui/pickup_scifi37.wav", 75, 100, 1, CHAN_AUTO, 0, 0, rf)
+		end
+	end
+
 	function SWEP:AffectSpecialEntity(ent, tr)
 		if not IsValid(ent) then return end
 
@@ -652,8 +683,8 @@ else
 	end
 
 	local barColorOutline = Color(0, 0, 0, 220)
-	local barFont = "PureSkinBar"
-	local barText = "ROCK THROW"
+	local barFont, barText = "PureSkinBar", "ROCK THROW"
+	local respawnText = "Press [RELOAD] to escape this death pit"
 
 	local barAlpha
 
@@ -661,18 +692,22 @@ else
 		local pl = LocalPlayer()
 		if not IsValid(pl) then return end
 
-		local progress = math.min(1 - ((self:GetNextSecondaryFire() - CurTime()) / (self.Secondary.Delay - self.Secondary.ThrowDelay)), 1)
-
-		barAlpha = Lerp(FrameTime() * 3, barAlpha or 0.08, progress > 0 and progress < 1 and 1 or 0.08)
-
-		surface.SetAlphaMultiplier(barAlpha)
-
 		local scale = ScrH() / 1440
 		local hW, hH = ScrW() * 0.5, ScrH() * 0.5
 
 		local barLineSize = 1
 		local barW, barH = 400 * scale, 25 * scale
 		local barX, barY = hW - (barW * 0.5), hH + (200 * scale)
+
+		if pl:GetNWBool(tankRespawnableNwTag) then
+			draw.ShadowedText(respawnText, barFont, hW, hH - (200 * scale), color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM, scale)
+		end
+
+		local progress = math.min(1 - ((self:GetNextSecondaryFire() - CurTime()) / (self.Secondary.Delay - self.Secondary.ThrowDelay)), 1)
+
+		barAlpha = Lerp(FrameTime() * 3, barAlpha or 0.08, progress > 0 and progress < 1 and 1 or 0.08)
+
+		surface.SetAlphaMultiplier(barAlpha)
 
 		draw.Box(barX, barY, barW, barH, barColorOutline)
 		draw.OutlinedBox(barX, barY, barW, barH, barLineSize, barColorOutline)

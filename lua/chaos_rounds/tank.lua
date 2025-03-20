@@ -8,6 +8,7 @@ local tankNwTag = "TTTIsL4DTank"
 local tankVoiceNwTag = "TTTL4DTankNextVoiceLine"
 local tankRockThrowNwTag = "TTTL4DTankRockThrowStart"
 local tankHitSlowNwTag = "TTTL4DTankHitSlow"
+local tankRespawnableNwTag = "TTTL4DTankRespawnable"
 
 local tankModel = "models/infected/hulk_ttt.mdl"
 local tankWeaponClass = "weapon_ttt_tankfists"
@@ -34,8 +35,10 @@ if SERVER then
 	resource.AddSingleFile("sound/infected/tank_step5.ogg")
 	resource.AddSingleFile("sound/infected/tank_step6.ogg")
 
-	function TTTSelectRandomTank()
-		if IsValid(TTTChosenTank) then return end
+	TTTTank = {}
+
+	function TTTTank.TrySelectRandomTank()
+		if IsValid(TTTTank.ChosenTank) then return end
 
 		local activePlayers = {}
 		for k, v in ipairs(player.GetAll()) do
@@ -45,10 +48,44 @@ if SERVER then
 		end
 
 		-- Temporary global variable
-		TTTChosenTank = activePlayers[math.random(1, #activePlayers)]
+		TTTTank.ChosenTank = activePlayers[math.random(1, #activePlayers)]
 	end
 
-	function TTTStartBeingTank(pl)
+	function TTTTank.GetFarthestSpawnPosition(plTank)
+		-- Get the average of all player positions - what could possibly go wrong!!
+		local plPosList = {}
+		for k, v in ipairs(player.GetAll()) do
+			if plTank != v and v:IsTerror() then
+				plPosList[#plPosList + 1] = v:GetPos()
+			end
+		end
+
+		local calcPos = { x = 0, y = 0, z = 0 }
+		for k, v in ipairs(plPosList) do
+			calcPos.x = calcPos.x + v.x
+			calcPos.y = calcPos.y + v.y
+			calcPos.z = calcPos.z + v.z
+		end
+
+		local averagePos = Vector(calcPos.x, calcPos.y, calcPos.z) / math.max(#plPosList, 1)
+
+		-- Get the spawnpoint farthest away from the average position
+		local bestSpawnPos
+		local farthest = 0
+
+		for k, v in ipairs(plyspawn.GetPlayerSpawnPoints()) do
+			local dist = averagePos:DistToSqr(v.pos)
+
+			if dist > farthest then
+				bestSpawnPos = v.pos
+				farthest = dist
+			end
+		end
+
+		return bestSpawnPos
+	end
+
+	function TTTTank.StartBeingTank(pl)
 		if not IsValid(pl) or pl:GetNWBool(tankNwTag) then return end
 
 		pl:SetNWBool(tankNwTag, true)
@@ -116,7 +153,7 @@ if SERVER then
 		net.Broadcast()
 	end
 
-	function TTTStopBeingTank(pl)
+	function TTTTank.StopBeingTank(pl)
 		if not IsValid(pl) or not pl:GetNWBool(tankNwTag) then return end
 
 		pl:SetNWBool(tankNwTag, false)
@@ -163,9 +200,9 @@ if SERVER then
 	function ROUND:OnPrepare()
 		hook.Add("TTT2ModifyFinalRoles", tankHookTag, function(roleMap)
 			-- Call again here just in case (this will not override the already chosen tank)
-			TTTSelectRandomTank()
+			TTTTank.TrySelectRandomTank()
 
-			local plTank = TTTChosenTank
+			local plTank = TTTTank.ChosenTank
 
 			local roleBlacklist = {}
 			if roles.UNKNOWN then
@@ -220,7 +257,7 @@ else
 				end)
 			end
 
-			-- If the localplayer is the tank and PAC is present, force the pac to be cleared - sorry but PAC causes too much bullshit :(
+			-- If the localplayer is the tank and PAC is present, force any PAC outfits to be cleared - sorry but PAC causes too much bullshit :(
 			if pl == LocalPlayer() and pac and pace and pace.ClearParts then
 				pace.ClearParts()
 
@@ -491,6 +528,9 @@ function ROUND:Start()
 			end
 		end)
 
+		local triggerHurtClass = "trigger_hurt"
+		local triggerHurtMax, triggerHurtAlertLimit, triggerHurtExpiry = 200, 250, 2
+
 		hook.Add("EntityTakeDamage", tankHookTag, function(ent, dmg)
 			if ent:IsPlayer() and ent:GetNWBool(tankNwTag) then
 				if dmg:GetDamage() >= 3 then
@@ -503,6 +543,28 @@ function ROUND:Start()
 					end
 
 					ent.TankAngryTime = now + 10
+				end
+
+				-- Handle trigger_hurt damage and giving the Tank an option to respawn
+				local inflictor = dmg:GetInflictor()
+
+				if IsValid(inflictor) and inflictor:GetClass() == triggerHurtClass then
+					local clampedDmg = math.min(dmg:GetDamage(), triggerHurtMax)
+
+					ent.TankTriggerDamageAccum = ((ent.TankTriggerDamageExpires and ent.TankTriggerDamageExpires >= CurTime()) and ent.TankTriggerDamageAccum or 0) + clampedDmg
+					ent.TankTriggerDamageExpires = CurTime() + triggerHurtExpiry
+
+					if ent.TankTriggerDamageAccum > triggerHurtAlertLimit then
+						ent:SetNWBool(tankRespawnableNwTag, true)
+
+						timer.Create(tankRespawnableNwTag .. tostring(ent:EntIndex()), triggerHurtExpiry, 1, function()
+							if IsValid(ent) then
+								ent:SetNWBool(tankRespawnableNwTag, false)
+							end
+						end)
+					end
+
+					dmg:SetDamage(clampedDmg)
 				end
 			end
 		end)
@@ -574,44 +636,14 @@ function ROUND:Start()
 		end)
 
 		-- Start initialising the tank
-		TTTSelectRandomTank()
+		TTTTank.TrySelectRandomTank()
 
-		local plTank = TTTChosenTank
-		local tankPos = plTank:GetPos()
+		local plTank = TTTTank.ChosenTank
+		local spawnPos = TTTTank.GetFarthestSpawnPosition(plTank) or plTank:GetPos()
 
-		-- Get the average of all player positions - what could possibly go wrong!!
-		local plPosList = {}
-		for k, v in ipairs(player.GetAll()) do
-			if plTank != v and v:IsTerror() then
-				plPosList[#plPosList + 1] = v:GetPos()
-			end
-		end
+		plTank:SetPos(spawnPos)
 
-		local calcPos = { x = 0, y = 0, z = 0 }
-		for k, v in ipairs(plPosList) do
-			calcPos.x = calcPos.x + v.x
-			calcPos.y = calcPos.y + v.y
-			calcPos.z = calcPos.z + v.z
-		end
-
-		local averagePos = Vector(calcPos.x, calcPos.y, calcPos.z) / math.max(#plPosList, 1)
-
-		-- Get the spawnpoint farthest away from the average position
-		local bestSpawnPos
-		local farthest = 0
-
-		for k, v in ipairs(plyspawn.GetPlayerSpawnPoints()) do
-			local dist = averagePos:DistToSqr(v.pos)
-
-			if dist > farthest then
-				bestSpawnPos = v.pos
-				farthest = dist
-			end
-		end
-
-		plTank:SetPos(bestSpawnPos)
-
-		TTTStartBeingTank(plTank)
+		TTTTank.StartBeingTank(plTank)
 
 		local rf = RecipientFilter()
 		rf:AddPlayer(plTank)
@@ -724,10 +756,10 @@ function ROUND:Finish()
 				for k, v in ipairs(player.GetAll()) do
 					v:SetNWBool(tankHitSlowNwTag, false)
 
-					TTTStopBeingTank(v)
+					TTTTank.StopBeingTank(v)
 				end
 
-				TTTChosenTank = nil
+				TTTTank.ChosenTank = nil
 			else
 				hook.Remove("TTT2PreventAccessShop", tankHookTag)
 				hook.Remove("TTTRenderEntityInfo", tankHookTag)
