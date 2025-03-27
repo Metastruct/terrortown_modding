@@ -159,10 +159,16 @@ if SERVER then
 				ent:AnimRestartGesture(GESTURE_SLOT_FLINCH, ACT_FLINCH_HEAD, true)
 
 				net.Start(hookTag)
+				net.WriteBit(true)
 				net.WritePlayer(ent)
 				net.WriteFloat(ent._SprayedEffectEnd)
 				net.Broadcast()
 			end
+		elseif tr.Hit then
+			net.Start(hookTag)
+			net.WriteBit(false)
+			net.WriteVector(tr.HitPos)
+			net.Broadcast()
 		end
 
 		local closeEnts = ents.FindInSphere(tr.HitPos, 24)
@@ -255,14 +261,21 @@ else
 			pl = LocalPlayer()
 		end
 
-		local victim = net.ReadPlayer()
+		local sprayedVictimMode = net.ReadBit()
+		if sprayedVictimMode then
+			local victim = net.ReadPlayer()
 
-		if IsValid(victim) then
-			if victim == pl then
-				pl._SprayedEffectEnd = net.ReadFloat()
+			if IsValid(victim) then
+				if victim == pl then
+					pl._SprayedEffectEnd = net.ReadFloat()
+				end
+
+				victim:AnimRestartGesture(GESTURE_SLOT_FLINCH, ACT_FLINCH_HEAD, true)
 			end
+		else
+			local pos = net.ReadVector()
 
-			victim:AnimRestartGesture(GESTURE_SLOT_FLINCH, ACT_FLINCH_HEAD, true)
+			util.RemoveDecalsAt(pos, 8)
 		end
 	end)
 
