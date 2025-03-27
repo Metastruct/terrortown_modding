@@ -159,14 +159,14 @@ if SERVER then
 				ent:AnimRestartGesture(GESTURE_SLOT_FLINCH, ACT_FLINCH_HEAD, true)
 
 				net.Start(hookTag)
-				net.WriteBit(true)
+				net.WriteBool(true)
 				net.WritePlayer(ent)
 				net.WriteFloat(ent._SprayedEffectEnd)
 				net.Broadcast()
 			end
 		elseif tr.Hit then
 			net.Start(hookTag)
-			net.WriteBit(false)
+			net.WriteBool(false)
 			net.WriteVector(tr.HitPos)
 			net.Broadcast()
 		end
@@ -261,7 +261,8 @@ else
 			pl = LocalPlayer()
 		end
 
-		local sprayedVictimMode = net.ReadBit()
+		local sprayedVictimMode = net.ReadBool()
+
 		if sprayedVictimMode then
 			local victim = net.ReadPlayer()
 
