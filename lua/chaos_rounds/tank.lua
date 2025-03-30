@@ -335,7 +335,7 @@ function ROUND:Start()
 				return
 			end
 
-			pl:EmitSound(footstepSounds[math.random(1, #footstepSounds)], 80, 100, vol, CHAN_AUTO, 0, 0, rf)
+			pl:EmitSound(footstepSounds[math.random(1, #footstepSounds)], 75, 100, vol, CHAN_AUTO, 0, 0, rf)
 			return true
 		end
 	end)
@@ -420,9 +420,9 @@ function ROUND:Start()
 	hook.Add("TTTPlayerSpeedModifier", tankHookTag, function(pl, _, _, speedMultiplierModifier)
 		if IsValid(pl) then
 			if pl:GetNWBool(tankNwTag) then
-				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 1.1
+				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 1.12
 			elseif pl:GetNWBool(tankHitSlowNwTag) then
-				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 0.5
+				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 0.6
 			end
 		end
 	end)
@@ -508,6 +508,12 @@ function ROUND:Start()
 			end
 		end)
 
+		hook.Add("TTT2PlayDeathScream", tankHookTag, function(data)
+			if IsValid(data.victim) and data.victim:GetNWBool(tankNwTag) then
+				return false
+			end
+		end)
+
 		hook.Add("PlayerUse", tankHookTag, function(pl, ent)
 			if pl:GetNWBool(tankNwTag) then
 				return false
@@ -539,7 +545,7 @@ function ROUND:Start()
 					if now >= ent:GetNWFloat(tankVoiceNwTag) then
 						ent:SetNWFloat(tankVoiceNwTag, now + 0.8)
 
-						ent:EmitSound(hurtSounds[math.random(1, #hurtSounds)], 90, math.random(99, 101), 1, CHAN_VOICE2)
+						ent:EmitSound(hurtSounds[math.random(1, #hurtSounds)], 85, math.random(95, 101), 1, CHAN_VOICE2)
 					end
 
 					ent.TankAngryTime = now + 10
@@ -573,10 +579,9 @@ function ROUND:Start()
 			pl:SetNWBool(tankHitSlowNwTag, false)
 
 			if pl:GetNWBool(tankNwTag) then
-				pl:EmitSound(deathSounds[math.random(1, #deathSounds)], 90, math.random(99, 101), 1, CHAN_VOICE2)
+				pl:EmitSound(deathSounds[math.random(1, #deathSounds)], 85, math.random(95, 101), 1, CHAN_VOICE2)
 
-				-- This mutes the default death sounds
-				pl.was_headshot = true
+				-- Default death sounds are removed by a TTT2PlayDeathScream hook
 			end
 		end)
 
@@ -627,9 +632,9 @@ function ROUND:Start()
 					v:SetNWFloat(tankVoiceNwTag, now + 1.5)
 
 					if now <= (v.TankAngryTime or 0) then
-						v:EmitSound(yellSounds[math.random(1, #yellSounds)], 90, math.random(99, 101), 1, CHAN_VOICE2)
+						v:EmitSound(yellSounds[math.random(1, #yellSounds)], 85, math.random(95, 101), 1, CHAN_VOICE2)
 					else
-						v:EmitSound(breatheSounds[math.random(1, #breatheSounds)], 80, math.random(99, 101), 0.8, CHAN_VOICE2)
+						v:EmitSound(breatheSounds[math.random(1, #breatheSounds)], 75, math.random(95, 101), 0.8, CHAN_VOICE2)
 					end
 				end
 			end
@@ -653,6 +658,17 @@ function ROUND:Start()
 		-- Spawn extra ammo from every ammo spawnpoint
 		local ammoForTypes, ammo = WEPS.GetAmmoForSpawnTypes()
 		entspawn.SpawnEntities(map.GetAmmoSpawns(), ammoForTypes, ammo, AMMO_TYPE_RANDOM)
+
+		-- Spawn a free defib at a player spawnpoint
+		if weapons.GetStored("weapon_ttt_defibrillator") then
+			local plySpawns = plyspawn.GetPlayerSpawnPoints()
+
+			local defib = ents.Create("weapon_ttt_defibrillator")
+			if IsValid(defib) then
+				defib:SetPos(plySpawns[math.random(1, #plySpawns)].pos + Vector(0, 0, 16))
+				defib:Spawn()
+			end
+		end
 	else
 		hook.Add("TTT2PreventAccessShop", tankHookTag, function(pl)
 			if pl:GetNWBool(tankNwTag) then
