@@ -127,7 +127,7 @@ if SERVER then
 			end
 		end
 
-		local newHP = 400 + (800 * plMultiplier)
+		local newHP = 300 + (600 * plMultiplier)
 		pl:SetMaxHealth(newHP)
 		pl:SetHealth(newHP)
 

@@ -253,7 +253,7 @@ if SERVER then
 							if table.Count(results.Yes) > (#player.GetHumans() * 0.5) then
 								ForceChaosRound("Tank!")
 
-								EPOP:AddMessage("Vote successful!", "The next round will be the TANK chaos round!")
+								EPOP:AddMessage(nil, "Vote successful!", "The next round will be the TANK chaos round!")
 
 								hook.Add("TTTBeginRound", "TankVote", function()
 									hook.Remove("TTTBeginRound", "TankVote")
