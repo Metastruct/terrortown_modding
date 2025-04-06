@@ -13,6 +13,8 @@ local tankRespawnableNwTag = "TTTL4DTankRespawnable"
 local tankModel = "models/infected/hulk_ttt.mdl"
 local tankWeaponClass = "weapon_ttt_tankfists"
 
+local convarTankMusicVolName = "ttt_tank_music_volume"
+
 if SERVER then
 	util.AddNetworkString(tankNetTag)
 
@@ -127,7 +129,7 @@ if SERVER then
 			end
 		end
 
-		local newHP = 300 + (600 * plMultiplier)
+		local newHP = 250 + (500 * plMultiplier)
 		pl:SetMaxHealth(newHP)
 		pl:SetHealth(newHP)
 
@@ -145,6 +147,12 @@ if SERVER then
 
 			plPhys:SetMass(250)
 		end
+
+		EPOP:AddMessage(pl,
+			{ text = "You are the TANK!", color = Color(255, 125, 125) },
+			"SMASH everything in your path.",
+			5,
+			true)
 
 		net.Start(tankNetTag)
 		net.WritePlayer(pl)
@@ -229,6 +237,16 @@ if SERVER then
 		end)
 	end
 else
+	CreateConVar(convarTankMusicVolName, 0.5, FCVAR_ARCHIVE, "Volume of the music played during the Tank chaos round.", 0, 1)
+
+	cvars.AddChangeCallback(convarTankMusicVolName, function(_, old, new)
+		if IsValid(TTTTankMusic) then
+			local num = math.Clamp(tonumber(new) or 0, 0, 1)
+
+			TTTTankMusic:SetVolume(num)
+		end
+	end, "autoupdate")
+
 	net.Receive(tankNetTag, function()
 		local pl = net.ReadPlayer()
 		local toggle = net.ReadBool()
@@ -243,20 +261,6 @@ else
 				OldModel = oldModel
 			}
 
-			-- If outfitter is present, disable it on them and spam setting the model because outfitter loves to ignore SetModel for some time after
-			if outfitter then
-				pl:EnforceModel()
-
-				local timerName = tankNetTag .. tostring(pl:EntIndex())
-				timer.Create(timerName, 0, 80, function()
-					if IsValid(pl) then
-						pl:SetModel(tankModel)
-					else
-						timer.Remove(timerName)
-					end
-				end)
-			end
-
 			-- If the localplayer is the tank and PAC is present, force any PAC outfits to be cleared - sorry but PAC causes too much bullshit :(
 			if pl == LocalPlayer() and pac and pace and pace.ClearParts then
 				pace.ClearParts()
@@ -264,6 +268,24 @@ else
 				chat.AddText(
 					Color(255, 60, 60), "NOTE: ",
 					Color(255, 180, 180), "To avoid visual glitches as the Tank, any PACs you were wearing have been cleared.")
+			end
+
+			-- If outfitter is present, disable it on them and spam setting the model because outfitter loves to ignore SetModel for some time after
+			if outfitter then
+				pl:EnforceModel()
+
+				local timerName = tankNetTag .. tostring(pl:EntIndex())
+
+				-- All these timer shenanigans just to stop the Tank from being invisible...
+				timer.Simple(1, function()
+					timer.Create(timerName, 0, 80, function()
+						if IsValid(pl) then
+							pl:SetModel(tankModel)
+						else
+							timer.Remove(timerName)
+						end
+					end)
+				end)
 			end
 		else
 			if not pl.l4dTankInfo then return end
@@ -594,11 +616,9 @@ function ROUND:Start()
 			end
 		end)
 
-		local propRagdollClass = "prop_ragdoll"
-
 		-- If for whatever reason a ragdoll of the tank is spawned (eg. tank is tased), disallow it from being picked up with the magneto-stick, plus make it heavier
 		hook.Add("OnEntityCreated", tankHookTag, function(ent)
-			if IsValid(ent) and ent:GetClass() == propRagdollClass then
+			if IsValid(ent) and ent:IsRagdoll() then
 				timer.Simple(0, function()
 					if IsValid(ent) and ent:GetModel() == tankModel then
 						ent.CanPickup = false
@@ -670,6 +690,14 @@ function ROUND:Start()
 			end
 		end
 	else
+		-- Try preventing the invisible tanks issue with this hook
+		hook.Add("NotifyShouldTransmit", tankHookTag, function(ent, transmit)
+			if transmit and ent:IsPlayer() and ent:Alive() and ent:GetNWBool(tankNwTag) then
+				ent:SetModel(tankModel)
+				ent:SetNoDraw(false)
+			end
+		end)
+
 		hook.Add("TTT2PreventAccessShop", tankHookTag, function(pl)
 			if pl:GetNWBool(tankNwTag) then
 				return true
@@ -719,8 +747,10 @@ function ROUND:Start()
 
 		sound.PlayFile("sound/infected/tank_bg.ogg", "noplay noblock", function(audio)
 			if IsValid(audio) then
+				local volConvar = GetConVar(convarTankMusicVolName)
+
 				audio:EnableLooping(true)
-				audio:SetVolume(0.5)
+				audio:SetVolume(volConvar and volConvar:GetFloat() or 0.5)
 				audio:Play()
 
 				TTTTankMusic = audio
@@ -777,6 +807,7 @@ function ROUND:Finish()
 
 				TTTTank.ChosenTank = nil
 			else
+				hook.Remove("NotifyShouldTransmit", tankHookTag)
 				hook.Remove("TTT2PreventAccessShop", tankHookTag)
 				hook.Remove("TTTRenderEntityInfo", tankHookTag)
 
