@@ -314,6 +314,10 @@ util.OnInitialize(function()
 
 				self:EquipTo_Original(pl)
 			end
+
+			-- These convars don't save and are created too late for cfg files to set them, execute them here...
+			RunConsoleCommand("ttt_detective_hats_reclaim", "1")
+			RunConsoleCommand("ttt_detective_hats_reclaim_any", "1")
 		end
 	else
 		-- Clientside only tweaks
