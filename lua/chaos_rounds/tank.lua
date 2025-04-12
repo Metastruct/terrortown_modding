@@ -102,6 +102,13 @@ if SERVER then
 
 		if pac and pac.TogglePartDrawing then
 			pac.TogglePartDrawing(pl, false)
+
+			-- Failsafe for if the player had a custom MDL playermodel, otherwise they end up being INVISIBLE or a t-posing dude
+			timer.Simple(0.5, function()
+				if IsValid(pl) then
+					pl:SetModel(tankModel)
+				end
+			end)
 		end
 
 		-- Stop Tank from being affected by karma
@@ -237,7 +244,7 @@ if SERVER then
 		end)
 	end
 else
-	CreateConVar(convarTankMusicVolName, 0.5, FCVAR_ARCHIVE, "Volume of the music played during the Tank chaos round.", 0, 1)
+	CreateConVar(convarTankMusicVolName, 0.4, FCVAR_ARCHIVE, "Volume of the music played during the Tank chaos round.", 0, 1)
 
 	cvars.AddChangeCallback(convarTankMusicVolName, function(_, old, new)
 		if IsValid(TTTTankMusic) then
@@ -276,15 +283,12 @@ else
 
 				local timerName = tankNetTag .. tostring(pl:EntIndex())
 
-				-- All these timer shenanigans just to stop the Tank from being invisible...
-				timer.Simple(1, function()
-					timer.Create(timerName, 0, 80, function()
-						if IsValid(pl) then
-							pl:SetModel(tankModel)
-						else
-							timer.Remove(timerName)
-						end
-					end)
+				timer.Create(timerName, 0, 80, function()
+					if IsValid(pl) then
+						pl:SetModel(tankModel)
+					else
+						timer.Remove(timerName)
+					end
 				end)
 			end
 		else
@@ -750,7 +754,7 @@ function ROUND:Start()
 				local volConvar = GetConVar(convarTankMusicVolName)
 
 				audio:EnableLooping(true)
-				audio:SetVolume(volConvar and volConvar:GetFloat() or 0.5)
+				audio:SetVolume(volConvar and volConvar:GetFloat() or 0.4)
 				audio:Play()
 
 				TTTTankMusic = audio
