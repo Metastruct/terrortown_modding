@@ -458,8 +458,8 @@ function ROUND:Start()
 	end)
 
 	-- Disallow tanks from being mutated by PAC (ie. custom entity MDLs)
-	hook.Add("PACMutateEntity", tankHookTag, function(owner, mutatorClass, ent)
-		if IsValid(ent) and ent:IsPlayer() and ent:GetNWBool(tankNwTag) then
+	hook.Add("PACMutateEntity", tankHookTag, function(owner, ent, mutatorClass)
+		if IsValid(owner) and owner:IsPlayer() and owner:GetNWBool(tankNwTag) then
 			return false
 		end
 	end)
