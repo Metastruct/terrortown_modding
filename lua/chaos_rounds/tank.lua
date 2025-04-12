@@ -104,9 +104,13 @@ if SERVER then
 			pac.TogglePartDrawing(pl, false)
 
 			-- Failsafe for if the player had a custom MDL playermodel, otherwise they end up being INVISIBLE or a t-posing dude
-			timer.Simple(0.5, function()
+			local timerName = tankNetTag .. tostring(pl:EntIndex())
+
+			timer.Create(timerName, 0.25, 8, function()
 				if IsValid(pl) then
 					pl:SetModel(tankModel)
+				else
+					timer.Remove(timerName)
 				end
 			end)
 		end
@@ -446,15 +450,15 @@ function ROUND:Start()
 	hook.Add("TTTPlayerSpeedModifier", tankHookTag, function(pl, _, _, speedMultiplierModifier)
 		if IsValid(pl) then
 			if pl:GetNWBool(tankNwTag) then
-				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 1.12
+				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 1.1
 			elseif pl:GetNWBool(tankHitSlowNwTag) then
 				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 0.6
 			end
 		end
 	end)
 
+	-- Disallow tanks from being mutated by PAC (ie. custom entity MDLs)
 	hook.Add("PACMutateEntity", tankHookTag, function(owner, mutatorClass, ent)
-		-- Disallow tanks from being mutated by PAC
 		if IsValid(ent) and ent:IsPlayer() and ent:GetNWBool(tankNwTag) then
 			return false
 		end
@@ -639,8 +643,9 @@ function ROUND:Start()
 			end
 		end)
 
-		hook.Add("PrePACConfigApply", tankHookTag, function(pl)
-			if IsValid(pl) and pl:GetNWBool(tankNwTag) then
+		-- Disallow Tanks from wearing PACs, but still let them clear PACs!
+		hook.Add("PrePACConfigApply", tankHookTag, function(pl, data)
+			if IsValid(pl) and pl:GetNWBool(tankNwTag) and data.part != "__ALL__" then
 				return false, "to avoid visual glitches as the Tank, you can't wear PACs. You can once the round is over."
 			end
 		end)
