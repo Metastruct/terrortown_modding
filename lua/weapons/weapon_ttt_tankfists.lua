@@ -153,10 +153,10 @@ function SWEP:TraceAttack()
 
 	local ang, aim, sdest
 
-	local hasHit = false
+	local hasHit, firstHitDist = false, 0
 
-	local size = self.Primary.HullSize
-	local mins, maxs = Vector(-size, -size, -size), Vector(size, size, size)
+	local hullSize = self.Primary.HullSize
+	local trRange, mins, maxs = self.Primary.Range - hullSize, Vector(-hullSize, -hullSize, -hullSize), Vector(hullSize, hullSize, hullSize)
 
 	local swingHalf = self.Primary.SwingDegrees * 0.5
 
@@ -166,10 +166,7 @@ function SWEP:TraceAttack()
 		ang:RotateAroundAxis(right, i)
 
 		aim = ang:Forward()
-
-		local size = 4
-
-		sdest = spos + aim * (self.Primary.Range - size)
+		sdest = spos + aim * trRange
 
 		local tr = util.TraceHull({
 			start = spos,
@@ -286,6 +283,7 @@ function SWEP:TraceAttack()
 
 		if tr.Hit then
 			hasHit = true
+			firstHitDist = (trRange * tr.Fraction) - 10
 		end
 	end
 
@@ -296,6 +294,11 @@ function SWEP:TraceAttack()
 
 		if IsFirstTimePredicted() then
 			util.ScreenShake(spos, 5, 10, 1, 250, true)
+
+			local ef = EffectData()
+			ef:SetOrigin(spos + owner:GetAimVector() * firstHitDist)
+
+			util.Effect("tank_punch_impact", ef, true)
 		end
 	end
 end
