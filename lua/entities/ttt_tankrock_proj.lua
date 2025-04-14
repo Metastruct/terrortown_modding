@@ -46,6 +46,7 @@ end
 if SERVER then
 	local funcBreakableClassName = "func_breakable"
 	local funcBreakableSurfClassName = "func_breakable_surf"
+	local takeDmgVar = "m_takedamage"
 
 	local breakableFuncEnts = {
 		[funcBreakableClassName] = true,
@@ -67,6 +68,7 @@ if SERVER then
 		local forceVel
 
 		local trTab = {
+			start = hitPos,
 			filter = self,
 			mask = MASK_SOLID_BRUSHONLY
 		}
@@ -93,12 +95,12 @@ if SERVER then
 				and v != owner
 				and v:IsValid()
 				and (not v:IsPlayer() or v:IsTerror())
+				and v:GetInternalVariable(takeDmgVar) != 0
 			then
 				if not forceVel then
 					forceVel = data.OurOldVelocity:GetNormalized() * 25000
 				end
 
-				trTab.start = hitPos
 				trTab.endpos = v:WorldSpaceCenter()
 
 				-- Try to make sure we're not hitting something through walls or floors
