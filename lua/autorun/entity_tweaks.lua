@@ -243,36 +243,115 @@ util.OnInitialize(function()
 		-- PS: this is terrible unfortunately the developer of this weapon left no configuration possible...
 		ENT = weapons.GetStored("weapon_ttt_jihad_bomb")
 		if ENT then
+			local takeDmgVar = "m_takedamage"
+			local maxImpulse = 75 * 400
+
+			ENT.ExplosionDamage = 200
+			ENT.ExplosionRadius = 325
+			ENT.ExplosionMaxBlockPercent = 0.75
+
 			function ENT:Explode()
-				local pos = self:GetPos()
-				local dmg = 200
-				local dmgowner = self:GetOwner()
+				local owner = self:GetOwner()
+				local hasOwner = IsValid(owner)
 
-				local r_outer = 320
+				local pos = hasOwner and owner:WorldSpaceCenter() or self:GetPos()
 
-				self:EmitSound("weapons/jihad_bomb/big_explosion.wav", 400, math.random(100, 125))
+				local dmg, radius, maxBlockPercent = self.ExplosionDamage, self.ExplosionRadius, self.ExplosionMaxBlockPercent
+
+				local inWater = bit.band(util.PointContents(pos), MASK_WATER) != 0
 
 				-- Change body to a random charred body
-				local model = "models/humans/charple0" .. math.random(1, 4) .. ".mdl"
-				self:GetOwner():SetModel(model)
+				if hasOwner then
+					owner:SetModel("models/humans/charple0" .. math.random(1, 4) .. ".mdl")
+				end
 
-				-- Explosion damage
-				util.BlastDamage(self, dmgowner, pos, r_outer, dmg)
+				-- Explosion damage - this is pretty much a port of Source's RadiusDamage function with some changes, mainly allowing some damage through walls
+				local upPos = Vector(pos)
+				upPos.z = upPos.z + 1
 
+				local affectedEnts = ents.FindInSphere(upPos, radius)
+
+				local trTab = {
+					start = upPos,
+					mask = MASK_SHOT - CONTENTS_HITBOX,
+					filter = self
+				}
+
+				if hasOwner then
+					trTab.filter = {self, owner}
+				end
+
+				for k, v in ipairs(affectedEnts) do
+					if v == self
+						not IsValid(v)
+						or (v:IsPlayer() and not v:IsTerror())
+						or v:GetInternalVariable(takeDmgVar) == 0
+						or v:WaterLevel() == (inWater and 0 or 3)
+					then continue end
+
+					local blockedDmgPercent = 0
+					local entPos = v.BodyTarget and v:BodyTarget() or v:WorldSpaceCenter()
+
+					local trNormal
+
+					if v != owner then
+						trTab.endpos = entPos
+
+						local tr = util.TraceLine(trTab)
+						local hitEnt = tr.Entity
+
+						if tr.Hit
+							and hitEnt != v
+							and hitEnt != owner
+						then
+							if IsValid(hitEnt) then
+								local phys = hitEnt:GetPhysicsObject()
+
+								blockedDmgPercent = IsValid(phys)
+									and math.min(phys:GetMass() / 350, 1) * maxBlockPercent
+									or maxBlockPercent
+							else
+								blockedDmgPercent = maxBlockPercent
+							end
+						end
+
+						trNormal = tr.Normal
+					else
+						trNormal = (entPos - upPos):GetNormalized()
+					end
+
+					local dist = v != owner and math.min(upPos:Distance(entPos), radius) or 0
+					local dmgAmount = math.ceil(dmg * (1 - (dist / radius)) * (1 - blockedDmgPercent))
+
+					if dmgAmount <= 0 then continue end
+
+					local dmgInfo = DamageInfo()
+					dmgInfo:SetDamage(dmgAmount)
+					dmgInfo:SetDamageType(DMG_BLAST)
+					dmgInfo:SetDamagePosition(upPos)
+					dmgInfo:SetDamageForce(trNormal * math.min(dmgAmount * 300, maxImpulse))	 -- 300 (75 * 4) is the impulse value that Valve used
+					dmgInfo:SetAttacker(hasOwner and owner or self)
+					dmgInfo:SetInflictor(self)
+
+					v:DispatchTraceAttack(dmgInfo, upPos, trNormal)
+				end
+
+				-- Do visual and sound effects
 				local effect = EffectData()
 				effect:SetStart(pos)
 				effect:SetOrigin(pos)
-				effect:SetScale(r_outer)
-				effect:SetRadius(r_outer)
+				effect:SetScale(radius)
+				effect:SetRadius(radius)
 				effect:SetMagnitude(dmg)
 				util.Effect("Explosion", effect, true, true)
 
+				self:EmitSound("weapons/jihad_bomb/big_explosion.wav", 400, math.random(100, 125))
+
 				-- Make sure the owner dies anyway
-				if IsValid(dmgowner) and dmgowner:Alive() then
-					dmgowner:Kill()
+				if hasOwner and owner:Alive() then
+					owner:Kill()
 				end
 
-				--BurnOwnersBody(model)
 				self:Remove()
 			end
 		end
@@ -281,7 +360,7 @@ util.OnInitialize(function()
 		local grenadeProjectileBaseClass = "ttt_basegrenade_proj"
 
 		hook.Add("OnEntityCreated", "TTTGrenadesDisableAirdrag", function(ent)
-			if not IsValid(ent) or ent.Base ~= grenadeProjectileBaseClass then return end
+			if not IsValid(ent) or ent.Base != grenadeProjectileBaseClass then return end
 
 			timer.Simple(0, function()
 				if not IsValid(ent) then return end
