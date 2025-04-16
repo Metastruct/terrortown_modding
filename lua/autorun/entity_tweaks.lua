@@ -348,6 +348,7 @@ util.OnInitialize(function()
 				self:EmitSound("weapons/jihad_bomb/big_explosion.wav", 400, math.random(100, 125))
 
 				util.ScreenShake(upPos, 60, 25, 1.5, radius + 200, true)
+				util.PaintDown(upPos, "Scorch", trTab.filter)
 
 				-- Make sure the owner dies anyway
 				if hasOwner and owner:Alive() then
