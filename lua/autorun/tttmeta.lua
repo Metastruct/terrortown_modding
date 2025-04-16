@@ -380,6 +380,9 @@ else
 		return "autoload_ttt"
 	end)
 
+	-- Disable F1 browser window
+	hook.Add("WebBrowserF1", Tag, function() return false end)
+
 	-- Disable the root "boxify" command that exists on the client
 	concommand.Add("boxify", emptyFunc)
 
@@ -387,11 +390,12 @@ else
 	local suppress_until = 0
 
 	hook.Add("ScoreboardShow", Tag, function(reason)
-		if reason ~= "ms" then return end
-		if suppress_until > RealTime() then return end
-		if LocalPlayer():KeyDown(IN_SPEED) or LocalPlayer():KeyDown(IN_USE) or LocalPlayer():KeyDown(IN_RELOAD) or LocalPlayer():KeyDown(IN_WALK) then return end
-		suppress_until = RealTime() + 0.5
+		if reason != "ms" or suppress_until > RealTime() then return end
 
+		local pl = LocalPlayer()
+		if not IsValid(pl) or pl:KeyDown(IN_SPEED) or pl:KeyDown(IN_USE) or pl:KeyDown(IN_RELOAD) or pl:KeyDown(IN_WALK) then return end
+
+		suppress_until = RealTime() + 0.5
 		return false
 	end)
 
