@@ -97,11 +97,11 @@ function SWEP:PrimaryAttack()
 
 		local dmg = DamageInfo()
 		dmg:SetDamage(dmgInt)
-		dmg:SetAttacker(owner)
-		dmg:SetInflictor(self)
+		dmg:SetDamageType(DMG_SLASH)
 		dmg:SetDamageForce(aimVector * 12)
 		dmg:SetDamagePosition(owner:GetPos())
-		dmg:SetDamageType(DMG_SLASH)
+		dmg:SetAttacker(owner)
+		dmg:SetInflictor(self)
 
 		hitEnt:DispatchTraceAttack(dmg, tr.StartPos + (aimVector * 3), tr.EndPos)
 	end
@@ -109,20 +109,20 @@ function SWEP:PrimaryAttack()
 	owner:LagCompensation(false)
 end
 
+local hullMins, hullMaxs = Vector(-4, -4, -4), Vector(4, 4, 4)
+
 function SWEP:TraceStab()
 	local owner = self:GetOwner()
 	local spos = owner:GetShootPos()
 	local sdest = spos + owner:GetAimVector() * self.Primary.HitRange
-	local kmins = Vector(-4, -4, -4)
-	local kmaxs = Vector(4, 4, 4)
 
 	local tr = util.TraceHull({
 		start = spos,
 		endpos = sdest,
 		filter = owner,
 		mask = MASK_SHOT_HULL,
-		mins = kmins,
-		maxs = kmaxs
+		mins = hullMins,
+		maxs = hullMaxs
 	})
 
 	-- Hull might hit environment stuff that line does not hit
@@ -142,47 +142,39 @@ function SWEP:TraceStab()
 end
 
 function SWEP:IsBackstab(target)
-	local owner = self:GetOwner()
-	local angle = owner:GetAngles().y - target:GetAngles().y
-
-	if angle < -180 then
-		angle = 360 + angle
-	end
-
-	return angle <= 90 and angle >= -90
+	return util.IsBehindAndFacingTarget(self:GetOwner(), target)
 end
 
 function SWEP:SecondaryAttack() end
 
 if CLIENT then
-	local tryT = LANG.TryTranslation
+	local TryT = LANG.TryTranslation
+
+	local outer = 20
+	local inner = 10
 
 	hook.Add("TTTRenderEntityInfo", "HUDDrawTargetIDShankKnife", function(tData)
 		local pl = LocalPlayer()
-		if not IsValid(pl) or not pl:IsTerror() or not pl:Alive() then return end
+		if not IsValid(pl) or not pl:IsTerror() then return end
 
 		local wep = pl:GetActiveWeapon()
-		if not IsValid(wep) or wep:GetClass() ~= className or tData:GetEntityDistance() > wep.Primary.HitRange then return end
+		if not IsValid(wep) or wep:GetClass() != className or tData:GetEntityDistance() > wep.Primary.HitRange then return end
 
 		local ent = tData:GetEntity()
 		if not ent:IsPlayer() or not wep:IsBackstab(ent) then return end
 
 		local roleColor = pl:GetRoleColor()
 
-		-- enable targetID rendering
+		-- Enable targetID rendering
 		tData:EnableOutline()
 		tData:SetOutlineColor(roleColor)
 
-		tData:AddDescriptionLine(tryT("knife_instant"), roleColor)
+		tData:AddDescriptionLine(TryT("knife_instant"), roleColor)
 
-		-- draw instant-kill maker
-		local x = ScrW() * 0.5
-		local y = ScrH() * 0.5
+		-- Draw instant-kill marker
+		local x, y = ScrW() * 0.5, ScrH() * 0.5
 
-		surface.SetDrawColor(clr(roleColor))
-
-		local outer = 20
-		local inner = 10
+		surface.SetDrawColor(roleColor.r, roleColor.g, roleColor.b)
 
 		surface.DrawLine(x - outer, y - outer, x - inner, y - inner)
 		surface.DrawLine(x + outer, y + outer, x + inner, y + inner)
