@@ -357,7 +357,7 @@ util.OnInitialize(function()
 					then continue end
 
 					local blockedDmgPercent = 0
-					local entPos = v.BodyTarget and v:BodyTarget() or v:WorldSpaceCenter()
+					local entPos = v.BodyTarget and v:BodyTarget(upPos) or v:WorldSpaceCenter()
 
 					local trNormal
 
