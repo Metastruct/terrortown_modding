@@ -350,7 +350,7 @@ util.OnInitialize(function()
 
 				for k, v in ipairs(affectedEnts) do
 					if v == self
-						not IsValid(v)
+						or not IsValid(v)
 						or (v:IsPlayer() and not v:IsTerror())
 						or v:GetInternalVariable(takeDmgVar) == 0
 						or v:WaterLevel() == (inWater and 0 or 3)
