@@ -228,7 +228,7 @@ util.OnInitialize(function()
 		end)
 
 		if CLIENT then
-			ENT.EquipMenuData.desc = (ENT.EquipMenuData and ENT.EquipMenuData.desc or "") + "\n\nShoot victims in the back of the head for critical damage."
+			ENT.EquipMenuData.desc = (ENT.EquipMenuData and ENT.EquipMenuData.desc or "") .. "\n\nShoot victims in the back of the head for critical damage."
 
 			local critText = "CRIT DAMAGE!"
 
