@@ -77,7 +77,7 @@ hook.Add("PreDrawHalos", "Electroshock", function()
 end)
 
 local SEQUENCE_PATHS = {
-	"sound/weapons/electroshock/yourlifeisnothing.ogg",
+	"sound/weapons/electroshock/lifeisnothing.ogg",
 	"sound/weapons/electroshock/kyourselfnow.ogg",
 }
 
