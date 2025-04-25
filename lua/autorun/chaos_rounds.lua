@@ -218,7 +218,7 @@ if CLIENT then
 			text_title:SetText("CHAOS ROUNDS")
 			text_title:SetFont("TTT2_ChaosRoundsFontBig")
 
-			local desc = "Chaos rounds are special rounds that apply a special condition or rule to the current round. Only one round may happen per map. Chaos rounds happen randomly, so be prepared!"
+			local desc = "Chaos rounds are special rounds that apply a special condition or rule to the current round. Chaos rounds happen randomly, so be prepared!"
 			local text = header:Add("DLabel")
 			text:Dock(FILL)
 			text:SetTall(50 * COEF_H)

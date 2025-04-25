@@ -106,7 +106,7 @@ if CLIENT then
 	function ENT:Initialize()
 		if IsValid(self.Channel) then return end
 
-		sound.PlayURL("https://dl.dropboxusercontent.com/scl/fi/a4jtp7ppqgemsksz5326p/Bossfights-Milky-Ways.ogg?rlkey=ehzwlgln1uj51xzn6yrd7w4p2", "3d", function(chan, err)
+		sound.PlayURL("https://raw.githubusercontent.com/PAC3-Server/chatsounds/refs/heads/master/sounds/chatsounds/metal%20gear%20solid/mgs2%20yell%20dead%20cell%20vr%20remix%20loop.ogg", "3d", function(chan, err)
 			if err or not IsValid(chan) then return end
 			if IsValid(self.Channel) then return end
 
