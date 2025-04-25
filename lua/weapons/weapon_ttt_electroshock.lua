@@ -78,7 +78,7 @@ end)
 
 local SEQUENCE_PATHS = {
 	{ path = "weapons/electroshock/lifeisnothing.ogg", length = 1.5 },
-	{ path = "weapons/electroshock/kyourselfnow.ogg", length = 1 },
+	{ path = "weapons/electroshock/kyourselfnow.ogg", length = 1.5 },
 }
 
 function SWEP:PlaySequence(index, onFinish)
@@ -87,6 +87,7 @@ function SWEP:PlaySequence(index, onFinish)
 	if CLIENT then return end
 	if self.IsPlayingSequence and index == 1 then return end
 	if not self.IsPlayingSequence and index > 1 then return end
+	if not self:InMagic() then return end
 
 	local owner = self:GetOwner()
 	if index > #SEQUENCE_PATHS then
