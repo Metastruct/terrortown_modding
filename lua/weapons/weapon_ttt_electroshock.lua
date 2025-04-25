@@ -62,6 +62,20 @@ function SWEP:GetTargetVictim()
 	return self:GetDTEntity(0)
 end
 
+local COLOR_WHITE = Color(255, 255, 255)
+hook.Add("PreDrawHalos", "Electroshock", function()
+	local ply = LocalPlayer()
+	if not IsValid(ply) or not ply:IsTerror() then return end
+
+	local wep = ply:GetActiveWeapon()
+	if not IsValid(wep) or wep:GetClass() ~= "weapon_ttt_electroshock" then return end
+
+	local target = wep:GetTargetVictim()
+	if not IsValid(target) then return end
+
+	halo.Add({ target }, COLOR_WHITE)
+end)
+
 local SEQUENCE_PATHS = {
 	"sound/weapons/electroshock/yourlifeisnothing.ogg",
 	"sound/weapons/electroshock/kyourselfnow.ogg",
