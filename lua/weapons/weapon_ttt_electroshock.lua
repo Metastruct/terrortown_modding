@@ -1,9 +1,9 @@
 DEFINE_BASECLASS("weapon_tttbase")
 if SERVER then
 	AddCSLuaFile()
-	resource.AddSingleFile("sound/weapons/electroshock/kyourselfnow.ogg")
-	resource.AddSingleFile("sound/weapons/electroshock/yourlifeisnothing.ogg")
-	resource.AddSingleFile("sound/weapons/electroshock/thunderclap.ogg")
+	resource.AddFile("sound/weapons/electroshock/kyourselfnow.ogg")
+	resource.AddFile("sound/weapons/electroshock/yourlifeisnothing.ogg")
+	resource.AddFile("sound/weapons/electroshock/thunderclap.ogg")
 end
 
 SWEP.ClassName = "weapon_ttt_electroshock"
@@ -104,7 +104,7 @@ function SWEP:PlaySequence(index, onFinish)
 	end
 
 	self.IsPlayingSequence = true
-	sound.PlayURL(SEQUENCE_PATHS[index], "3d noplay", function(station)
+	sound.PlayFile(SEQUENCE_PATHS[index], "3d", function(station)
 		if IsValid(station) and IsValid(owner) then
 			self.sndwindup = self.sndwindup or {}
 			table.insert(self.sndwindup, station)
