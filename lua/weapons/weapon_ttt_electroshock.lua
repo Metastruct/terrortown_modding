@@ -77,8 +77,8 @@ hook.Add("PreDrawHalos", "Electroshock", function()
 end)
 
 local SEQUENCE_PATHS = {
-	"sound/weapons/electroshock/lifeisnothing.ogg",
-	"sound/weapons/electroshock/kyourselfnow.ogg",
+	{ path = "weapons/electroshock/lifeisnothing.ogg", length = 1.5 },
+	{ path = "weapons/electroshock/kyourselfnow.ogg", length = 1.5 },
 }
 
 function SWEP:PlaySequence(index, onFinish)
@@ -104,18 +104,9 @@ function SWEP:PlaySequence(index, onFinish)
 	end
 
 	self.IsPlayingSequence = true
-	sound.PlayFile(SEQUENCE_PATHS[index], "3d", function(station)
-		if IsValid(station) and IsValid(owner) then
-			self.sndwindup = self.sndwindup or {}
-			table.insert(self.sndwindup, station)
-
-			station:SetPos(owner:EyePos())
-			station:Play()
-
-			timer.Simple(station:GetLength(), function()
-				self:PlaySequence(index + 1, onFinish)
-			end)
-		end
+	sound.Play(SEQUENCE_PATHS[index].path, owner:EyePos(), 100)
+	timer.Simple(SEQUENCE_PATHS[index].length, function()
+		self:PlaySequence(index + 1, onFinish)
 	end)
 end
 
@@ -135,17 +126,9 @@ function SWEP:PrimaryAttack()
 	self:SetInMagic(true)
 
 	local target_pos = tr.Entity:GetPos()
-	if CLIENT and IsFirstTimePredicted() then
-		timer.Simple(0.6, function()
-			self:PlaySequence(1, function()
-				sound.PlayFile("sound/weapons/electroshock/thunderclap.ogg", "3d noplay", function(station)
-					if IsValid(station) then
-						station:SetPos(target_pos)
-						station:SetVolume(6)
-						station:Play()
-					end
-				end)
-			end)
+	if SERVER then
+		self:PlaySequence(1, function()
+			sound.Play("weapons/electroshock/thunderclap.ogg", target_pos, 100)
 		end)
 	end
 
