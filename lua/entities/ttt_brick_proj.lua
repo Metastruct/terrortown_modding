@@ -216,6 +216,8 @@ if SERVER then
 	end
 
 	function ENT:PhysicsUpdate(phys)
+		if not IsValid(phys) then return end
+
 		local velocitySqr = phys:GetVelocity():LengthSqr()
 
 		if velocitySqr < 4 then
