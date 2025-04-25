@@ -87,7 +87,11 @@ function SWEP:PlaySequence(index, onFinish)
 	if CLIENT then return end
 	if self.IsPlayingSequence and index == 1 then return end
 	if not self.IsPlayingSequence and index > 1 then return end
-	if not self:InMagic() then return end
+
+	if not self:InMagic() then
+		self.IsPlayingSequence = false
+		return
+	end
 
 	local owner = self:GetOwner()
 	if index > #SEQUENCE_PATHS then
@@ -99,7 +103,7 @@ function SWEP:PlaySequence(index, onFinish)
 		return
 	end
 
-	if not IsValid(owner) then
+	if not IsValid(owner) or not IsValid(self:GetTargetVictim()) then
 		self.IsPlayingSequence = false
 		return
 	end
