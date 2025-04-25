@@ -2,7 +2,7 @@ DEFINE_BASECLASS("weapon_tttbase")
 if SERVER then
 	AddCSLuaFile()
 	resource.AddFile("sound/weapons/electroshock/kyourselfnow.ogg")
-	resource.AddFile("sound/weapons/electroshock/yourlifeisnothing.ogg")
+	resource.AddFile("sound/weapons/electroshock/lifeisnothing.ogg")
 	resource.AddFile("sound/weapons/electroshock/thunderclap.ogg")
 end
 
