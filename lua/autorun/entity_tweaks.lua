@@ -198,16 +198,19 @@ util.OnInitialize(function()
 	ENT = weapons.GetStored("weapon_ttt_sipistol")
 	if ENT then
 		ENT.Primary.Damage = 26
-		ENT.HeadshotMultiplier = 2.2
+		ENT.HeadshotMultiplier = 2.25
 
 		ENT.Primary.Delay = 0.3
 		ENT.Primary.Cone = 0.0125
 
 		local pistolClass = ENT.ClassName
-
 		local maxCritDistSqr = 512 ^ 2
 
-		hook.Add("ScalePlayerDamage", pistolClass, function(pl, hitGroup, dmgInfo)
+		local function canCrit(owner, target)
+			return owner:GetPos():DistToSqr(target:GetPos()) <= maxCritDistSqr and util.IsBehindAndFacingTarget(owner, target)
+		end
+
+		hook.Add("ScalePlayerDamage", pistolClass, function(target, hitGroup, dmgInfo)
 			if hitGroup != HITGROUP_HEAD then return end
 
 			local attacker = dmgInfo:GetAttacker()
@@ -220,8 +223,7 @@ util.OnInitialize(function()
 
 			if IsValid(inflictor)
 				and inflictor:GetClass() == pistolClass
-				and attacker:GetPos():DistToSqr(pl:GetPos()) <= maxCritDistSqr
-				and util.IsBehindAndFacingTarget(attacker, pl)
+				and canCrit(attacker, target)
 			then
 				dmgInfo:ScaleDamage(2.5)
 			end
@@ -244,9 +246,8 @@ util.OnInitialize(function()
 
 				local ent = tData:GetEntity()
 				if not ent:IsPlayer()
-					or pl:GetPos():DistToSqr(ent:GetPos()) > maxCritDistSqr	-- I know tData:GetEntityDistance exists, but I want it to sync up with the damage hook
 					or pl:GetEyeTraceNoCursor().HitGroup != HITGROUP_HEAD
-					or not util.IsBehindAndFacingTarget(pl, ent)
+					or not canCrit(pl, ent)
 				then return end
 
 				local roleColor = pl:GetRoleColor()
