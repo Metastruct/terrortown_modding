@@ -68,12 +68,13 @@ local SEQUENCE_PATHS = {
 }
 
 function SWEP:PlaySequence(index, onFinish)
+	index = index or 1
+
 	if SERVER then return end
 	if self.IsPlayingSequence and index == 1 then return end
+	if not self.IsPlayingSequence and index > 1 then return end
 
-	index = index or 1
 	local owner = self:GetOwner()
-
 	if index > #SEQUENCE_PATHS then
 		if onFinish then
 			onFinish()
