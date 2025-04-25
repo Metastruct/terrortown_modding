@@ -84,7 +84,7 @@ local SEQUENCE_PATHS = {
 function SWEP:PlaySequence(index, onFinish)
 	index = index or 1
 
-	if SERVER then return end
+	if CLIENT then return end
 	if self.IsPlayingSequence and index == 1 then return end
 	if not self.IsPlayingSequence and index > 1 then return end
 
