@@ -78,7 +78,7 @@ end)
 
 local SEQUENCE_PATHS = {
 	{ path = "weapons/electroshock/lifeisnothing.ogg", length = 1.5 },
-	{ path = "weapons/electroshock/kyourselfnow.ogg", length = 1.5 },
+	{ path = "weapons/electroshock/kyourselfnow.ogg", length = 1 },
 }
 
 function SWEP:PlaySequence(index, onFinish)
@@ -128,7 +128,10 @@ function SWEP:PrimaryAttack()
 	local target_pos = tr.Entity:GetPos()
 	if SERVER then
 		self:PlaySequence(1, function()
+			self:DealDamage(self:GetTargetVictim())
 			sound.Play("weapons/electroshock/thunderclap.ogg", target_pos, 100)
+			self:EndMagic()
+			self:SetNextPrimaryFire(CurTime() + 5)
 		end)
 	end
 
@@ -386,12 +389,6 @@ function SWEP:Think()
 	if elapsed then
 		if not owner:IsValid() or not owner:KeyDown(IN_ATTACK) then return self:EndMagic() end
 		if not IsValid(self:GetTargetVictim()) or (SERVER and not owner:TestPVS(self:GetTargetVictim())) then return self:EndMagic() end
-
-		if elapsed > 4 then
-			self:DealDamage(self:GetTargetVictim())
-			self:EndMagic()
-			self:SetNextPrimaryFire(CurTime() + 5)
-		end
 	end
 end
 
