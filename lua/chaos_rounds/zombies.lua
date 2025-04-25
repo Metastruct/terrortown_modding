@@ -79,6 +79,24 @@ if SERVER then
 			end
 		end)
 
+		-- give infinite ammo to non-zombies
+		hook.Add("Think", TAG .. "_InfiniteAmmo", function()
+			for _, ply in ipairs(player.GetAll()) do
+				if not ply:IsTerror() then continue end
+				if ply:GetSubRole() == ROLE_ZOMBIE then continue end
+
+				for _, wep in ipairs(ply:GetWeapons()) do
+					if wep.Primary and wep.Primary.ClipSize and wep.Primary.ClipSize > 0 then
+						wep:SetClip1(wep.Primary.ClipSize)
+					end
+
+					if wep.Secondary and wep.Secondary.ClipSize and wep.Secondary.ClipSize > 0 then
+						wep:SetClip2(wep.Secondary.ClipSize)
+					end
+				end
+			end
+		end)
+
 		hook.Add("TTT2PostPlayerDeath", TAG, function(victim, _, attacker)
 			-- fixate the round end timer
 			timer.Simple(0, function()
@@ -139,6 +157,7 @@ if SERVER then
 		hook.Remove("TTTCheckForWin", TAG)
 		hook.Remove("TTT2MetaModifyFinalRoles", TAG)
 		hook.Remove("EntityTakeDamage", TAG)
+		hook.Remove("Think", TAG .. "_InfiniteAmmo")
 
 		for _, ply in ipairs(player.GetAll()) do
 			ply:SetMaxHealth(100)
