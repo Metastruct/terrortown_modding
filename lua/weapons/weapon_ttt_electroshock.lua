@@ -1,6 +1,7 @@
 DEFINE_BASECLASS("weapon_tttbase")
 if SERVER then
 	AddCSLuaFile()
+	resource.AddFile("materials/vgui/ttt/icon_electroshock.vmt")
 	resource.AddFile("sound/weapons/electroshock/kyourselfnow.ogg")
 	resource.AddFile("sound/weapons/electroshock/lifeisnothing.ogg")
 	resource.AddFile("sound/weapons/electroshock/thunderclap.ogg")
@@ -28,7 +29,7 @@ SWEP.Secondary.Ammo = "none"
 SWEP.DrawAmmo = false
 SWEP.HitDistance = 48
 
-SWEP.Kind = WEAPON_EQUIP1
+SWEP.Kind = WEAPON_EQUIP
 SWEP.AutoSpawnable = false
 SWEP.CanBuy = { ROLE_TRAITOR }
 SWEP.InLoadoutFor = { nil }
@@ -40,6 +41,7 @@ SWEP.EquipMenuData = {
 	type = "item_weapon",
 	desc = "Be empowered by the power of Zeus!"
 }
+SWEP.Icon = "vgui/ttt/icon_electroshock"
 
 function SWEP:Initialize()
 	self:SetHoldType("normal")
