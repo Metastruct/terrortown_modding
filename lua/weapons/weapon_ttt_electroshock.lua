@@ -64,19 +64,44 @@ function SWEP:GetTargetVictim()
 	return self:GetDTEntity(0)
 end
 
-local COLOR_WHITE = Color(255, 255, 255)
-hook.Add("PreDrawHalos", "Electroshock", function()
+local function getTarget()
 	local ply = LocalPlayer()
-	if not IsValid(ply) or not ply:IsTerror() then return end
+	if not IsValid(ply) or not ply:Alive() then return end
 
 	local wep = ply:GetActiveWeapon()
 	if not IsValid(wep) or wep:GetClass() ~= "weapon_ttt_electroshock" then return end
+	if not wep:InMagic() then return end
 
 	local target = wep:GetTargetVictim()
 	if not IsValid(target) then return end
 
-	halo.Add({ target }, COLOR_WHITE)
-end)
+	return target
+end
+
+if CLIENT then
+	local COLOR_RED = Color(255, 0, 0)
+	hook.Add("PreDrawHalos", "weapon_ttt_electroshock", function()
+		local target = getTarget()
+		if not IsValid(target) then return end
+
+		halo.Add({ target }, COLOR_RED)
+	end)
+
+	hook.Add("HUDPaint", "weapon_ttt_electroshock", function()
+		local target = getTarget()
+		if not IsValid(target) then return end
+
+		local pos = target:WorldSpaceCenter():ToScreen()
+		local text = "[TARGET]"
+		local font = "DermaLarge"
+
+		surface.SetFont(font)
+		local w, h = surface.GetTextSize(text)
+		surface.SetTextPos(pos.x - w / 2, pos.y - h / 2)
+		surface.SetTextColor(COLOR_RED)
+		surface.DrawText(text)
+	end)
+end
 
 local SEQUENCE_PATHS = {
 	{ path = "weapons/electroshock/lifeisnothing.ogg", length = 1.5 },
