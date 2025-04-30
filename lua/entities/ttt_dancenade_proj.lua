@@ -153,11 +153,34 @@ if SERVER then
 end
 
 if CLIENT then
+	function ENT:Initialize()
+		sound.PlayURL("https://raw.githubusercontent.com/Metastruct/garrysmod-chatsounds/refs/heads/master/sound/chatsounds/autoadd/music/youre%20out%20of%20touch.ogg", "3d", function(station)
+			if IsValid(station) then
+				station:SetPos(self:GetPos())
+				station:SetVolume(2)
+				station:Play()
+				self.Sound = station
+			end
+		end)
+	end
+
+	function ENT:OnRemove()
+		if IsValid(self.Sound) then
+			self.Sound:Stop()
+		end
+	end
+
+	local WHITE_MAT = Material("models/debug/debugwhite")
 	function ENT:Draw()
+		local col = HSVToColor(CurTime() * 300 % 360, 1, 1)
+		render.SetColorModulation(col.r / 255, col.g / 255, col.b / 255)
+		render.MaterialOverride(WHITE_MAT)
 		self:DrawModel()
+		render.SetColorModulation(1, 1, 1)
+		render.MaterialOverride()
 
 		if self.NextParticle < CurTime() then
-			local pos = self:GetPos()
+			local pos = self:WorldSpaceCenter()
 
 			local emitter = ParticleEmitter(pos)
 			for i = 1, 5 do
@@ -224,7 +247,7 @@ if CLIENT then
 
 		local dlight = DynamicLight(self:EntIndex())
 		if dlight then
-			dlight.pos = self:GetPos()
+			dlight.pos = self:WorldSpaceCenter()
 			dlight.r = math.sin(CurTime() * 2) * 127 + 128
 			dlight.g = math.sin(CurTime() * 2 + 2) * 127 + 128
 			dlight.b = math.sin(CurTime() * 2 + 4) * 127 + 128
@@ -235,7 +258,7 @@ if CLIENT then
 		end
 
 		-- Draw light beams
-		local pos = self:GetPos()
+		local pos = self:WorldSpaceCenter()
 		local angles = self:GetAngles()
 
 		for i = 1, 4 do
