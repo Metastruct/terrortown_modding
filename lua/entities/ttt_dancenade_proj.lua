@@ -235,12 +235,13 @@ if CLIENT then
 
 			self.NextParticle = CurTime() + 0.1
 		end
-
-		-- TODO:
-		-- Figure out a sound for the grenade and balancing ?
 	end
 
 	function ENT:Think()
+		if IsValid(self.Sound) then
+			self.Sound:SetPos(self:GetPos())
+		end
+
 		if not self.LightPos then
 			self.LightPos = 0
 		end
