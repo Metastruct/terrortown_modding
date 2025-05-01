@@ -1,14 +1,14 @@
 AddCSLuaFile()
 
-DEFINE_BASECLASS("ttt_basegrenade_proj")
-
 ENT.Type = "anim"
-ENT.Base = "ttt_basegrenade_proj"
+ENT.Base = "base_entity"
 ENT.Model = Model("models/weapons/w_eq_flashbang_thrown.mdl")
 ENT.PrintName = "Dance Grenade"
 ENT.Author = "Earu"
 ENT.Spawnable = true
 ENT.AdminOnly = true
+ENT.CanPickup = false
+ENT.Projectile = true
 
 ENT.DanceRadius = 300
 ENT.DanceDuration = 15
@@ -17,6 +17,8 @@ ENT.FloatHeight = 100  -- How high to float
 ENT.RiseSpeed = 40     -- How fast to rise (increased from 20)
 ENT.SpinSpeed = 100    -- How fast to spin (increased from 50)
 ENT.AccelerationRate = 1.5 -- Acceleration multiplier for rising
+
+AccessorFunc(ENT, "thrower", "Thrower")
 
 if SERVER then
 	function ENT:Initialize()
@@ -30,11 +32,16 @@ if SERVER then
 			phys:Wake()
 		end
 
+		self.DetonateTime = CurTime() + 3
 		self.IsFloating = false
 		self.OriginalPos = nil
 	end
 
 	function ENT:Think()
+		if self.DetonateTime and CurTime() > self.DetonateTime then
+			self:Explode()
+		end
+
 		if self.DanceEnd and CurTime() > self.DanceEnd then
 			self:Remove()
 		end
@@ -78,7 +85,7 @@ if SERVER then
 		return true
 	end
 
-	function ENT:Explode(tr)
+	function ENT:Explode()
 		self.DanceEnd = CurTime() + self.DanceDuration
 
 		local pos = self:GetPos()
