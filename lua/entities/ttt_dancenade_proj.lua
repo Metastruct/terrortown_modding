@@ -1,7 +1,10 @@
 AddCSLuaFile()
 
+DEFINE_BASECLASS("ttt_basegrenade_proj")
+
 ENT.Type = "anim"
-ENT.Base = "base_entity"
+ENT.Base = "ttt_basegrenade_proj"
+ENT.Model = Model("models/weapons/w_eq_flashbang_thrown.mdl")
 ENT.PrintName = "Dance Grenade"
 ENT.Author = "Earu"
 ENT.Spawnable = true
@@ -27,16 +30,11 @@ if SERVER then
 			phys:Wake()
 		end
 
-		self.DetonateTime = CurTime() + 3
 		self.IsFloating = false
 		self.OriginalPos = nil
 	end
 
 	function ENT:Think()
-		if self.DetonateTime and CurTime() > self.DetonateTime then
-			self:Detonate()
-		end
-
 		if self.DanceEnd and CurTime() > self.DanceEnd then
 			self:Remove()
 		end
@@ -80,8 +78,7 @@ if SERVER then
 		return true
 	end
 
-	function ENT:Detonate()
-		self.DetonateTime = nil
+	function ENT:Explode(tr)
 		self.DanceEnd = CurTime() + self.DanceDuration
 
 		local pos = self:GetPos()
