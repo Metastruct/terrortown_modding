@@ -18,10 +18,9 @@ else
 	}
 end
 
-DEFINE_BASECLASS("weapon_tttbasegrenade")
-
+SWEP.HoldType = "grenade"
+SWEP.Base = "weapon_tttbasegrenade"
 SWEP.ClassName = className
-
 SWEP.UseHands = true
 SWEP.Kind = WEAPON_NADE
 SWEP.ViewModel = "models/weapons/cstrike/c_eq_flashbang.mdl"
