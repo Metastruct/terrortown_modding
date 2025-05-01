@@ -95,6 +95,10 @@ if SERVER then
 			phys:Wake()
 		end
 
+		self:SetAngles(Angle(0, 0, 0))
+		self:SetPos(pos + Vector(0, 0, 100))
+		self:DropToFloor()
+
 		-- Store affected players to repeatedly apply dance
 		self.AffectedPlayers = {}
 
