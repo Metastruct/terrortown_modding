@@ -28,7 +28,8 @@ local addons = {
 	"3003509443",	-- Detective Toy Car (Cozy Coupe)
 	"3166539189",	-- Spring Mine
 	"3274577332",	-- Janitor Role
-	"3021464449"	-- Glue Trap
+	"3021464449",	-- Glue Trap,
+	"1128856824",	-- Chainsaw
 }
 
 for _, id in ipairs(addons) do
