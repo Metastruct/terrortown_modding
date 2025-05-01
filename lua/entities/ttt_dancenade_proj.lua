@@ -35,6 +35,9 @@ if SERVER then
 		self.DetonateTime = CurTime() + 3
 		self.IsFloating = false
 		self.OriginalPos = nil
+
+		SafeRemoveEntityDelayed(self, self.DanceDuration + self.DetonateTime)
+		return self.BaseClass.Initialize(self)
 	end
 
 	function ENT:Think()
@@ -43,7 +46,8 @@ if SERVER then
 		end
 
 		if self.DanceEnd and CurTime() > self.DanceEnd then
-			self:Remove()
+			SafeRemoveEntity(self)
+			return
 		end
 
 		-- Handle floating after detonation
@@ -101,10 +105,6 @@ if SERVER then
 			phys:EnableGravity(false)
 			phys:Wake()
 		end
-
-		self:SetAngles(Angle(0, 0, 0))
-		self:SetPos(pos + Vector(0, 0, 100))
-		self:DropToFloor()
 
 		-- Store affected players to repeatedly apply dance
 		self.AffectedPlayers = {}
@@ -170,6 +170,8 @@ if CLIENT then
 				self.Sound = station
 			end
 		end)
+
+		return self.BaseClass.Initialize(self)
 	end
 
 	function ENT:OnRemove()
