@@ -16,7 +16,7 @@ ENT.ClassName = className
 
 ENT.Model = "models/props_debris/concrete_chunk01a.mdl"
 
-ENT.Damage = 50
+ENT.Damage = 75
 
 -- Magneto-stick isn't allowed to pick this up
 ENT.CanPickup = false
@@ -141,7 +141,7 @@ if SERVER then
 		net.WriteEntity(self)
 		net.WriteVector(hitPos)
 		net.WriteVector(data.OurOldVelocity * 0.5)
-		net.SendPVS(hitPos)
+		net.Broadcast(hitPos)
 
 		self:SetNoDraw(true)
 
@@ -158,6 +158,8 @@ if SERVER then
 	end
 
 	function ENT:PhysicsUpdate(phys)
+		if not IsValid(phys) then return end
+
 		local vel = phys:GetVelocity()
 
 		if vel:LengthSqr() > 4 then

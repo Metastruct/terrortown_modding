@@ -13,7 +13,8 @@ local tankRespawnableNwTag = "TTTL4DTankRespawnable"
 local tankModel = "models/infected/hulk_ttt.mdl"
 local tankWeaponClass = "weapon_ttt_tankfists"
 
-local convarTankMusicVolName = "ttt_tank_music_volume"
+local convarTankMusicVol
+local convarTankHealPercent
 
 if SERVER then
 	util.AddNetworkString(tankNetTag)
@@ -37,7 +38,12 @@ if SERVER then
 	resource.AddSingleFile("sound/infected/tank_step5.ogg")
 	resource.AddSingleFile("sound/infected/tank_step6.ogg")
 
-	TTTTank = {}
+	local convarTankHealthBase = CreateConVar("ttt_tank_health_base", 250, FCVAR_ARCHIVE + FCVAR_NOTIFY, "The Tank's base health for the Tank chaos round.", 0)
+	local convarTankHealthScale = CreateConVar("ttt_tank_health_scaleperplayer", 500, FCVAR_ARCHIVE + FCVAR_NOTIFY, "The Tank's extra scaling health per player for the Tank chaos round.", 0)
+
+	convarTankHealPercent = CreateConVar("ttt_tank_health_healperkill", 0.1, FCVAR_ARCHIVE + FCVAR_NOTIFY, "The percentage (0-1) of health the Tank heals back per kill during the Tank chaos round.", 0, 1)
+
+	TTTTank = TTTTank or {}
 
 	function TTTTank.TrySelectRandomTank()
 		if IsValid(TTTTank.ChosenTank) then return end
@@ -140,7 +146,7 @@ if SERVER then
 			end
 		end
 
-		local newHP = 250 + (500 * plMultiplier)
+		local newHP = convarTankHealthBase:GetInt() + (convarTankHealthScale:GetInt() * plMultiplier)
 		pl:SetMaxHealth(newHP)
 		pl:SetHealth(newHP)
 
@@ -248,7 +254,9 @@ if SERVER then
 		end)
 	end
 else
-	CreateConVar(convarTankMusicVolName, 0.4, FCVAR_ARCHIVE, "Volume of the music played during the Tank chaos round.", 0, 1)
+	local convarTankMusicVolName = "ttt_tank_music_volume"
+
+	convarTankMusicVol = CreateConVar(convarTankMusicVolName, 0.333, FCVAR_ARCHIVE, "Volume of the music played during the Tank chaos round.", 0, 1)
 
 	cvars.AddChangeCallback(convarTankMusicVolName, function(_, old, new)
 		if IsValid(TTTTankMusic) then
@@ -372,7 +380,7 @@ function ROUND:Start()
 
 	hook.Add("PlayerStepSoundTime", tankHookTag, function(pl, stepType, walking)
 		if pl:GetNWBool(tankNwTag) then
-			return stepType == STEPSOUNDTIME_ON_LADDER and 500 or (walking and 375 or 250)
+			return stepType == STEPSOUNDTIME_ON_LADDER and 500 or ((walking or pl:Crouching()) and 375 or 250)
 		end
 	end)
 
@@ -387,7 +395,7 @@ function ROUND:Start()
 			local rockThrowStart = pl:GetNWFloat(tankRockThrowNwTag)
 
 			if rockThrowStart > 0 and CurTime() >= rockThrowStart then
-				local progress = (CurTime() - rockThrowStart) * 0.385
+				local progress = (CurTime() - rockThrowStart) * 0.44
 
 				if progress < 1 then
 					pl:SetCycle(progress)
@@ -437,11 +445,24 @@ function ROUND:Start()
 	end)
 
 	hook.Add("ScalePlayerDamage", tankHookTag, function(pl, _, dmg)
-		-- Reduce "friendly fire" damage between the terrorists
-		if not pl:GetNWBool(tankNwTag) then
+		if pl:GetNWBool(tankNwTag) then
+			if dmg:IsFallDamage() then
+				-- Make Tank take half fall damage
+				dmg:ScaleDamage(0.5)
+			elseif pl:GetNWFloat(tankRockThrowNwTag) > 0 and pl != dmg:GetAttacker() then
+				-- Give Tank damage resistance while throwing rocks
+				dmg:ScaleDamage(0.5)
+			end
+
+			if dmg:IsDamageType(DMG_CLUB) then
+				-- Make Tank take a lot more damage from melee attacks (CLUB is usually melee)
+				dmg:ScaleDamage(4)
+			end
+		else
 			local attacker = dmg:GetAttacker()
 
 			if IsValid(attacker) and attacker:IsPlayer() and not attacker:GetNWBool(tankNwTag) then
+				-- Reduce "friendly fire" damage between the terrorists
 				dmg:ScaleDamage(0.25)
 			end
 		end
@@ -450,7 +471,7 @@ function ROUND:Start()
 	hook.Add("TTTPlayerSpeedModifier", tankHookTag, function(pl, _, _, speedMultiplierModifier)
 		if IsValid(pl) then
 			if pl:GetNWBool(tankNwTag) then
-				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 1.1
+				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 1.12
 			elseif pl:GetNWBool(tankHitSlowNwTag) then
 				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 0.6
 			end
@@ -605,6 +626,15 @@ function ROUND:Start()
 			end
 		end)
 
+		local killWordsList = {
+			"slaughtering",
+			"mauling",
+			"obliterating",
+			"smashing",
+			"mutilating",
+			"bloodying"
+		}
+
 		hook.Add("DoPlayerDeath", tankHookTag, function(pl)
 			pl:SetNWBool(tankHitSlowNwTag, false)
 
@@ -612,6 +642,22 @@ function ROUND:Start()
 				pl:EmitSound(deathSounds[math.random(1, #deathSounds)], 85, math.random(95, 101), 1, CHAN_VOICE2)
 
 				-- Default death sounds are removed by a TTT2PlayDeathScream hook
+			else
+				local plTank = TTTTank.ChosenTank
+				if not IsValid(plTank) or not pl:IsTerror() then return end
+
+				local rf = RecipientFilter()
+				rf:AddPlayer(plTank)
+
+				plTank:EmitSound("ui/littlereward.wav", 75, 100, 1, CHAN_AUTO, 0, 0, rf)
+
+				local healMult = convarTankHealPercent:GetFloat()
+				if healMult > 0 then
+					local tankMaxHP = plTank:GetMaxHealth()
+					plTank:SetHealth(math.min(math.ceil(plTank:Health() + (tankMaxHP * healMult)), tankMaxHP))
+
+					LANG.Msg(plTank, string.format("You feel better after %s %s...", killWordsList[math.random(1, #killWordsList)], pl:Name()), nil, MSG_MSTACK_PLAIN)
+				end
 			end
 		end)
 
@@ -650,7 +696,7 @@ function ROUND:Start()
 			end
 		end)
 
-		timer.Create(tankHookTag .. "_IdleVoice", 6, 0, function()
+		timer.Create(tankHookTag .. "_IdleVoice", 7.5, 0, function()
 			local now = CurTime()
 
 			for k, v in ipairs(player.GetAll()) do
@@ -696,6 +742,8 @@ function ROUND:Start()
 			if IsValid(defib) then
 				defib:SetPos(plySpawns[math.random(1, #plySpawns)].pos + Vector(0, 0, 16))
 				defib:Spawn()
+
+				LANG.Msg(ROLE_INNOCENT, "There's a defibrillator on the floor somewhere!\nFind it for a better chance of survival!", nil, MSG_MSTACK_PLAIN)
 			end
 		end
 	else
@@ -756,10 +804,8 @@ function ROUND:Start()
 
 		sound.PlayFile("sound/infected/tank_bg.ogg", "noplay noblock", function(audio)
 			if IsValid(audio) then
-				local volConvar = GetConVar(convarTankMusicVolName)
-
 				audio:EnableLooping(true)
-				audio:SetVolume(volConvar and volConvar:GetFloat() or 0.4)
+				audio:SetVolume(convarTankMusicVol and convarTankMusicVol:GetFloat() or 0.4)
 				audio:Play()
 
 				TTTTankMusic = audio

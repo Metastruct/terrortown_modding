@@ -25,23 +25,23 @@ SWEP.HoldType = "normal"
 SWEP.Kind = WEAPON_MELEE
 
 SWEP.Primary.Damage = 40
-SWEP.Primary.Delay = 1.5
+SWEP.Primary.Delay = 1.25
 SWEP.Primary.HitDelay = 0.5
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
-SWEP.Primary.Range = 70
+SWEP.Primary.Range = 72
 SWEP.Primary.HullSize = 4
 SWEP.Primary.SwingDegrees = 60
 SWEP.Primary.SwingSteps = 10
 
 SWEP.Primary.HitSound = "infected/tank_punch.ogg"
 
-local intendedRockThrowDelay = 8
+local intendedRockThrowDelay = 6
 
 SWEP.Secondary.Delay = intendedRockThrowDelay
-SWEP.Secondary.ThrowDelay = 2.3
+SWEP.Secondary.ThrowDelay = 2.05
 SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = false
@@ -103,7 +103,7 @@ function SWEP:PrimaryAttack()
 
 	self:SetPunchTime(now + self.Primary.HitDelay)
 
-	self:EmitSound("npc/zombie/claw_miss1.wav", 75, math.random(22, 25), 0.6)
+	self:EmitSound("npc/zombie/claw_miss1.wav", 75, math.random(22, 25), 0.66)
 
 	if IsFirstTimePredicted() and now >= owner:GetNWFloat(tankVoiceNwTag) then
 		local rf
@@ -127,7 +127,7 @@ function SWEP:PrimaryAttack()
 end
 
 local applyPunchForce = SERVER and function(ent, force)
-	local angleVel = VectorRand(-800, 800)
+	local angleVel = VectorRand(-750, 750)
 
 	for i = 0, ent:GetPhysicsObjectCount() - 1 do
 		local phys = ent:GetPhysicsObjectNum(i)
@@ -186,10 +186,13 @@ function SWEP:TraceAttack()
 
 				local isPlayer = ent:IsPlayer()
 
-				local force = eyeAim * (isPlayer and 700 or 900)
+				local force = eyeAim * (isPlayer and 600 or 1000)
 
 				if isPlayer then
-					force.z = 200
+					-- Use this to pass the punch force to the victim player's corpse if they die
+					ent.TankPunchedVelocity = force * 0.7
+
+					force.z = 150
 
 					ent:SetGroundEntity(NULL)
 					ent:SetVelocity(force)
@@ -219,17 +222,15 @@ function SWEP:TraceAttack()
 						end
 					end)
 
-					-- Use this to pass the punch force to the victim player's corpse if they die
-					ent.TankPunchedVelocity = force * 0.7
-
 					timer.Simple(0, function()
 						if IsValid(ent) then
 							ent.TankPunchedVelocity = nil
 						end
 					end)
 				else
-					if ent:IsRagdoll() then
-						force:Mul(0.7)
+					-- Give ragdolls a bit of lift if they're being punched along the floor
+					if ent:IsRagdoll() and force.z < 0 then
+						force.z = 180
 					end
 
 					ent:ForcePlayerDrop()
@@ -290,13 +291,13 @@ function SWEP:TraceAttack()
 	owner:LagCompensation(false)
 
 	if hasHit then
-		self:EmitSound(self.Primary.HitSound, 90, math.random(98, 102))
+		self:EmitSound(self.Primary.HitSound, 90, math.random(98, 102), 1, CHAN_VOICE)
 
 		if IsFirstTimePredicted() then
 			util.ScreenShake(spos, 5, 10, 1, 250, true)
 
 			local ef = EffectData()
-			ef:SetOrigin(spos + owner:GetAimVector() * firstHitDist)
+			ef:SetOrigin(spos + eyeAim * firstHitDist)
 
 			util.Effect("tank_punch_impact", ef, true)
 		end
@@ -566,7 +567,12 @@ if SERVER then
 
 		local ang = diff:Angle()
 
-		local extraPitch = math.min(10 * (diffLen / 870), 12.5)
+		-- At the moment, whenever I want to adjust desiredSpeed, I manually eyeball the number required for "___ * gravityMod" by throwing rocks at a wall over and over
+		-- I know that's silly but I don't know what the formula for calculating that would be, so I'll keep manually setting it until then... :)
+
+		local desiredSpeed = 1500
+		local gravityMod = 600 / -physenv.GetGravity().z
+		local extraPitch = math.min(diffLen / (120 * gravityMod), 12.5) -- diffLen / (distanceThreshold / 10)
 
 		ang.p = math.max(math.NormalizeAngle(ang.p - extraPitch), -89)
 
@@ -582,7 +588,7 @@ if SERVER then
 
 		local phys = rock:GetPhysicsObject()
 		if phys:IsValid() then
-			phys:SetVelocityInstantaneous(dir * 1250)
+			phys:SetVelocityInstantaneous(dir * desiredSpeed)
 		end
 	end
 
