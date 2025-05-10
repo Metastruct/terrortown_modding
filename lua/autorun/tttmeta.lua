@@ -252,14 +252,17 @@ if SERVER then
 						function(results)
 							local yesVotes, needed = table.Count(results.Yes), math.floor(#player.GetHumans() * 0.5)
 
-							if yesVotes > needed then
+							if yesVotes >= needed then
 								ForceChaosRound("Tank!")
 
 								EPOP:AddMessage(nil, "Vote successful!", "The next round will be the TANK chaos round!")
 
 								hook.Add("TTTBeginRound", "TankVote", function()
 									hook.Remove("TTTBeginRound", "TankVote")
-									ForceChaosRound(false)
+
+									timer.Simple(0.1, function()
+										ForceChaosRound(false)
+									end)
 								end)
 							else
 								EPOP:AddMessage(nil, "Vote failed!", string.format("Not enough Yes votes to pass - %s / %s", yesVotes, needed))
