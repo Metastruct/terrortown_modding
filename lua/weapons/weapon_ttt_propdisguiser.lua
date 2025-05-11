@@ -38,6 +38,7 @@ SWEP.HoldType = "normal"
 SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/c_stunstick.mdl"
 SWEP.WorldModel = "models/xqm/button2.mdl"
+SWEP.idleResetFix = true
 
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
