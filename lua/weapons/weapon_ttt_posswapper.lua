@@ -35,6 +35,7 @@ SWEP.HoldType = "revolver"
 SWEP.UseHands = true
 SWEP.ViewModel = "models/weapons/c_pistol.mdl"
 SWEP.WorldModel = "models/weapons/w_pistol.mdl"
+SWEP.idleResetFix = true
 
 SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1

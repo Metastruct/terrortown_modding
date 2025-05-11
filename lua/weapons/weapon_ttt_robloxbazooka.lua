@@ -34,6 +34,7 @@ SWEP.HoldType = "rpg"
 SWEP.UseHands = true
 SWEP.ViewModel = "models/robloxstuff/classic/c_bazooka.mdl"
 SWEP.WorldModel = "models/robloxstuff/classic/w_bazooka.mdl"
+SWEP.idleResetFix = true
 
 SWEP.Primary.ClipSize = 1
 SWEP.Primary.DefaultClip = 1
