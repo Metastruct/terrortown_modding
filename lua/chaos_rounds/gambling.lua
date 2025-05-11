@@ -20,6 +20,7 @@ if SERVER then
 		"weapon_ttt_massiveminigun",
 		"weapon_ttt_phammer",
 		"weapon_ttt_posswapper",
+		"weapon_ttt_push",
 		"weapon_ttt_revolver",
 		"weapon_ttt_ricochet",
 		"weapon_ttt_robloxbazooka",
