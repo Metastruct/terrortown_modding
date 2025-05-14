@@ -4,6 +4,10 @@ AddCSLuaFile()
 
 local _m = {}
 
+-- Variables
+local vector_up         = Vector( 0, 0, 1 )
+local swep_classname    = "weapon_ttt_minty_blink"
+
 -- Functions
 function _m.SpawnMimicRagdoll( player, position )
     if CLIENT then return nil end
@@ -126,9 +130,7 @@ function _m.Marker( player, rate, size )
 
     local weapon = player:GetActiveWeapon()
     if not IsValid( weapon ) then return end
-    if not weapon.Timer or not weapon.Warp then return end
-    if not weapon.Timer.Particle then weapon.Timer.Particle = 0 end
-
+    if ( weapon.ClassName ~= swep_classname ) then return end
     if ( CurTime() - weapon.Timer.Particle ) < rate then return end
 
     local emitter = weapon.Emitter
@@ -139,21 +141,19 @@ function _m.Marker( player, rate, size )
     if not marker or not target then return end
 
     local direction = ( target - marker ):GetNormalized()
-
-    local up = Vector( 0, 0, 1 )
     local phi = 2.0 * math.pi * CurTime()
 
     -- Reticle
     _m.Particles( emitter, 2, 0, size, marker, direction * 250, 2.5, 1.25 )
 
     -- Ground cone
-    _m.Particles( emitter, 8, size * 2, size, target, up * 50, 2.5, 50, -5, -phi )
+    _m.Particles( emitter, 8, size * 2, size, target, vector_up * 50, 2.5, 50, -5, -phi )
 
     -- Ground splat
-    _m.Particles( emitter, 6, size * 0.375, size, target, up * -50, 2.5, 5, 50, phi )
+    _m.Particles( emitter, 6, size * 0.375, size, target, vector_up * -50, 2.5, 5, 50, phi )
 
     -- Column
-    _m.Particles( emitter, 4, size, size, target, up * 250, 2.5, 5, 0, phi * 2 )
+    _m.Particles( emitter, 4, size, size, target, vector_up * 250, 2.5, 5, 0, phi * 2 )
 
     -- Reset timer
     weapon.Timer.Particle = CurTime()
