@@ -40,18 +40,18 @@ _m.charge_recharge_rate = CreateConVar(
     "Recharge rate, in charge/sec (does not affect 'limited' mode)."
 )
 
-_m.post_process = CreateConVar(
-    "ttt_minty_blink_post_process",
-    "0",
-    cvar_flags,
-    "Enables/disables post-processing effects."
-)
-
 _m.range = CreateConVar( 
     "ttt_minty_blink_range",
     "3072",
     cvar_flags,
     "Maximum distance."
+)
+
+_m.post_process = CreateConVar(
+    "ttt_minty_blink_post_process",
+    "0",
+    cvar_flags,
+    "Enables/disables post-processing effects."
 )
 
 return _m

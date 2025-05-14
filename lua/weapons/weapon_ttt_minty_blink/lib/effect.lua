@@ -5,8 +5,11 @@ AddCSLuaFile()
 local _m = {}
 
 -- Variables
-local vector_up         = Vector( 0, 0, 1 )
 local swep_classname    = "weapon_ttt_minty_blink"
+
+local color_white       = Color( 255, 255, 255 )
+local vector_up         = Vector( 0, 0, 1 )
+local vector_zero       = Vector( 0, 0, 0 )
 
 -- Functions
 function _m.SpawnMimicRagdoll( player, position )
@@ -22,7 +25,7 @@ function _m.SpawnMimicRagdoll( player, position )
     ragdoll.Owner = player
     ragdoll:SetOwner( player )
 
-    ragdoll:SetColor( Color( 255, 255, 255, 100 ) )
+    ragdoll:SetColor( color_white )
     ragdoll:SetModel( player:GetModel() )
     ragdoll:SetPos( position or origin )
     ragdoll:SetAngles( player:GetAngles() )
@@ -91,7 +94,7 @@ function _m.Particles( emitter, count, radius, size, origin, velocity, origin_ra
     if SERVER then return end
     
     -- Defaults
-    velocity = velocity or Vector( 0, 0, 0 )
+    velocity = velocity or vector_zero
     origin_randomness = origin_randomness or 0
     velocity_randomness = velocity_randomness or 0
     velocity_push_pull = velocity_push_pull or 0
@@ -103,8 +106,9 @@ function _m.Particles( emitter, count, radius, size, origin, velocity, origin_ra
 
         local x = math.sin( theta + phi ) * radius
         local y = math.cos( theta + phi ) * radius
+        local v = Vector( x, y, 0 )
 
-        local particle = emitter:Add( "effects/spark", origin + Vector( x, y, 0 ) + VectorRand() * origin_randomness )
+        local particle = emitter:Add( "effects/spark", origin + v + VectorRand() * origin_randomness )
 
         if particle then
             particle:SetDieTime( 0.25 )
@@ -116,7 +120,7 @@ function _m.Particles( emitter, count, radius, size, origin, velocity, origin_ra
             particle:SetEndSize( 0 )
 
             particle:SetAngleVelocity( AngleRand() * 0.10 )
-            particle:SetVelocity( velocity + Vector( x, y, 0 ) * velocity_push_pull + VectorRand() * velocity_randomness )
+            particle:SetVelocity( velocity + v * velocity_push_pull + VectorRand() * velocity_randomness )
             
             local blueness = math.random( 0, 50 )
             particle:SetColor( 255 - blueness * 2, 255 - blueness, 255 )

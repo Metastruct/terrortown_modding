@@ -3,17 +3,16 @@
 
 AddCSLuaFile()
 
-local ENTITY = FindMetaTable( "Entity" )
-local PLAYER = FindMetaTable( "Player" )
-
 -- Modules
-local effect    = include( "effect.lua" )
-local cvar      = include( "cvar.lua" )
-local dbg       = include( "debug.lua" )
-local lut       = include( "lut.lua" )
-local res       = include( "resource.lua" )
+include( "i18n/shared.lua" )
 
--- dbg.enabled     = true
+local effect    = include( "lib/effect.lua" )
+local cvar      = include( "lib/cvar.lua" )
+local dbg       = include( "lib/debug.lua" )
+local lut       = include( "lib/lut.lua" )
+local res       = include( "lib/resource.lua" )
+
+-- dbg.enabled  = true
 
 --  Misc
 local swep_classname        = "weapon_ttt_minty_blink"
@@ -21,10 +20,15 @@ local swep_classname        = "weapon_ttt_minty_blink"
 local marker_effect_size    = 10
 local marker_effect_rate    = 0.025
 
-local post_process_fade_time    = 0.125
+local post_process_fade_time = 0.125
 
 local vector_up_far = Vector( 0, 0, 65535 )
 local vector_zero   = Vector( 0, 0, 0 )
+
+local IS_TTT2       = GAMEMODE.TTT2CheckFindCredits and true or false
+
+-- TTT2 settings
+SWEP.AddToSettingsMenu      = include( "lib/settings.lua" )
 
 -- Info struct
 SWEP.Base                   = "weapon_tttbase"
@@ -35,7 +39,7 @@ SWEP.DeploySpeed            = 4
 SWEP.HoldType               = "knife"
 SWEP.Kind                   = WEAPON_EQUIP
 
-SWEP.PrintName              = "Blink"
+SWEP.PrintName              = "ttt_minty_blink_name"
 SWEP.Slot                   = 6
 
 SWEP.DrawCrosshair          = false
@@ -60,7 +64,7 @@ SWEP.NoSights               = true
 
 SWEP.EquipMenuData          = {
     type = "item_weapon",
-    desc = "Woosh woosh.\n\nPrimary: Hold to target\nSecondary: Abort blink"
+    desc = "ttt_minty_blink_description"
 };
 
 SWEP.Icon                   = res.icon
@@ -87,12 +91,12 @@ SWEP.Emitter    = nil
 SWEP.State      = nil
 
 -- Logic
-
 --  Default
 function SWEP:DryFire() return false end  -- Disable default behaviours
 function SWEP:PrimaryAttack() return false end
 
-if not GAMEMODE.TTT2CheckFindCredits then -- TTT2 uses SWEP.ShowDefaultViewMode
+if not IS_TTT2 then
+    -- TTT2 uses SWEP.ShowDefaultViewMode (https://github.com/Metastruct/terrortown_modding/pull/11#discussion_r2089630022)
     function SWEP:PreDrawViewModel()
         render.SetBlend( 0 ) -- Hide viewmodel
     end
@@ -103,6 +107,10 @@ if not GAMEMODE.TTT2CheckFindCredits then -- TTT2 uses SWEP.ShowDefaultViewMode
 end
 
 function SWEP:Initialize()
+    if IS_TTT2 and CLIENT then
+        self:AddTTT2HUDHelp( "ttt_minty_blink_help_primary", "ttt_minty_blink_help_secondary" )
+    end
+
     local charge_count  = cvar.charge_count:GetInt()
     local charge_max    = ( charge_count > 0 and charge_count:GetInt() or cvar.charge_max:GetInt() )
 
@@ -141,10 +149,9 @@ function SWEP:Blink_SetTimers( particle, recharge, post_process )
 end
 
 function SWEP:Blink_DoViewModelAnimation()
-    local owner = self.Owner
-    if not IsValid( owner ) then return end
+    if not IsValid( self.Owner ) then return end
 
-    local viewmodel = owner:GetViewModel()
+    local viewmodel = self.Owner:GetViewModel()
     if not IsValid( viewmodel ) then return end
 
     if SERVER or IsFirstTimePredicted() then
@@ -378,7 +385,7 @@ function SWEP:State_Aim()
             self.Warp.Marker    = nil
             self.Warp.Target    = nil
             self.State          = self.State_Idle
-        else
+        else -- target
             -- Released without valid warp target
             should_cancel = true
         end

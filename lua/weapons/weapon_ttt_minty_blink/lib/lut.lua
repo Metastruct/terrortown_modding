@@ -5,14 +5,15 @@ AddCSLuaFile()
 local _m = {}
 
 _m.collision_check_size = 12
+
 _m.ledge_step_max       = 4
 _m.ledge_step_size      = 8
+
 _m.trace_hull_size      = 4
 _m.trace_ledge_depth    = 2
-
 _m.trace_hull           = Vector( trace_hull_size, trace_hull_size, trace_hull_size )
-
 _m.trace_ledge_up       = {}
+
 
 for i = 1, _m.ledge_step_max do
     _m.trace_ledge_up[ i ] = Vector( 0, 0, i * _m.ledge_step_size )
