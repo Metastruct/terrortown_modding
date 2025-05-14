@@ -30,7 +30,6 @@ local vector_zero   = Vector( 0, 0, 0 )
 
 -- TTT2 settings
 SWEP.AddToSettingsMenu      = include( "lib/settings.lua" )
-SWEP.DrawHUD                = include( "lib/hud.lua" )
 
 -- Info struct
 SWEP.Base                   = "weapon_tttbase"
