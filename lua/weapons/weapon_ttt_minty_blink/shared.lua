@@ -98,7 +98,7 @@ function SWEP:DryFire() return false end  -- Disable default behaviours
 function SWEP:PrimaryAttack() return false end
 
 if not IS_TTT2 then
-    -- TTT2 uses SWEP.ShowDefaultViewMode (https://github.com/Metastruct/terrortown_modding/pull/11#discussion_r2089630022)
+    -- TTT2 uses SWEP.ShowDefaultViewModel (https://github.com/Metastruct/terrortown_modding/pull/11#discussion_r2089630022)
     function SWEP:PreDrawViewModel()
         render.SetBlend( 0 ) -- Hide viewmodel
     end
