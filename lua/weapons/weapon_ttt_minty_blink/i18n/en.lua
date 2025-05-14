@@ -6,8 +6,8 @@ local add = LANG.AddToLanguage
 -- Generic
 add( "en", "ttt_minty_blink_name", "Blink" )
 add( "en", "ttt_minty_blink_description", "Woosh woosh.\n\nPrimary: Hold to target.\nSecondary: Cancel targeting." )
-add( "en", "ttt_minty_blink_help_primary", "Hold to target, release to blink." )
-add( "en", "ttt_minty_blink_help_secondary", "Cancel targeting." )
+add( "en", "ttt_minty_blink_help_primary", "Hold to target, release to blink" )
+add( "en", "ttt_minty_blink_help_secondary", "Cancel targeting" )
 
 -- Settings
 add( "en", "ttt_minty_blink_charge_count_help", "Blink charge count. Enables 'limited' mode if non-negative and non-zero." )
