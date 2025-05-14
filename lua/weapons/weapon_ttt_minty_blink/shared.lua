@@ -3,12 +3,15 @@
 
 AddCSLuaFile()
 
+local IS_TTT2 = GAMEMODE.TTT2CheckFindCredits and true or false
+
 -- Modules
 include( "i18n/shared.lua" )
 
 local effect    = include( "lib/effect.lua" )
 local cvar      = include( "lib/cvar.lua" )
 local dbg       = include( "lib/debug.lua" )
+local draw_hud  = include( "lib/hud.lua" )
 local lut       = include( "lib/lut.lua" )
 local res       = include( "lib/resource.lua" )
 
@@ -25,10 +28,9 @@ local post_process_fade_time = 0.125
 local vector_up_far = Vector( 0, 0, 65535 )
 local vector_zero   = Vector( 0, 0, 0 )
 
-local IS_TTT2       = GAMEMODE.TTT2CheckFindCredits and true or false
-
 -- TTT2 settings
 SWEP.AddToSettingsMenu      = include( "lib/settings.lua" )
+SWEP.DrawHUD                = include( "lib/hud.lua" )
 
 -- Info struct
 SWEP.Base                   = "weapon_tttbase"
@@ -112,7 +114,7 @@ function SWEP:Initialize()
     end
 
     local charge_count  = cvar.charge_count:GetInt()
-    local charge_max    = ( charge_count > 0 and charge_count:GetInt() or cvar.charge_max:GetInt() )
+    local charge_max    = ( charge_count > 0 and charge_count or cvar.charge_max:GetInt() )
 
     self.Charge.Current = charge_max
     self.Charge.Maximum = charge_max
@@ -418,45 +420,9 @@ function SWEP:Think()
     self.State( self )
 end
 
--- TODO: Cleanup
+--  HUD
 function SWEP:DrawHUD()
-    local x = ( ScrW() / 2.0 )
-    local y = ( ScrH() / 2.0 )
-
-    y = ( y + ( y / 3 ) )
-
-    local charge_count = cvar.charge_count:GetInt()
-    local charge_max = ( charge_count > 0 ) and charge_count or cvar.charge_max:GetInt()
-    local charge_ratio = self.Charge.Current / charge_max
-    local charge_max_ratio = self.Charge.Maximum / charge_max
-
-    local w, h = 200, 20
-
-    if charge_max_ratio > 0 then
-        surface.SetDrawColor( 0, 0, 255, 78 )
-    else
-        surface.SetDrawColor( 255, 0, 0, 155 )
-    end
-
-    surface.DrawOutlinedRect( x - w/2, y - h, w, h )
-    surface.DrawRect( x - w/2, y - h, w * charge_max_ratio, h )
-
-    surface.SetDrawColor( 0, 75, 255, 100 )
-    surface.DrawRect( x - w/2, y - h, w * charge_ratio, h )
-
-    surface.SetFont( "TabLarge" )
-    surface.SetTextColor( 255, 255, 255, 180 )
-    surface.SetTextPos( ( x - w/2 ) + 3, y - h - 15 )
-    surface.DrawText( "CHARGE" )
-
-    if ( charge_count > 0 ) then
-        local num_total = charge_count
-        local num_remaining = math.ceil( charge_max_ratio * num_total )
-
-        surface.SetTextPos( ( x - w/2 ) + 3, y + h - 15 )
-        surface.DrawText( "(" .. num_remaining .. "/" .. num_total .. ")" )
-    end
-
+    draw_hud( self, cvar.charge_count:GetInt(), cvar.charge_max:GetInt() )
     self.BaseClass.DrawHUD( self )
 end
 
