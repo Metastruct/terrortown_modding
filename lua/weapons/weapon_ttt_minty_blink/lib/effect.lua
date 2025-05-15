@@ -84,7 +84,7 @@ function _m.FOV( player )
     if not IsValid( player ) then return false end
 
     if player.Blink_ClearPreviousFOVTimer and ( CurTime() >= player.Blink_ClearPreviousFOVTimer ) then
-        player.Blink_ClearFOVTimer = nil
+        player.Blink_ClearPreviousFOVTimer = nil
         player.Blink_PreviousFOV = nil
     end
 
