@@ -1,5 +1,6 @@
 if SERVER then
 	AddCSLuaFile()
+	resource.AddFile("materials/vgui/ttt/icon_remover.vmt")
 end
 
 DEFINE_BASECLASS("weapon_tttbase")
@@ -42,6 +43,9 @@ if CLIENT then
 		type = "Weapon",
 		desc = "Remove entities or kill players/NPCs"
 	}
+
+	SWEP.Icon = "vgui/ttt/icon_remover"
+	SWEP.IconLetter = "h"
 end
 
 function SWEP:Initialize()
