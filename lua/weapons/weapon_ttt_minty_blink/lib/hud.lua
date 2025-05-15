@@ -1,8 +1,6 @@
 AddCSLuaFile()
 if SERVER then return end
 
-local IS_TTT2 = GAMEMODE.TTT2CheckFindCredits and true or false
-
 -- Variables
 local color_bar_front       = Color( 0, 75, 255, 155 )
 local color_bar_back        = Color( 24, 24, 24, 100 )
@@ -93,4 +91,4 @@ local function draw_hud_ttt2( self, charge_count, charge_max ) -- Example used: 
     end
 end
 
-return IS_TTT2 and draw_hud_ttt2 or draw_hud_legacy
+return TTT2 and draw_hud_ttt2 or draw_hud_legacy
