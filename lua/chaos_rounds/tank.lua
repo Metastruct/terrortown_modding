@@ -41,7 +41,7 @@ if SERVER then
 	local convarTankHealthBase = CreateConVar("ttt_tank_health_base", 250, FCVAR_ARCHIVE + FCVAR_NOTIFY, "The Tank's base health for the Tank chaos round.", 0)
 	local convarTankHealthScale = CreateConVar("ttt_tank_health_scaleperplayer", 500, FCVAR_ARCHIVE + FCVAR_NOTIFY, "The Tank's extra scaling health per player for the Tank chaos round.", 0)
 
-	convarTankHealPercent = CreateConVar("ttt_tank_health_healperkill", 0.1, FCVAR_ARCHIVE + FCVAR_NOTIFY, "The percentage (0-1) of health the Tank heals back per kill during the Tank chaos round.", 0, 1)
+	convarTankHealPercent = CreateConVar("ttt_tank_health_healperkill", 0.05, FCVAR_ARCHIVE + FCVAR_NOTIFY, "The percentage (0-1) of health the Tank heals back per kill during the Tank chaos round.", 0, 1)
 
 	TTTTank = TTTTank or {}
 
