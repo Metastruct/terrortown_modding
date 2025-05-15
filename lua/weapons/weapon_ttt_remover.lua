@@ -72,9 +72,11 @@ function SWEP:PrimaryAttack()
 		owner:EmitSound("Airboat.FireGunRevDown")
 
 		if tr.Entity:IsPlayer() then
-			if owner:GetRole() == tr.Entity:GetRole() and owner:GetRole() == ROLE_DETECTIVE then return end -- dont remove your own team
+			if self.KilledPlayer then return end -- dont allow multiple kills
 
 			tr.Entity:TakeDamage(1000000, owner, self)
+			if tr.Entity:Alive() then return end
+
 			local hookName = ("remover_%s"):format(self:EntIndex())
 			hook.Add("TTTOnCorpseCreated", hookName, function(rag, pl)
 				if not IsValid(rag) then return end
@@ -86,7 +88,8 @@ function SWEP:PrimaryAttack()
 			local ed = EffectData()
 			ed:SetEntity(tr.Entity)
 			util.Effect("entity_remove", ed, true, true)
-			self:Remove()
+
+			self.KilledPlayer = true
 		else
 			if not tr.Entity:IsWorld() then
 				local ed = EffectData()
@@ -95,12 +98,11 @@ function SWEP:PrimaryAttack()
 
 				constraint.RemoveAll(tr.Entity)
 				SafeRemoveEntity(tr.Entity)
-				self:Remove()
 			end
 		end
 	end
 
-	self:SetNextPrimaryFire(CurTime() + 0.5)
+	self:SetNextPrimaryFire(CurTime() + 10) -- 10s
 end
 
 function SWEP:DoShootEffect(hitpos, hitnormal, entity, physbone, firsttimepredicted)
