@@ -72,6 +72,8 @@ function SWEP:PrimaryAttack()
 		owner:EmitSound("Airboat.FireGunRevDown")
 
 		if tr.Entity:IsPlayer() then
+			if owner:GetRole() == tr.Entity:GetRole() and owner:GetRole() == ROLE_DETECTIVE then return end -- dont remove your own team
+
 			tr.Entity:TakeDamage(1000000, owner, self)
 			local hookName = ("remover_%s"):format(self:EntIndex())
 			hook.Add("TTTOnCorpseCreated", hookName, function(rag, pl)
