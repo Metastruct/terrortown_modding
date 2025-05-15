@@ -79,7 +79,7 @@ function SWEP:PrimaryAttack()
 			tr.Entity:TakeDamage(1000000, owner, self)
 			if tr.Entity:Alive() then return end
 
-			local hookName = ("remover_%s"):format(self:EntIndex())
+			local hookName = ("remover_%s"):format(tr.Entity:EntIndex())
 			hook.Add("TTTOnCorpseCreated", hookName, function(rag, pl)
 				if not IsValid(rag) or pl ~= tr.Entity then
 					hook.Remove("TTTOnCorpseCreated", hookName)
