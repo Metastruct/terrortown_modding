@@ -81,10 +81,18 @@ function SWEP:PrimaryAttack()
 
 			local hookName = ("remover_%s"):format(self:EntIndex())
 			hook.Add("TTTOnCorpseCreated", hookName, function(rag, pl)
-				if not IsValid(rag) then return end
+				if not IsValid(rag) or pl ~= tr.Entity then
+					hook.Remove("TTTOnCorpseCreated", hookName)
+					return
+				end
 
 				SafeRemoveEntityDelayed(rag, 0.1)
 				hook.Remove("TTTOnCorpseCreated", hookName)
+			end)
+
+			timer.Simple(2, function()
+				hook.Remove("TTTOnCorpseCreated", hookName)
+				-- failsafe
 			end)
 
 			local ed = EffectData()
