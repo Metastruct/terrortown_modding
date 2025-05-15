@@ -83,7 +83,15 @@ function _m.FOV( player )
     if CLIENT then return false end
     if not IsValid( player ) then return false end
 
-    local fov = player:GetFOV()
+    if player.Blink_ClearPreviousFOVTimer and ( CurTime() >= player.Blink_ClearPreviousFOVTimer ) then
+        player.Blink_ClearFOVTimer = nil
+        player.Blink_PreviousFOV = nil
+    end
+
+    local fov = player.Blink_PreviousFOV or player:GetFOV()
+    player.Blink_PreviousFOV = fov
+    player.Blink_ClearPreviousFOVTimer = CurTime() + 2
+
     player:SetFOV( fov * 1.5, 0 )
     player:SetFOV( fov, 0.25 )
 
