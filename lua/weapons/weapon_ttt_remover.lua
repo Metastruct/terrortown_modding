@@ -72,7 +72,14 @@ function SWEP:PrimaryAttack()
 		owner:EmitSound("Airboat.FireGunRevDown")
 
 		if tr.Entity:IsPlayer() then
-			tr.Entity:KillSilent()
+			tr.Entity:TakeDamage(1000000, owner, self)
+			local hookName = ("remover_%s"):format(self:EntIndex())
+			hook.Add("TTTOnCorpseCreated", hookName, function(rag, pl)
+				if not IsValid(rag) then return end
+
+				SafeRemoveEntityDelayed(rag, 0.1)
+				hook.Remove("TTTOnCorpseCreated", hookName)
+			end)
 
 			local ed = EffectData()
 			ed:SetEntity(tr.Entity)
