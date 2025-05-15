@@ -45,6 +45,7 @@ SWEP.Icon = "vgui/ttt/icon_electroshock"
 
 function SWEP:Initialize()
 	self:SetHoldType("normal")
+	self:SetInMagic(false)
 end
 
 function SWEP:SetInMagic(inmagic)
