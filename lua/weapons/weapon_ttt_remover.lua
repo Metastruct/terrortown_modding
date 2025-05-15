@@ -32,6 +32,17 @@ SWEP.WorldModel = "models/weapons/w_toolgun.mdl"
 
 SWEP.Kind = WEAPON_EQUIP2
 SWEP.CanBuy = { ROLE_TRAITOR, ROLE_DETECTIVE }
+SWEP.LimitedStock = true
+SWEP.AllowDrop = true
+SWEP.IsSilent = false
+SWEP.NoSights = false
+
+if CLIENT then
+	SWEP.EquipMenuData = {
+		type = "Weapon",
+		desc = "Remove entities or kill players/NPCs"
+	}
+end
 
 function SWEP:Initialize()
 	self:SetHoldType("pistol")
