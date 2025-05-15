@@ -31,6 +31,10 @@ SWEP.DrawCrosshair = true
 SWEP.ViewModel = "models/weapons/v_toolgun.mdl"
 SWEP.WorldModel = "models/weapons/w_toolgun.mdl"
 
+SWEP.UseHands = true
+SWEP.ViewModelFlip = false
+SWEP.ViewModelFOV = 54
+
 SWEP.Kind = WEAPON_EQUIP2
 SWEP.CanBuy = { ROLE_TRAITOR, ROLE_DETECTIVE }
 SWEP.LimitedStock = true
@@ -66,13 +70,11 @@ function SWEP:PrimaryAttack()
 		filter = owner
 	})
 
-	self:DoShootEffect(tr.HitPos, tr.HitNormal, tr.Entity, tr.PhysicsBone, IsFirstTimePredicted())
-
 	if IsValid(tr.Entity) then
-		owner:EmitSound("Airboat.FireGunRevDown")
-
 		if tr.Entity:IsPlayer() then
 			if self.KilledPlayer then return end -- dont allow multiple kills
+
+			self:DoShootEffect(tr.HitPos, tr.HitNormal, tr.Entity, tr.PhysicsBone, IsFirstTimePredicted())
 
 			tr.Entity:TakeDamage(1000000, owner, self)
 			if tr.Entity:Alive() then return end
@@ -90,25 +92,28 @@ function SWEP:PrimaryAttack()
 			util.Effect("entity_remove", ed, true, true)
 
 			self.KilledPlayer = true
+			self:SetNextPrimaryFire(CurTime() + 10) -- 10s
 		else
 			if not tr.Entity:IsWorld() then
+				self:DoShootEffect(tr.HitPos, tr.HitNormal, tr.Entity, tr.PhysicsBone, IsFirstTimePredicted())
+
 				local ed = EffectData()
 				ed:SetEntity(tr.Entity)
 				util.Effect("entity_remove", ed, true, true)
 
 				constraint.RemoveAll(tr.Entity)
 				SafeRemoveEntity(tr.Entity)
+				self:SetNextPrimaryFire(CurTime() + 10) -- 10s
 			end
 		end
 	end
-
-	self:SetNextPrimaryFire(CurTime() + 10) -- 10s
 end
 
 function SWEP:DoShootEffect(hitpos, hitnormal, entity, physbone, firsttimepredicted)
 	local owner = self:GetOwner()
 	if not IsValid(owner) then return end
 
+	owner:EmitSound("Airboat.FireGunRevDown")
 	self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
 	owner:SetAnimation(PLAYER_ATTACK1)
 
