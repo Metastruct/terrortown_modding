@@ -36,7 +36,7 @@ local function chainsaw_attack(self)
 				bullet.Damage = 40
 				owner:FireBullets(bullet)
 			else
-				trace.Entity:TakeDamage(1, owner)
+				trace.Entity:TakeDamage(2, owner)
 			end
 		end
 
