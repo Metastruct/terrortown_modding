@@ -45,7 +45,7 @@ SWEP.Icon = "vgui/ttt/icon_electroshock"
 
 function SWEP:Initialize()
 	self:SetHoldType("normal")
-	self:SetInMagic(false)
+	self:EndMagic()
 end
 
 function SWEP:SetInMagic(inmagic)
@@ -395,6 +395,7 @@ function SWEP:Deploy()
 	vm:SendViewModelMatchingSequence(vm:LookupSequence("fists_draw"))
 	vm:SetPlaybackRate(speed)
 
+	self:EndMagic()
 	self:SetNextPrimaryFire(CurTime() + vm:SequenceDuration() / speed)
 	self:SetNextSecondaryFire(CurTime() + vm:SequenceDuration() / speed)
 
