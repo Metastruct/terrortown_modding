@@ -81,7 +81,8 @@ function SWEP:PrimaryAttack()
 
 			local hookName = ("remover_%s"):format(tr.Entity:EntIndex())
 			hook.Add("TTTOnCorpseCreated", hookName, function(rag, pl)
-				if not IsValid(rag) or pl ~= tr.Entity then
+				if pl ~= tr.Entity then return end
+				if not IsValid(rag) then
 					hook.Remove("TTTOnCorpseCreated", hookName)
 					return
 				end
