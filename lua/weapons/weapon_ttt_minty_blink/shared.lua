@@ -3,13 +3,16 @@
 
 AddCSLuaFile()
 
--- Modules
-include( "i18n/shared.lua" )
+-- Language
+include( "i18n/de.lua" )
+include( "i18n/en.lua" )
+include( "i18n/nl.lua" )
 
+-- Modules
 local effect    = include( "lib/effect.lua" )
 local cvar      = include( "lib/cvar.lua" )
 local dbg       = include( "lib/debug.lua" )
-local draw_hud  = include( "lib/hud.lua" )
+local hud       = include( "lib/hud.lua" )
 local lut       = include( "lib/lut.lua" )
 local res       = include( "lib/resource.lua" )
 
@@ -419,7 +422,7 @@ end
 
 --  HUD
 function SWEP:DrawHUD()
-    draw_hud( self, cvar.charge_count:GetInt(), cvar.charge_max:GetInt() )
+    hud( self, cvar.charge_count:GetInt(), cvar.charge_max:GetInt() )
     self.BaseClass.DrawHUD( self )
 end
 
