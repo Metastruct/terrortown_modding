@@ -4,7 +4,6 @@
 
 local addons = {
 	"1357204556",	-- TTT2
-	"2586573261",	-- Huh
 	"105875340",	-- Jihad Bomb
 	"254177214",	-- Jihad Bomb fix?
 	"654570222",	-- Banana Bomb
@@ -28,7 +27,7 @@ local addons = {
 	"3003509443",	-- Detective Toy Car (Cozy Coupe)
 	"3166539189",	-- Spring Mine
 	"3274577332",	-- Janitor Role
-	"3021464449",	-- Glue Trap,
+	"3021464449",	-- Glue Trap
 	"1128856824",	-- Chainsaw
 }
 
