@@ -60,7 +60,7 @@ if SERVER then
 			c4:Spawn()
 			c4:DropToFloor()
 
-			c4:Arm(ply, 5) -- 5 seconds
+			c4:Arm(ply, 3) -- 5 seconds
 			c4:SetRadius(300) -- reduce radius
 			c4:SetRadiusInner(150)
 
