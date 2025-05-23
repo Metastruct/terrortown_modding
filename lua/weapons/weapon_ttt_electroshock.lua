@@ -159,6 +159,7 @@ function SWEP:PrimaryAttack()
 
 	self:SetHoldType("magic")
 	self:SetInMagic(true)
+	self:SetTargetVictim(tr.Entity)
 
 	local target_pos = tr.Entity:GetPos()
 	if SERVER then
@@ -169,8 +170,6 @@ function SWEP:PrimaryAttack()
 			self:SetNextPrimaryFire(CurTime() + 5)
 		end)
 	end
-
-	self:SetTargetVictim(tr.Entity)
 end
 
 function SWEP:StartTargeting()
@@ -408,6 +407,7 @@ function SWEP:EndMagic()
 	self:SetInMagic(false)
 	self:SetHoldType("normal")
 	self:SetNextPrimaryFire(CurTime() + 1)
+	self.IsPlayingSequence = false
 
 	if self.sndwindup then
 		for _, station in ipairs(self.sndwindup) do
@@ -415,7 +415,6 @@ function SWEP:EndMagic()
 		end
 
 		self.sndwindup = nil
-		self.IsPlayingSequence = false
 	end
 end
 
