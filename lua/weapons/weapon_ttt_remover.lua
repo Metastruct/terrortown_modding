@@ -59,8 +59,6 @@ function SWEP:Initialize()
 end
 
 function SWEP:PrimaryAttack()
-	if CLIENT then return end
-
 	local owner = self:GetOwner()
 	if not IsValid(owner) then return end
 
@@ -71,49 +69,21 @@ function SWEP:PrimaryAttack()
 	})
 
 	if IsValid(tr.Entity) then
-		if tr.Entity:IsPlayer() then
-			if self.KilledPlayer then return end -- dont allow multiple kills
-
+		if SERVER then
 			self:DoShootEffect(tr.HitPos, tr.HitNormal, tr.Entity, tr.PhysicsBone, IsFirstTimePredicted())
-
-			tr.Entity:TakeDamage(1000000, owner, self)
-			if tr.Entity:Alive() then return end
-
-			local hookName = ("remover_%s"):format(tr.Entity:EntIndex())
-			hook.Add("TTTOnCorpseCreated", hookName, function(rag, pl)
-				if pl ~= tr.Entity then return end
-				if not IsValid(rag) then
-					hook.Remove("TTTOnCorpseCreated", hookName)
-					return
-				end
-
-				SafeRemoveEntityDelayed(rag, 0.1)
-				hook.Remove("TTTOnCorpseCreated", hookName)
-			end)
-
-			timer.Simple(2, function()
-				hook.Remove("TTTOnCorpseCreated", hookName)
-				-- failsafe
-			end)
 
 			local ed = EffectData()
 			ed:SetEntity(tr.Entity)
 			util.Effect("entity_remove", ed, true, true)
 
-			self.KilledPlayer = true
-			self:SetNextPrimaryFire(CurTime() + 10) -- 10s
-		else
-			if not tr.Entity:IsWorld() then
-				self:DoShootEffect(tr.HitPos, tr.HitNormal, tr.Entity, tr.PhysicsBone, IsFirstTimePredicted())
+			constraint.RemoveAll(tr.Entity)
+			SafeRemoveEntity(tr.Entity)
+		end
 
-				local ed = EffectData()
-				ed:SetEntity(tr.Entity)
-				util.Effect("entity_remove", ed, true, true)
-
-				constraint.RemoveAll(tr.Entity)
-				SafeRemoveEntity(tr.Entity)
-				self:SetNextPrimaryFire(CurTime() + 10) -- 10s
-			end
+		self:SetNextPrimaryFire(CurTime() + 10) -- 10s
+	else
+		if SERVER then
+			self:EmitSound("buttons/button2.wav")
 		end
 	end
 end
@@ -143,4 +113,30 @@ end
 
 function SWEP:SecondaryAttack()
 	return false
+end
+
+if CLIENT then
+	hook.Add("HUDPaint", "weapon_ttt_remover", function()
+		local wep = LocalPlayer():GetActiveWeapon()
+		if not IsValid(wep) or wep:GetClass() ~= "weapon_ttt_remover" then return end
+
+		local nextFire = wep:GetNextPrimaryFire()
+		local curTime = CurTime()
+
+		if nextFire > curTime then
+			local remaining = nextFire - curTime
+			local w = 200
+			local h = 20
+			local x = ScrW() / 2 - w / 2
+			local y = ScrH() - 100
+
+			surface.SetDrawColor(0, 0, 0, 180)
+			surface.DrawRect(x, y, w, h)
+
+			local progress = math.Clamp((10 - remaining) / 10, 0, 1)
+			surface.SetDrawColor(255, 50, 50, 180)
+			surface.DrawRect(x, y, w * progress, h)
+			draw.SimpleText(string.format("Cooldown: %.1fs", remaining), "Default", ScrW() / 2, y + h / 2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+		end
+	end)
 end
