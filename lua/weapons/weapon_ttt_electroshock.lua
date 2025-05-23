@@ -55,6 +55,8 @@ end
 function SWEP:InMagic()
 	local f = self:GetDTFloat(0)
 	if f > 0 then return CurTime() - f end
+
+	return false
 end
 
 function SWEP:SetTargetVictim(e)
