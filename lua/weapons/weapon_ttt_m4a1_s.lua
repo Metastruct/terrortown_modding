@@ -40,17 +40,18 @@ SWEP.IronSightsPos = Vector(-7.58, -9.2, 0.55)
 SWEP.IronSightsAng = Vector(2.599, -1.3, -3.6)
 
 SWEP.Kind = WEAPON_EQUIP1
-SWEP.AutoSpawnable = false
 SWEP.AmmoEnt = "item_ammo_smg1_ttt"
-SWEP.CanBuy = {ROLE_TRAITOR}
-SWEP.InLoadoutFor = {nil}
+SWEP.CanBuy = { ROLE_TRAITOR }
+SWEP.InLoadoutFor = {}
 SWEP.LimitedStock = true
 SWEP.AllowDrop = true
+
 SWEP.IsSilent = true
 SWEP.NoSights = false
 
 SWEP.PrimaryAnim = ACT_VM_PRIMARYATTACK_SILENCED
 SWEP.ReloadAnim = ACT_VM_RELOAD_SILENCED
+SWEP.IdleAnim = ACT_VM_IDLE_SILENCED
 
 function SWEP:Deploy()
 	self:SendWeaponAnim(ACT_VM_DRAW_SILENCED)
