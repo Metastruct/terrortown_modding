@@ -1,6 +1,6 @@
 AddCSLuaFile()
 
-local BaseClass = baseclass.Get("weapon_tttbase")
+DEFINE_BASECLASS("weapon_tttbase")
 
 if CLIENT then
     SWEP.PrintName = "FAMAS"
