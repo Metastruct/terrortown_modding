@@ -71,6 +71,8 @@ if SERVER then
 				v:SetEyeAngles(Angle(math.random(-45, 45), math.random(0, 360), 0))
 				v:SetNWFloat(nwTag, CurTime() + effectDuration)
 
+				v:SetDSP(23)
+
 				affectedPls[#affectedPls + 1] = v
 			end
 		end
@@ -201,24 +203,29 @@ else
 			end
 
 			emitter:Finish()
+
+			-- Set the DSP back to normal clientside (supports restoring water DSP if underwater)
+			timer.Simple(effectDuration, function()
+				local defaultDsp = 0
+
+				if pl:WaterLevel() == 3 then
+					local waterDspConvar = GetConVar("dsp_water")
+					if waterDspConvar then
+						defaultDsp = waterDspConvar:GetInt()
+					end
+				end
+
+				pl:SetDSP(defaultDsp)
+			end)
 		end)
 	end
-
-	hook.Add("EntityEmitSound", nwTag, function(data)
-		ensureValues()
-
-		if now < timeEnd then
-			data.Volume = data.Volume * (1 - (0.95 * timeFractionEased))
-			data.Pitch = data.Pitch * (1 - (math.Rand(0.4, 0.8) * timeFractionEased))
-
-			return true
-		end
-	end)
 
 	hook.Add("RenderScreenspaceEffects", nwTag, function()
 		ensureValues()
 
 		if now < timeEnd then
+			pl:SetDSP(23)
+
 			DrawSharpen(8 * timeFractionEased, -2.5)
 
 			if timeFraction < 0.98 then
