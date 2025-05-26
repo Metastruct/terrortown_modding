@@ -3,7 +3,7 @@ if SERVER then
 
     resource.AddSingleFile("materials/vgui/ttt/icon_lobotomygrenade.png")
 else
-    SWEP.PrintName = "Lobotomy Grenade"
+    SWEP.PrintName = "Lobotomy grenade"
     SWEP.Author = "TW1STaL1CKY"
     SWEP.Slot = 3
 
@@ -12,6 +12,11 @@ else
 
     SWEP.Icon = "vgui/ttt/icon_lobotomygrenade.png"
     SWEP.IconLetter = "h"
+
+    SWEP.EquipMenuData = {
+		type = "item_weapon",
+		desc = "A grenade that induces a lobotomy to all who are near."
+	}
 end
 
 DEFINE_BASECLASS("weapon_tttbasegrenade")

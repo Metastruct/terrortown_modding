@@ -21,7 +21,7 @@ end
 
 if SERVER then
 	ENT.ExplodeSound = "weapons/lobotomy_explode.ogg"
-	ENT.LobotomySound = "weapons/lobotomy.ogg"
+	ENT.LobotomySound = "#weapons/lobotomy.ogg"
 
 	ENT.ExplodeColor = Color(255, 255, 255, 250)
 	ENT.ExplodeFadedColor = Color(255, 255, 255, 100)
