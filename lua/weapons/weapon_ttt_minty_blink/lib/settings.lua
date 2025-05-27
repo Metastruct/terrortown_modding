@@ -16,72 +16,33 @@ return function( self, parent )
         decimal = 0
     })
 
-    -- ttt_minty_blink_charge_cost
+    -- ttt_minty_blink_charge_time
     form:MakeHelp({
-        label = "ttt_minty_blink_charge_cost_help"
+        label = "ttt_minty_blink_charge_time_help"
     })
 
     form:MakeSlider({
-        serverConvar = "ttt_minty_blink_charge_cost",
-        label = "ttt_minty_blink_charge_cost_name",
+        serverConvar = "ttt_minty_blink_charge_time",
+        label = "ttt_minty_blink_charge_time_name",
         min = 0,
-        max = 100,
-        decimal = 0
-    })
-
-    -- ttt_minty_blink_charge_max
-    form:MakeHelp({
-        label = "ttt_minty_blink_charge_max_help"
-    })
-
-    form:MakeSlider({
-        serverConvar = "ttt_minty_blink_charge_max",
-        label = "ttt_minty_blink_charge_cost_name",
-        min = 0,
-        max = 100,
-        decimal = 0
-    })
-
-    -- ttt_minty_blink_charge_exhaust_scalar
-    form:MakeHelp({
-        label = "ttt_minty_blink_charge_exhaust_scalar_help"
-    })
-
-    form:MakeSlider({
-        serverConvar = "ttt_minty_blink_charge_exhaust_scalar",
-        label = "ttt_minty_blink_charge_exhaust_scalar_name",
-        min = 0,
-        max = 1,
+        max = 30,
         decimal = 2
     })
 
-    -- ttt_minty_blink_charge_recharge_rate
+    -- ttt_minty_blink_overcharge_damage
     form:MakeHelp({
-        label = "ttt_minty_blink_charge_recharge_rate_help"
+        label = "ttt_minty_blink_overcharge_damage_help"
     })
 
     form:MakeSlider({
-        serverConvar = "ttt_minty_blink_charge_recharge_rate",
-        label = "ttt_minty_blink_charge_recharge_rate_name",
+        serverConvar = "ttt_minty_blink_overcharge_damage",
+        label = "ttt_minty_blink_overcharge_damage_name",
         min = 0,
         max = 100,
         decimal = 0
     })
 
-    -- ttt_minty_blink_range
-    form:MakeHelp({
-        label = "ttt_minty_blink_range_help"
-    })
-
-    form:MakeSlider({
-        serverConvar = "ttt_minty_blink_range",
-        label = "ttt_minty_blink_range_name",
-        min = 0,
-        max = 65535,
-        decimal = 0
-    })
-
-    -- ttt_minty_blink_charge_count
+    -- ttt_minty_blink_post_process
     form:MakeHelp({
         label = "ttt_minty_blink_post_process_help"
     })
