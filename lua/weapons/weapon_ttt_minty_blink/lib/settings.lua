@@ -42,6 +42,19 @@ return function( self, parent )
         decimal = 0
     })
 
+    -- ttt_minty_blink_range
+    form:MakeHelp({
+        label = "ttt_minty_blink_range_help"
+    })
+
+    form:MakeSlider({
+        serverConvar = "ttt_minty_blink_range",
+        label = "ttt_minty_blink_range_name",
+        min = 0,
+        max = 8192,
+        decimal = 0
+    })
+
     -- ttt_minty_blink_post_process
     form:MakeHelp({
         label = "ttt_minty_blink_post_process_help"
