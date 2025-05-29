@@ -23,7 +23,7 @@ if SERVER then
 	ENT.ExplodeSound = "weapons/lobotomy_explode.ogg"
 	ENT.LobotomySound = "#weapons/lobotomy.ogg"
 
-	ENT.ExplodeColor = Color(255, 255, 255, 250)
+	ENT.ExplodeColor = Color(255, 255, 255, 220)
 	ENT.ExplodeFadedColor = Color(255, 255, 255, 100)
 
 	ENT.ExplodeRange = 512
@@ -67,7 +67,7 @@ if SERVER then
 					end
 				end
 
-				v:ScreenFade(SCREENFADE.IN, fullCol, 9, 1)
+				v:ScreenFade(SCREENFADE.IN, fullCol, 7.5, 0.5)
 				v:SetEyeAngles(Angle(math.random(-45, 45), math.random(0, 360), 0))
 				v:SetNWFloat(nwTag, CurTime() + effectDuration)
 
@@ -81,7 +81,7 @@ if SERVER then
 			local rf = RecipientFilter()
 			rf:AddPlayers(affectedPls)
 
-			EmitSound(self.LobotomySound, pos, -1, CHAN_AUTO, 1, 0, 0, 100, 0, rf)
+			EmitSound(self.LobotomySound, pos, -1, CHAN_AUTO, 0.85, 0, 0, 100, 0, rf)
 		end
 
 		sound.Play(self.ExplodeSound, pos, 80, 100)
