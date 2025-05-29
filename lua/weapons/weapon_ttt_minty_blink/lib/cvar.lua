@@ -7,42 +7,28 @@ local cvar_flags    = FCVAR_ARCHIVE + FCVAR_REPLICATED + FCVAR_SERVER_CAN_EXECUT
 
 _m.charge_count = CreateConVar(
     "ttt_minty_blink_charge_count",
+    "4",
+    cvar_flags,
+    "Blink charge count."
+)
+
+_m.charge_time = CreateConVar(
+    "ttt_minty_blink_charge_time",
+    "2.5",
+    cvar_flags,
+    "Blink recharge time in seconds."
+)
+
+_m.overcharge_damage = CreateConVar(
+    "ttt_minty_blink_overcharge_damage",
     "0",
     cvar_flags,
-    "Blink charge count. Enables 'limited' mode if non-negative and non-zero."
-)
-
-_m.charge_cost = CreateConVar(
-    "ttt_minty_blink_charge_cost",
-    "50",
-    cvar_flags,
-    "Cost per blink charge (does not affect 'limited' mode)."
-)
-
-_m.charge_max = CreateConVar(
-    "ttt_minty_blink_charge_max",
-    "100",
-    cvar_flags,
-    "Maximum charge (does not affect 'limited' mode)."
-)
-
-_m.charge_exhaust_scalar = CreateConVar(
-    "ttt_minty_blink_charge_exhaust_scalar",
-    "0.75",
-    cvar_flags,
-    "Relative amount of capped maximum charge to deplete, if blink is used when not fully recharged."
-)
-
-_m.charge_recharge_rate = CreateConVar(
-    "ttt_minty_blink_charge_recharge_rate",
-    "15",
-    cvar_flags,
-    "Recharge rate, in charge/sec (does not affect 'limited' mode)."
+    "Allows blinking when not fully charged, at the cost of player health. Set to '0' to disable."
 )
 
 _m.range = CreateConVar( 
     "ttt_minty_blink_range",
-    "3072",
+    "2048",
     cvar_flags,
     "Maximum distance."
 )

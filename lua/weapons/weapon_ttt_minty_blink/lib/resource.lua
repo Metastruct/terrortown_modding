@@ -16,7 +16,8 @@ resource.AddSingleFile( "sound/minty_blink/teleport2.mp3" )
 --  Pre-cache
 _m.sound        = {
     aim         = { Sound( "minty_blink/aim1.mp3" ), Sound( "minty_blink/aim2.mp3" ) },
-    teleport    = { Sound( "minty_blink/teleport1.mp3" ), Sound( "minty_blink/teleport2.mp3" ) }
+    teleport    = { Sound( "minty_blink/teleport1.mp3" ), Sound( "minty_blink/teleport2.mp3" ) },
+    overcharge  = { Sound( "ambient/energy/weld1.wav" ), Sound( "ambient/energy/weld2.wav" ) },
 }
 
 _m.icon         = "vgui/ttt/icon_minty_blink"
