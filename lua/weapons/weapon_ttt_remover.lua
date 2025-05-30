@@ -68,7 +68,7 @@ function SWEP:PrimaryAttack()
 		filter = owner
 	})
 
-	if IsValid(tr.Entity) then
+	if (IsValid(tr.Entity) and not tr.Entity:IsPlayer()) or (IsValid(tr.Entity) and tr.Entity:IsPlayer() and IsValid(tr.Entity:GetActiveWeapon())) then
 		if SERVER then
 			self:DoShootEffect(tr.HitPos, tr.HitNormal, tr.Entity, tr.PhysicsBone, IsFirstTimePredicted())
 
@@ -76,8 +76,12 @@ function SWEP:PrimaryAttack()
 			ed:SetEntity(tr.Entity)
 			util.Effect("entity_remove", ed, true, true)
 
-			constraint.RemoveAll(tr.Entity)
-			SafeRemoveEntity(tr.Entity)
+			if tr.Entity:IsPlayer() then
+				SafeRemoveEntity(tr.Entity:GetActiveWeapon())
+			else
+				constraint.RemoveAll(tr.Entity)
+				SafeRemoveEntity(tr.Entity)
+			end
 		end
 
 		self:SetNextPrimaryFire(CurTime() + 10) -- 10s
