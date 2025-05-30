@@ -98,7 +98,7 @@ function _m.FOV( player )
     return true
 end
 
-function _m.Particles( emitter, count, radius, size, origin, velocity, origin_randomness, velocity_randomness, velocity_push_pull, phi )
+function _m.Particles( emitter, count, radius, size, origin, velocity, origin_randomness, velocity_randomness, velocity_push_pull, phi, tint )
     if SERVER then return end
     
     -- Defaults
@@ -131,12 +131,12 @@ function _m.Particles( emitter, count, radius, size, origin, velocity, origin_ra
             particle:SetVelocity( velocity + v * velocity_push_pull + VectorRand() * velocity_randomness )
             
             local blueness = math.random( 0, 50 )
-            particle:SetColor( 255 - blueness * 2, 255 - blueness, 255 )
+            particle:SetColor( 255 - blueness * ( tint and 0 or 2 ), 255 - blueness * ( tint and 1.25 or 1 ), 255 )
         end
     end
 end
 
-function _m.Marker( player, rate, size )
+function _m.Marker( player, rate, size, tint )
     if SERVER then return end
     if ( player ~= LocalPlayer() and player ~= LocalPlayer():GetObserverTarget() ) then return end
 
@@ -156,16 +156,16 @@ function _m.Marker( player, rate, size )
     local phi = 2.0 * math.pi * CurTime()
 
     -- Reticle
-    _m.Particles( emitter, 2, 0, size, marker, direction * 250, 2.5, 1.25 )
+    _m.Particles( emitter, 2, 0, size, marker, direction * 250, 2.5, 1.25, nil, nil, tint )
 
     -- Ground cone
-    _m.Particles( emitter, 8, size * 2, size, target, vector_up * 50, 2.5, 50, -5, -phi )
+    _m.Particles( emitter, 8, size * 2, size, target, vector_up * 50, 2.5, 50, -5, -phi, tint )
 
     -- Ground splat
-    _m.Particles( emitter, 6, size * 0.375, size, target, vector_up * -50, 2.5, 5, 50, phi )
+    _m.Particles( emitter, 6, size * 0.375, size, target, vector_up * -50, 2.5, 5, 50, phi, tint )
 
     -- Column
-    _m.Particles( emitter, 4, size, size, target, vector_up * 250, 2.5, 5, 0, phi * 2 )
+    _m.Particles( emitter, 4, size, size, target, vector_up * 250, 2.5, 5, 0, phi * 2, tint )
 
     -- Reset timer
     weapon.Timer.Particle = CurTime()

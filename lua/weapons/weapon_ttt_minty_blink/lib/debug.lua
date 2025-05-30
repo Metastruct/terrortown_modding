@@ -37,8 +37,8 @@ function _m.aim_trace( marker_trace, ground_trace, ledge_trace, final_trace )
     end
 
     -- Ground
-    _d.Cross( ground_trace.HitPos + ground_trace.HitNormal * 16, 2, 0.1, Color( 255, 127, 0 ) )
-    _d.Line( ground_trace.HitPos, ground_trace.HitPos + ground_trace.HitNormal * 16, 0.1, Color( 255, 127, 0 ) )
+    _d.Cross( ground_trace.StartPos, 2, 0.1, Color( 255, 127, 0 ) )
+    _d.Line( ground_trace.HitPos, ground_trace.StartPos, 0.1, Color( 255, 127, 0 ) )
     _d.Text( ground_trace.HitPos + ground_trace.HitNormal * 8, "Ground", 0.1 )
     _d.ScreenText( debug_scr_x, 0.5 + debug_scr_h_ratio * 36, "Ground: position = " .. tostring( ground_trace.HitPos ) .. ", normal = " .. tostring( ground_trace.HitNormal ), 0.1 )
 

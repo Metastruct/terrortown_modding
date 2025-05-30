@@ -1,6 +1,6 @@
 AddCSLuaFile()
 
-local BaseClass = baseclass.Get("weapon_tttbase")
+DEFINE_BASECLASS("weapon_tttbase")
 
 if CLIENT then
     SWEP.PrintName = "FAMAS"
@@ -32,6 +32,7 @@ SWEP.ViewModelFlip = false
 SWEP.ViewModelFOV = 64
 SWEP.ViewModel = Model("models/weapons/cstrike/c_rif_famas.mdl")
 SWEP.WorldModel = Model("models/weapons/w_rif_famas.mdl")
+SWEP.idleResetFix = true
 
 SWEP.IronSightsPos = Vector(-6.24, -2.757, 1.36)
 
@@ -59,9 +60,15 @@ function SWEP:Initialize()
     return BaseClass.Initialize(self)
 end
 
+function SWEP:Deploy()
+    self:SetBurstsLeft(0)
+
+    return BaseClass.Deploy(self)
+end
+
 function SWEP:Think()
     if self:GetBurstsLeft() > 0 then
-        if self:CanPrimaryAttack() then
+        if self:Clip1() > 0 then
             if self:GetNextPrimaryFire() <= CurTime() then
                 self:SetBurstsLeft(self:GetBurstsLeft() - 1)
                 self:PrimaryAttack_Shoot()
@@ -80,4 +87,10 @@ function SWEP:PrimaryAttack()
 
     self:SetNextManualFire(CurTime() + self.Primary.Delay * self.Primary.BurstCount + self.Primary.BurstCooldown)
     self:SetBurstsLeft(self.Primary.BurstCount)
+end
+
+function SWEP:Reload()
+	if self:GetBurstsLeft() > 0 then return end
+
+	return BaseClass.Reload(self)
 end

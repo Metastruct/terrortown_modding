@@ -4,19 +4,20 @@ AddCSLuaFile()
 
 local _m = {}
 
-_m.collision_check_size = 12
+_m.collision_check_spacing  = 12
 
-_m.ledge_step_max       = 4
-_m.ledge_step_size      = 8
+_m.displacement_step_max    = 4
+_m.displacement_step_size   = 12
 
-_m.trace_hull_size      = 4
-_m.trace_ledge_depth    = 2
-_m.trace_hull           = Vector( trace_hull_size, trace_hull_size, trace_hull_size )
-_m.trace_ledge_up       = {}
+_m.ledge_step_max           = 4
+_m.ledge_step_size          = 8
+_m.ledge_trace_depth        = 12
+_m.ledge_trace_up           = {}
 
+_m.player_width             = 16
 
 for i = 1, _m.ledge_step_max do
-    _m.trace_ledge_up[ i ] = Vector( 0, 0, i * _m.ledge_step_size )
+    _m.ledge_trace_up[ i ] = Vector( 0, 0, i * _m.ledge_step_size )
 end
 
 _m.lut_wall     = {
