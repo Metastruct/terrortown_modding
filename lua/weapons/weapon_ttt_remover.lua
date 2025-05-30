@@ -68,7 +68,9 @@ function SWEP:PrimaryAttack()
 		filter = owner
 	})
 
-	if (IsValid(tr.Entity) and not tr.Entity:IsPlayer()) or (IsValid(tr.Entity) and tr.Entity:IsPlayer() and IsValid(tr.Entity:GetActiveWeapon())) then
+	local is_valid_entity = IsValid(tr.Entity) and not tr.Entity:IsPlayer()
+	local is_valid_player = IsValid(tr.Entity) and tr.Entity:IsPlayer() and IsValid(tr.Entity:GetActiveWeapon()) and tr.Entity:GetActiveWeapon().AllowDrop
+	if is_valid_entity or is_valid_player then
 		if SERVER then
 			self:DoShootEffect(tr.HitPos, tr.HitNormal, tr.Entity, tr.PhysicsBone, IsFirstTimePredicted())
 
