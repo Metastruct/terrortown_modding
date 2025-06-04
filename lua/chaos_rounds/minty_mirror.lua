@@ -1,30 +1,54 @@
-local ROUND = {}
-ROUND.Name = "Mirror"
-ROUND.Description = "Mirror mirror on the wall, I believe my optician I must call."
+-- Module --
+local ROUND     = {
+    Author      = "Minty",
+    Name        = "Mirror",
+    Description = "Mirror mirror on the wall, I believe my optician I must call.",
 
--- Metatable
-local ANGLE         = FindMetaTable( "Angle" )
-local ANGLE_PATCHED = table.Copy( ANGLE )
-
--- Variables
-local mirror_enabled = false
-
-local hooks     = {}
-
-local patches   = {
-    entity      = { __meta = "Entity" },
-    vector      = { __meta = "Vector" },
+    Enabled         = false,
+    Framebuffer     = { RenderTarget = false, Material = false },
+    Patch           = minty.patch.New(),
+    ViewModelFlip   = {},
 }
 
-local render_target = {}
+ROUND.Hook          = minty.hook.New( "ChaosRound_Mirror", ROUND )
 
--- Utility
-local function CreateFrameBufferMaterial( name, flip, ignore_z, alpha )
-    if SERVER then return nil, nil end
+-- Cache --
+local debug_setmetatable                = debug.setmetatable
+local math_Clamp                        = math.Clamp
+local render_CopyRenderTargetToTexture  = CLIENT and render.CopyRenderTargetToTexture or nil
+local render_DrawScreenQuad             = CLIENT and render.DrawScreenQuad or nil
+local render_SetMaterial                = CLIENT and render.SetMaterial or nil
+
+-- Constants --
+local MOUSE_DELTA_SCALAR    = ( 1.0 / 45.0 )
+local MOUSE_PITCH_MIN_MAX   = 89
+
+-- Variables --
+local ANGLE         = minty.patch.__meta.ANGLE
+local ANGLE_PATCHED = table.Copy( ANGLE )
+
+local matrix_flip = Matrix( {
+    { -1, 0, 0, 0 },
+    { 0, 1, 0, 0 },
+    { 0, 0, 1, 0 },
+    { 0, 0, 0, 1 },
+} )
+
+-- Utility --
+local function weapon_flip_viewmodels( weapon )
+    weapon.ViewModelFlip = not weapon.ViewModelFlip
+    weapon.ViewModelFlip1 = not weapon.ViewModelFlip1
+    weapon.ViewModelFlip2 = not weapon.ViewModelFlip2
+end
+
+function ROUND:CreateFramebuffer()
+    if SERVER or ( self.Framebuffer.RenderTarget and self.Framebuffer.Material ) then return end
+
+    local tag = "ChaosRound_Mirror_Framebuffer"
 
     -- Create render-target
     local render_target = GetRenderTargetEx(
-        "Mirror_RT_" .. name,
+        tag,
         4096,
         4096,
         RT_SIZE_FULL_FRAME_BUFFER_ROUNDED_UP,
@@ -36,113 +60,91 @@ local function CreateFrameBufferMaterial( name, flip, ignore_z, alpha )
 
     -- Create material
     local material = CreateMaterial(
-        "Mirror_Material_" .. name,
+        tag,
         "UnlitGeneric",
         {
-            [ "$basetexture" ] = render_target:GetName(),
+            [ "$basetexture" ]  = render_target:GetName(),
+            [ "$ignorez" ]      = "1",
         }
     )
 
-    material:SetString( "$ignorez", ignore_z and "1" or "0" )
-    material:SetString( "$alphatest", alpha and "1" or "0" )
+    material:SetMatrix( "$basetexturetransform", matrix_flip )
 
-    if flip then
-        local matrix_flip = Matrix()
-        matrix_flip:Scale( Vector( -1, 1, 1 ) )
-
-        material:SetMatrix( "$basetexturetransform", matrix_flip )
-    end
-
-    return render_target, material
+    -- Store framebuffer
+    self.Framebuffer.RenderTarget   = render_target
+    self.Framebuffer.Material       = material
 end
 
-local function RegisterHooks()
-    for k, v in pairs( hooks ) do
-        hook.Add( k, "Mirror_Hook_" .. k, v )
+function ROUND:UnflipViewModels()
+    for weapon, _ in pairs( self.ViewModelFlip ) do
+        weapon_flip_viewmodels( weapon )
     end
+
+    self.ViewModelFlip = {}
 end
 
-local function UnregisterHooks()
-    for k, _ in pairs( hooks ) do
-        hook.Remove( k, "Mirror_Hook_" .. k )
+-- Hooks --
+if CLIENT then
+    -- Hook: GM.CreateMove
+    -- Purpose: Flip horizontal player movement
+    function ROUND.Hook.CreateMove( cmd )
+        cmd:SetSideMove( -cmd:GetSideMove() )
     end
-end
 
-local function RegisterPatches()
-    for table_name, sub_patches in pairs( patches ) do
-        if ( type( sub_patches.__meta ) == "string" ) then
-            sub_patches.__meta = FindMetaTable( sub_patches.__meta )
-        end
+    -- Hook: GM.InputMouseApply
+    -- Purpose: Flip horizontal mouse movement
+    function ROUND.Hook.InputMouseApply( cmd, x, y, angles )
+        cmd:SetMouseX( -x )
 
-        local source_table = sub_patches.__meta or _G[ table_name ] or {}
-        local unpatched_functions = {}
+        angles.yaw      = angles.yaw + ( x * MOUSE_DELTA_SCALAR )
+        angles.pitch    = math_Clamp( 
+            angles.pitch + ( y * MOUSE_DELTA_SCALAR ),
+            -MOUSE_PITCH_MIN_MAX,
+            MOUSE_PITCH_MIN_MAX
+        )
 
-        for function_name, patched_function in pairs( sub_patches ) do
-            if ( type( patched_function ) == "function" ) then
-                print( "Patching '" .. table_name .. "." .. function_name .. "'!" )
-                unpatched_functions[ function_name ] = sub_patches[ "_" .. function_name ] or source_table[ function_name ]
-                source_table[ function_name ] = patched_function
-            end
-        end
+        cmd:SetViewAngles( angles )
 
-        for function_name, unpatched_function in pairs( unpatched_functions ) do
-            sub_patches[ "_" .. function_name ] = unpatched_function
-        end
+        return true
     end
-end
 
-local function UnregisterPatches()
-    for table_name, sub_patches in pairs( patches ) do
-        if ( type( sub_patches.__meta ) == "string" ) then
-            sub_patches.__meta = FindMetaTable( sub_patches.__meta )
-        end
+    -- Hook: GM.PreDrawHUD
+    -- Purpose: Draw flipped view
+    function ROUND.Hook.PreDrawHUD()
+        render_CopyRenderTargetToTexture( self.Framebuffer.RenderTarget )
+        render_SetMaterial( self.Framebuffer.Material )
+        render_DrawScreenQuad()
+    end
 
-        local source_table = sub_patches.__meta or _G[ table_name ] or {}
-        local unpatched_functions = {}
-
-        for function_name, patched_function in pairs( sub_patches ) do
-            if ( type( patched_function ) == "function" ) then
-                source_table[ function_name ] = sub_patches[ "_" .. function_name ] or source_table[ function_name ]
-                unpatched_functions[ function_name ] = true
-            end
-        end
-
-        for function_name, unpatched_function in pairs( unpatched_functions ) do
-            sub_patches[ "_" .. function_name ] = nil
+    -- Hook: GM.PreDrawViewModel
+    -- Purpose: Invert SWEP.ViewModelFlip
+    function ROUND.Hook.PreDrawViewModel( _, _, weapon )
+        if not self.ViewModelFlip[ weapon ] then
+            self.ViewModelFlip[ weapon ] = true
+            weapon_flip_viewmodels( weapon )
         end
     end
 end
 
-local function UnflipWeapons()
-    for _, v in ipairs( ents.GetAll() ) do
-        if IsValid( v ) and v:IsWeapon() and ( v._ViewModelFlip ~= nil ) then
-            v.ViewModelFlip = v._ViewModelFlip
-            v._ViewModelFlip = nil
-        end
-    end
-end
-
-local function IsRenderTargetActive( render_target )
-    local current = render.GetRenderTarget()
-    if not current then return false end
-
-    return ( current:GetName() == render_target:GetName() )
-end
-
--- Patches
-function ANGLE_PATCHED:Right()
+-- Patches --
+-- Patch: ANGLE_PATCHED.Right
+function ANGLE_PATCHED.Right( self )
     return -ANGLE.Right( self )
 end
 
-function patches.entity.EyeAngles( self )
-    local angles = patches.entity._EyeAngles( self )
-    debug.setmetatable( angles, ANGLE_PATCHED )
+-- Patch: ENTITY.EyeAngles
+-- Purpose: Flip right direction (used in weapon_tttbasegrenade)
+function ROUND.Patch.ENTITY.EyeAngles( self )
+    local angles = _f( self )
+    debug_setmetatable( angles, ANGLE_PATCHED )
 
     return angles
 end
 
-function patches.entity.GetBoneMatrix( self, id )
-    local matrix = patches.entity._GetBoneMatrix( self, id )
+-- Patch: ENTITY.GetBoneMatrix
+-- Purpose: Flip across Z-axis (used in custom PostDrawViewModel)
+function ROUND.Patch.ENTITY.GetBoneMatrix( self, id )
+    local matrix = _f( self, id )
     if ( self:GetClass() ~= "viewmodel" ) then return matrix end
 
     -- Incorrect, but will do for now
@@ -150,98 +152,54 @@ function patches.entity.GetBoneMatrix( self, id )
     return matrix
 end
 
-function patches.entity.GetRight( self )
-    return patches.entity._GetRight( self ) * ( self:IsPlayer() and -1 or 1 )
-end
-
-function patches.vector.ToScreen( self )
-    local data = patches.vector._ToScreen( self )
-    data.x = ScrW() - data.x
-
-    return data
-end
-
--- Hooks
-function hooks.CreateMove( cmd )
-    cmd:SetSideMove( -cmd:GetSideMove() )
-end
-
-function hooks.PreDrawViewModel( _, _, weapon )
-    if mirror_enabled and ( weapon._ViewModelFlip == nil ) then
-        weapon._ViewModelFlip = weapon.ViewModelFlip
-        weapon.ViewModelFlip = not weapon._ViewModelFlip
+-- Patch: ENTITY.GetRight
+-- Purpose: Flip player right direction
+function ROUND.Patch.ENTITY.GetRight( self )
+    if self:IsPlayer() then
+        return -_f( self )
+    else
+        return _f( self )
     end
-end
-
-function hooks.PreDrawHUD()
-    if not render_target.world then
-        render_target.world = { CreateFrameBufferMaterial( "World", true, true, false ) }
-    end
-    
-    render.CopyRenderTargetToTexture( render_target.world[ 1 ] )
-    render.SetMaterial( render_target.world[ 2 ] )
-    render.DrawScreenQuad()
-end
-
-function hooks.InputMouseApply( cmd, x, y, angles )
-    cmd:SetMouseX( -x )
-
-    angles.yaw = angles.yaw + ( x / 45 )
-    angles.pitch = math.Clamp( angles.pitch + ( y / 45 ), -89, 89 )
-
-    cmd:SetViewAngles( angles )
-
-    return true
-end
-
--- Debugging
-function Mirror_Test( enable )
-    if enable then ROUND:Start() else ROUND:Finish() end
-end
-
--- Round hooks
--- [SHARED] called when this particular round is selected by the chaos round logic
-function ROUND:OnSelected()
-end
-
--- [SHARED] called when preparation starts before the round starts
-function ROUND:OnPrepare()
-end
-
--- [SHARED] called when the round starts
-function ROUND:Start()
-     mirror_enabled = true
-    
-    if CLIENT then
-        UnregisterHooks()
-        RegisterHooks()
-    end
-
-    UnregisterPatches()
-    RegisterPatches()
-end
-
--- [SHARED] called when the round ends
-function ROUND:Finish()
-    mirror_enabled = false
-    
-    if CLIENT then
-        UnregisterHooks()
-        UnflipWeapons()
-    end
-
-    UnregisterPatches()
 end
 
 if CLIENT then
-    -- [CLIENT] this is called after the selection UI has been shown and removed
-    function ROUND:OnPostSelection()
-    end
+    -- Patch: VECTOR.ToScreen
+    -- Purpose: Flip horizontally (used in TBHUD, for drawing traitor buttons)
+    function ROUND.Patch.VECTOR.ToScreen( self )
+        local data = _f( self )
+        data.x = ScrW() - data.x
 
-    -- [CLIENT] this is called when this particular round is selected in the selection UI
-    function ROUND:DrawSelection(w, h) -- width (number), height (number)
+        return data
     end
 end
 
--- don't forget to add this line, otherwise your chaos round wont be added to the pool
-return RegisterChaosRound(ROUND)
+-- Callbacks --
+function ROUND:DrawSelection( _, _ ) end
+function ROUND:OnPostSelection() end
+function ROUND:OnPrepare() end
+function ROUND:OnSelected() end
+
+function ROUND:Start()
+    if self.Enabled then self:Finish() end
+
+    self:CreateFramebuffer()
+
+    self.Patch:Patch()
+    self.Hook:Register()
+
+    self.Enabled = true
+end
+
+function ROUND:Finish()
+    if not self.Enabled then return end
+
+    self.Hook:Unregister()
+    self.Patch:Unpatch()
+
+    self:UnflipViewModels()
+
+    self.Enabled = false
+end
+
+-- Export --
+return RegisterChaosRound( ROUND )
