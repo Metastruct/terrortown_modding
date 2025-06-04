@@ -21,12 +21,6 @@ local meta = {
     patch = {},
 }
 
--- Utility
-local function get_key_name( name, k )
-    if name then return name .. '.' .. k end
-    return k
-end
-
 -- Meta: null
 local null = setmetatable( { __null = true }, meta.null )
 
