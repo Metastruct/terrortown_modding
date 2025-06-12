@@ -195,10 +195,16 @@ util.OnInitialize(function()
 						local id = equipmentIds[i]
 						local name = tryT(id)
 
+						-- If a localised string wasn't found for the equipment's ID, assume it's a weapon and get its PrintName
 						if name == id then
 							local wep = weapons.Get(id)
 							if wep then
 								name = wep.PrintName
+
+								-- If the PrintName has an underscore in it, assume it's a string that needs to be localised
+								if string.find(name, "_", 1, true) then
+									name = tryT(name)
+								end
 							end
 						end
 
