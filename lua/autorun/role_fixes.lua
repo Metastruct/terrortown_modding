@@ -208,11 +208,9 @@ util.OnInitialize(function()
 					timer.Simple(0.1, function()
 						chat.AddText(
 							Color(210, 39, 34), "[Gambler]",
-							Color(250, 250, 250), " You received the following traitor equipment: ",
+							Color(250, 250, 250), " You received the following traitor equipment:\n",
 							Color(237, 177, 12), "    - " .. table.concat(equipmentNames, "\n    - ")
 						)
-
-						chat.AddText(Color(250, 250, 250), "Use them wisely!")
 
 						preventMultipleMsg = false
 					end)
