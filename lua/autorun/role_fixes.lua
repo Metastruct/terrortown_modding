@@ -89,8 +89,13 @@ util.OnInitialize(function()
 		if ROLE_GAMBLER then
 			-- Fix Gambler's flawed equipment randomising and giving code
 			--     The ONLY way to apply this fix is to copy the whole segment of code and make our own little amends :D
-			--     This means ~90% of the below code is from the Gambler addon itself
+			--     This means ~80% of the below code is from the Gambler addon itself
 			local randomAmountConvar = GetConVar("ttt2_gambler_randomitems")
+
+			-- Items that shouldn't be given to Gamblers at all
+			local blacklistedItems = {
+				item_ttt_roids = true
+			}
 
 			local function SendItemsToGambler(gambler)
 				local subrole = ROLE_TRAITOR
@@ -99,7 +104,7 @@ util.OnInitialize(function()
 				-- Gather all items buyable for role
 				local roleItems = {}
 				for k, v in ipairs(items.GetList()) do
-					if v and v.CanBuy and table.HasValue(v.CanBuy, subrole) then
+					if v and not blacklistedItems[v.id] and v.CanBuy and table.HasValue(v.CanBuy, subrole) then
 						roleItems[#roleItems + 1] = v
 					end
 				end
