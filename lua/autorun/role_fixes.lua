@@ -35,58 +35,9 @@ util.OnInitialize(function()
 	-- Also run updateRoleSettings through this hook
 	hook.Add("TTT2RolesLoaded", "TTTRoleFixes", updateRoleSettings)
 
-	if SERVER then
-		-- Serverside only tweaks
-
-		-- Vampire related fixes
-		if PIGEON then
-			-- Fix vampire bat still showing PACs
-			if pac and pac.TogglePartDrawing then
-				PIGEON.EnableOriginal = PIGEON.EnableOriginal or PIGEON.Enable
-				PIGEON.DisableOriginal = PIGEON.DisableOriginal or PIGEON.Disable
-
-				PIGEON.Enable = function(pl)
-					PIGEON.EnableOriginal(pl)
-
-					pac.TogglePartDrawing(pl, false)
-				end
-
-				PIGEON.Disable = function(pl)
-					PIGEON.DisableOriginal(pl)
-
-					pac.TogglePartDrawing(pl, true)
-				end
-			end
-
-			-- Fix vampire bat constantly making noises from bloodlust (overwrites the whole Hurt hook func)
-			PIGEON.Hooks.Hurt = function(pl, attacker, hp, dmgTaken)
-				if pl.pigeon and dmgTaken > 1 then
-					pl:EmitSound(PIGEON.sounds.pain)
-				end
-			end
-
-			-- Fix vampire bloodlust damage applying force from world origin (can only overwrite the whole hook to fix it)
-			local playerGetAll = player.GetAll
-			hook.Add("Think", "ThinkVampire", function()
-				for _, pl in ipairs(playerGetAll()) do
-					if pl:IsActive() and pl:GetSubRole() == ROLE_VAMPIRE and pl:GetNWInt("Bloodlust", 0) < CurTime() then
-						pl:SetNWBool("InBloodlust", true)
-						pl:SetNWInt("Bloodlust", CurTime() + 2)
-
-						local dmg = DamageInfo()
-						dmg:SetAttacker(pl)
-						dmg:SetDamage(1)
-						dmg:SetDamageType(DMG_PREVENT_PHYSICS_FORCE)
-						dmg:SetDamageForce(vector_origin)
-
-						pl:TakeDamageInfo(dmg)
-					end
-				end
-			end)
-		end
-
-		-- Gambler related fixes
-		if ROLE_GAMBLER then
+	-- Gambler related fixes
+	if ROLE_GAMBLER then
+		if SERVER then
 			-- Fix Gambler's flawed equipment randomising and giving code
 			--     The ONLY way to apply this fix is to copy the whole segment of code and make our own little amends :D
 			--     This means ~80% of the below code is from the Gambler addon itself
@@ -187,7 +138,7 @@ util.OnInitialize(function()
 
 				-- Send message to client
 				net.Start("gambler_message")
-				net.WriteString(table.concat(receivedEquipment, ", ") .. ".")
+				net.WriteString(table.concat(receivedEquipment, ","))
 				net.Send(gambler)
 			end
 
@@ -226,6 +177,98 @@ util.OnInitialize(function()
 					SendItemsToGambler(pl)
 				end
 			end
+		else
+			local tryT = LANG.TryTranslation
+
+			-- Fix Gambler's received equipment message
+			--     Again, some of the below code is from the Gambler addon itself
+			local preventMultipleMsg
+			net.Receive("gambler_message", function()
+				if not preventMultipleMsg then
+					preventMultipleMsg = true
+
+					local msg = net.ReadString()
+					local equipmentIds = msg and string.Explode(",", msg) or {}
+
+					local equipmentNames = {}
+					for i = 1, #equipmentIds do
+						local id = equipmentIds[i]
+						local name = tryT(id)
+
+						if name == id then
+							local wep = weapons.Get(id)
+							if wep then
+								name = wep.PrintName
+							end
+						end
+
+						equipmentNames[#equipmentNames + 1] = name
+					end
+
+					timer.Simple(0.1, function()
+						chat.AddText(
+							Color(210, 39, 34), "[Gambler]",
+							Color(250, 250, 250), " You received the following traitor equipment: ",
+							Color(237, 177, 12), "    - " .. table.concat(equipmentNames, "\n    - ")
+						)
+
+						chat.AddText(Color(250, 250, 250), "Use them wisely!")
+
+						preventMultipleMsg = false
+					end)
+				end
+			end)
+		end
+	end
+
+	if SERVER then
+		-- Serverside only tweaks
+
+		-- Vampire related fixes
+		if PIGEON then
+			-- Fix vampire bat still showing PACs
+			if pac and pac.TogglePartDrawing then
+				PIGEON.EnableOriginal = PIGEON.EnableOriginal or PIGEON.Enable
+				PIGEON.DisableOriginal = PIGEON.DisableOriginal or PIGEON.Disable
+
+				PIGEON.Enable = function(pl)
+					PIGEON.EnableOriginal(pl)
+
+					pac.TogglePartDrawing(pl, false)
+				end
+
+				PIGEON.Disable = function(pl)
+					PIGEON.DisableOriginal(pl)
+
+					pac.TogglePartDrawing(pl, true)
+				end
+			end
+
+			-- Fix vampire bat constantly making noises from bloodlust (overwrites the whole Hurt hook func)
+			PIGEON.Hooks.Hurt = function(pl, attacker, hp, dmgTaken)
+				if pl.pigeon and dmgTaken > 1 then
+					pl:EmitSound(PIGEON.sounds.pain)
+				end
+			end
+
+			-- Fix vampire bloodlust damage applying force from world origin (can only overwrite the whole hook to fix it)
+			local playerGetAll = player.GetAll
+			hook.Add("Think", "ThinkVampire", function()
+				for _, pl in ipairs(playerGetAll()) do
+					if pl:IsActive() and pl:GetSubRole() == ROLE_VAMPIRE and pl:GetNWInt("Bloodlust", 0) < CurTime() then
+						pl:SetNWBool("InBloodlust", true)
+						pl:SetNWInt("Bloodlust", CurTime() + 2)
+
+						local dmg = DamageInfo()
+						dmg:SetAttacker(pl)
+						dmg:SetDamage(1)
+						dmg:SetDamageType(DMG_PREVENT_PHYSICS_FORCE)
+						dmg:SetDamageForce(vector_origin)
+
+						pl:TakeDamageInfo(dmg)
+					end
+				end
+			end)
 		end
 
 		-- Sacrifice related fixes
