@@ -68,7 +68,7 @@ function SWEP:PrimaryAttack()
 		filter = owner
 	})
 
-	local is_valid_entity = IsValid(tr.Entity) and not tr.Entity:IsPlayer()
+	local is_valid_entity = IsValid(tr.Entity) and not tr.Entity:IsPlayer() and not tr.Entity:IsRagdoll()
 	local is_valid_player = IsValid(tr.Entity) and tr.Entity:IsPlayer() and IsValid(tr.Entity:GetActiveWeapon()) and tr.Entity:GetActiveWeapon().AllowDrop
 	if is_valid_entity or is_valid_player then
 		if SERVER then
