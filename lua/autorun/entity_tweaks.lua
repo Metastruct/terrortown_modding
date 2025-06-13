@@ -469,6 +469,17 @@ util.OnInitialize(function()
 			RunConsoleCommand("ttt_detective_hats_reclaim", "1")
 			RunConsoleCommand("ttt_detective_hats_reclaim_any", "1")
 		end
+
+		-- Destructible Doors: Allow weapons with SWEP.DoorDamageMultiplier to scale their damage done to doors
+		hook.Add("EntityTakeDamage", "TTTDoorDamageMultiplier", function(ent, dmg)
+			if IsValid(ent) and (ent.isDoorProp or ent:IsDoor()) then
+				local inflictor = dmg:GetInflictor()
+
+				if IsValid(inflictor) and isnumber(inflictor.DoorDamageMultiplier) then
+					dmg:ScaleDamage(inflictor.DoorDamageMultiplier)
+				end
+			end
+		end)
 	else
 		-- Clientside only tweaks
 

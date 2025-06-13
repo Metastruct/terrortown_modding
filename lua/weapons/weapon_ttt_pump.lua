@@ -44,5 +44,7 @@ SWEP.ViewModel = Model("models/weapons/cstrike/c_shot_m3super90.mdl")
 SWEP.WorldModel = Model("models/weapons/w_shot_m3super90.mdl")
 SWEP.idleResetFix = true
 
+SWEP.DoorDamageMultiplier = 3
+
 SWEP.IronSightsPos = Vector(-7.67, -12.86, 3.371)
 SWEP.IronSightsAng = Vector(0.637, 0.01, -1.458)
