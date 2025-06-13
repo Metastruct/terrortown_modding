@@ -56,6 +56,7 @@ SWEP.Primary.Sound = ")weapons/minigun/minigun_shoot.wav"
 SWEP.Primary.SoundEnd = ")weapons/minigun/minigun_shoot_end.ogg"
 
 SWEP.HeadshotMultiplier = 2.5
+SWEP.DoorDamageMultiplier = 3
 
 SWEP.DryFireSound = ")weapons/pistol/pistol_empty.wav"
 
