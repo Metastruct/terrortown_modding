@@ -32,8 +32,6 @@ ENT.HealingList = {}
 ENT.MaxUseDist = 100
 ENT.NextUseList = {}
 
-ENT.CanUseKey = true
-
 ---
 -- @realm shared
 function ENT:SetupDataTables()
@@ -55,6 +53,7 @@ function ENT:Initialize()
 
 	if SERVER then
 		self:SetMaxHealth(200)
+		self:SetUseMode(SIMPLE_USE)
 
 		local phys = self:GetPhysicsObject()
 		if IsValid(phys) then
