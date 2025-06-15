@@ -16,28 +16,6 @@ util.OnInitialize(function()
 		ENT.dropAngleThreshold = 0.925
 	end
 
-	-- Regular Knife: Increase damage and attack speed, remove the weird artifical attack delay on equip (DeploySpeed handles this anyway)
-	ENT = weapons.GetStored("weapon_ttt_knife")
-	if ENT then
-		ENT.Primary.Damage = 75
-		ENT.Primary.Delay = 0.75
-
-		if SERVER then
-			function ENT:Equip()
-				if self:IsOnFire() then
-					self:Extinguish()
-				end
-
-				if self:HasSpawnFlags(SF_WEAPON_START_CONSTRAINED) then
-					local flags = self:GetSpawnFlags()
-					local newflags = bit.band(self:GetSpawnFlags(), bit.bnot(SF_WEAPON_START_CONSTRAINED))
-
-					self:SetKeyValue("spawnflags", newflags)
-				end
-			end
-		end
-	end
-
 	-- Decoy: Allow people to carry 3 decoys at a time, and get 3 decoys when they buy them
 	ENT = weapons.GetStored("weapon_ttt_decoy")
 	if ENT then
