@@ -135,6 +135,24 @@ if SERVER then
 		return false
 	end
 
+	local trTable
+
+	function ENT:PlayerIsLookingAt(ply)
+		if not trTable then
+			trTable = {
+				mask = MASK_SOLID
+			}
+		end
+
+		trTable.start = ply:EyePos()
+		trTable.endpos = trTable.start + (ply:GetAimVector() * self.MaxUseDist)
+		trTable.filter = ply
+
+		local tr = util.TraceLine(trTable)
+
+		return tr.Entity == self
+	end
+
 	function ENT:Think()
 		local t = CurTime()
 
@@ -159,20 +177,8 @@ if SERVER then
 					and v:KeyDown(IN_USE)   -- Is the player still holding E?
 					and v:IsActive()	-- Is the round active?
 				then
-					if not trTable then
-						trTable = {
-							mask = MASK_SOLID
-						}
-					end
-
-					trTable.start = v:EyePos()
-					trTable.endpos = trTable.start + (v:GetAimVector() * self.MaxUseDist)
-					trTable.filter = v
-
-					local tr = util.TraceLine(trTable)
-
 					-- Is the player still looking at the station?
-					if tr.Entity == self then
+					if self:PlayerIsLookingAt(v) then
 						if self:GiveHealth(v, self.HealRate)	-- Attempt to heal them, returns true if it succeeded
 							or v:Health() < v:GetMaxHealth()	-- Do they still need healing?
 						then
@@ -214,6 +220,10 @@ if SERVER then
 		end
 
 		self.NextUseList[ply] = CurTime() + 0.25
+
+		if not self:PlayerIsLookingAt(ply) then
+			return
+		end
 
 		if ply:Health() >= ply:GetMaxHealth() then
 			ply:EmitSound(soundFail, 70, 100, 0.3)
