@@ -89,10 +89,10 @@ function SWEP:PrimaryAttack()
 
 	if SERVER and tr.Hit and tr.HitNonWorld and IsValid(hitEnt) then
 		local aimVector = owner:GetAimVector()
-		local dmgInt = self.Primary.Damage
+		local dmgInt = self.Primary.Damage * (self.damageScaling or 1)
 
 		if hitEnt:IsPlayer() and self:IsBackstab(hitEnt) then
-			dmgInt = 999
+			dmgInt = 1000
 		end
 
 		local dmg = DamageInfo()
