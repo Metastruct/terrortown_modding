@@ -136,6 +136,7 @@ local function enableRagdollCollisions(rag)
 		timer.Create(timerName, 0.1, 0, function()
 			if IsValid(rag) then
 				local phys = rag:GetPhysicsObject()
+				if not IsValid(phys) then return end
 
 				if rag._fr then
 					if rag:IsPlayerHolding() or phys:GetVelocity():LengthSqr() < ragStopSpeedSqr then
