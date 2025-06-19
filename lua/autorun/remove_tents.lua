@@ -98,7 +98,7 @@ if SERVER then
 
 	local function LowPlayerCount()
 		local totalPlayers = player.GetCount()
-		if totalPlayers <= 4 then return false end
+		if totalPlayers <= 4 then return true end
 
 		local activePlayers = 0
 		for _, ply in pairs(player.GetAll()) do
