@@ -215,6 +215,9 @@ end
 function SWEP:PrimaryAttack()
     if not self:CanPrimaryAttack() then return end
 
+    local owner = self:GetOwner()
+    if not IsValid(owner) then return end
+
     self:TakePrimaryAmmo(1)
     self:EmitSound(self.Primary.Sound1, 75, 100, 1, CHAN_VOICE)
     self:EmitSound(self.Primary.Sound2, 125, 100, 1, CHAN_VOICE2)
@@ -229,18 +232,19 @@ function SWEP:PrimaryAttack()
     SuppressHostEvents(NULL)
 
     local t = calculateTrajectory(
-        self:GetOwner():GetShootPos(),
-        self:GetOwner():EyeAngles(),
+        owner:GetShootPos(),
+        owner:EyeAngles(),
         10000,
-        { self:GetOwner() }
+        { owner }
     )
 
-    self:GetOwner():LagCompensation(true)
+    owner:LagCompensation(true)
 
     local trails = {}
 
     for i, trace in ipairs(t.traces) do
         local bullet = {
+            Inflictor = self,
             Num = 1,
             Src = trace.StartPos,
             Dir = trace.Normal,
@@ -249,7 +253,7 @@ function SWEP:PrimaryAttack()
             Force = 100,
             Damage = i == 1 and cvarNonbounceDamage:GetInt() or self.Primary.Damage,
         }
-        self:GetOwner():FireBullets(bullet)
+        owner:FireBullets(bullet)
 
         table.insert(trails, { trace.StartPos, trace.HitPos })
 
@@ -278,8 +282,8 @@ function SWEP:PrimaryAttack()
         net.Broadcast()
     end
 
-    SuppressHostEvents(self:GetOwner())
-    self:GetOwner():LagCompensation(false)
+    SuppressHostEvents(owner)
+    owner:LagCompensation(false)
 end
 
 function SWEP:SecondaryAttack()
@@ -431,25 +435,30 @@ if CLIENT then
         surface.DrawRect(x + 512, y + 500, 1, 24)
         surface.DrawRect(x + 500, y + 512, 24, 1)
 
-        local pitch = self:GetOwner():EyeAngles().p
-        if -17 < pitch and pitch < 17 then
-            surface.SetDrawColor(255, 255, 255)
-            surface.SetMaterial(mat_scope_tick)
-            surface.DrawTexturedRectRotated(x + 512, y + 512, 1024, 1024, pitch + 90)
-        end
+        local owner = self:GetOwner()
+        if IsValid(owner) then
+            local eyeAngles = owner:EyeAngles()
 
-        local yaw = (self:GetOwner():EyeAngles().y + 45) % 90 - 45
-        if -17 < yaw and yaw < 17 then
-            surface.SetDrawColor(255, 255, 255)
-            surface.SetMaterial(mat_scope_tick)
-            surface.DrawTexturedRectRotated(x + 512, y + 512, 1024, 1024, yaw)
-        end
+            local pitch = eyeAngles.p
+            if -17 < pitch and pitch < 17 then
+                surface.SetDrawColor(255, 255, 255)
+                surface.SetMaterial(mat_scope_tick)
+                surface.DrawTexturedRectRotated(x + 512, y + 512, 1024, 1024, pitch + 90)
+            end
 
-        yaw = (self:GetOwner():EyeAngles().y) % 90 - 45
-        if -17 < yaw and yaw < 17 then
-            surface.SetDrawColor(255, 255, 255, 100)
-            surface.SetMaterial(mat_scope_tick)
-            surface.DrawTexturedRectRotated(x + 512, y + 512, 1024, 1024, yaw)
+            local yaw = (eyeAngles.y + 45) % 90 - 45
+            if -17 < yaw and yaw < 17 then
+                surface.SetDrawColor(255, 255, 255)
+                surface.SetMaterial(mat_scope_tick)
+                surface.DrawTexturedRectRotated(x + 512, y + 512, 1024, 1024, yaw)
+            end
+
+            yaw = (eyeAngles.y) % 90 - 45
+            if -17 < yaw and yaw < 17 then
+                surface.SetDrawColor(255, 255, 255, 100)
+                surface.SetMaterial(mat_scope_tick)
+                surface.DrawTexturedRectRotated(x + 512, y + 512, 1024, 1024, yaw)
+            end
         end
 
         draw.SimpleText(

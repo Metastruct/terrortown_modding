@@ -121,14 +121,14 @@ function SWEP:PrimaryAttack()
 	local fireDelay = convarFireDelay:GetFloat()
 
 	if fireDelay > 0 then
-		-- This is needed to track to who held it last
+		-- This is needed to track who held it last
 		self.LastFiredOwner = owner
 
 		self:EmitSound(self.Primary.DelayedShotSound, 68)
 
 		self:SetDelayedShotTime(CurTime() + fireDelay)
 
-		owner:ViewPunch(Angle(1,0,0))
+		owner:ViewPunch(Angle(1, 0, 0))
 	else
 		self:Shoot()
 	end
@@ -234,7 +234,7 @@ function SWEP:Shoot()
 
 		self:SendWeaponAnim(ACT_VM_PRIMARYATTACK)
 		owner:SetAnimation(PLAYER_ATTACK1)
-		owner:ViewPunch(Angle(-20,0,0))
+		owner:ViewPunch(Angle(-20, 0, 0))
 	else
 		local phys = owner:GetPhysicsObject()
 

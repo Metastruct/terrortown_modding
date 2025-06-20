@@ -299,17 +299,18 @@ function SWEP:ShootBullet(dmg, recoil, numbul, cone)
 	numbul = numbul or 1
     cone = cone or 0.02
 
-    local bullet = {}
-    bullet.Num = numbul
-    bullet.Src = owner:GetShootPos()
-    bullet.Dir = owner:GetAimVector()
-    bullet.Spread = Vector(cone, cone, 0)
-    bullet.Tracer = 1
-    bullet.TracerName = self.Tracer or "Tracer"
-    bullet.Force = 1
-    bullet.Damage = dmg * (self.damageScaling or 1)
-
-    bullet.Callback = shushBulletCallback
+    local bullet = {
+		Inflictor = self,
+    	Num = numbul,
+    	Src = owner:GetShootPos(),
+    	Dir = owner:GetAimVector(),
+    	Spread = Vector(cone, cone, 0),
+    	Tracer = 1,
+    	TracerName = self.Tracer or "Tracer",
+    	Force = 1,
+    	Damage = dmg * (self.damageScaling or 1),
+		Callback = shushBulletCallback
+	}
 
     owner:FireBullets(bullet)
 

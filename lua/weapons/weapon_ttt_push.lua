@@ -95,6 +95,7 @@ function SWEP:FirePulse(forceFwd, forceUp)
 	local cone = self.Primary.Cone or 0.1
 
 	local bullet = {
+		Inflictor = self,
 		Num = 1,
 		Src = owner:GetShootPos(),
 		Dir = owner:GetAimVector(),
