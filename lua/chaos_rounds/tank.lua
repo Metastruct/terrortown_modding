@@ -473,7 +473,7 @@ function ROUND:Start()
 			if pl:GetNWBool(tankNwTag) then
 				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 1.12
 			elseif pl:GetNWBool(tankHitSlowNwTag) then
-				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 0.6
+				speedMultiplierModifier[1] = speedMultiplierModifier[1] * 0.66
 			end
 		end
 	end)
@@ -576,7 +576,7 @@ function ROUND:Start()
 				local timerName = tankHitSlowNwTag .. tostring(pl:EntIndex())
 
 				if not timer.Exists(timerName) then
-					timer.Create(timerName, 1, 1, function()
+					timer.Create(timerName, 0.8, 1, function()
 						if IsValid(pl) then
 							pl:SetNWBool(tankHitSlowNwTag, false)
 						end
