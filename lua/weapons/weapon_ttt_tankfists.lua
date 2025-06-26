@@ -213,7 +213,7 @@ function SWEP:TraceAttack()
 							local timerName = tankHitSlowNwTag .. tostring(ent:EntIndex())
 
 							if not timer.Exists(timerName) then
-								timer.Create(timerName, 0.5, 1, function()
+								timer.Create(timerName, 0.3, 1, function()
 									if IsValid(ent) then
 										ent:SetNWBool(tankHitSlowNwTag, false)
 									end
