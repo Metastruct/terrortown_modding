@@ -421,6 +421,119 @@ util.OnInitialize(function()
 			end)
 		end)
 
+		-- All placeables: Allow placeables (like C4) to be attached to moveable entities
+		-- Small edits and improvements made to base TTT2's ttt_base_placeable functions
+		ENT = scripted_ents.GetStored("ttt_base_placeable")
+		if ENT then
+			ENT = ENT.t
+
+			local downVec = Vector(0, 0, -16)
+			local soundWeld = "weapons/c4/c4_plant.wav"
+
+			function ENT:WeldToSurface(stateWelding)
+				self.stateWelding = stateWelding
+
+				if stateWelding then
+					local vecHitNormal = self:GetHitNormal()
+
+					if vecHitNormal then
+						local stickRotation = self:GetStickRotation()
+
+						if stickRotation then
+							self:SetAngles(vecHitNormal:Angle() + stickRotation)
+						else
+							self:SetAngles(vecHitNormal:Angle())
+						end
+					end
+
+					local pos = self:GetPos()
+					local ignore = player.GetAll()
+
+					ignore[#ignore + 1] = self
+
+					local tr = util.TraceEntity({
+						start = pos,
+						endpos = pos + downVec,
+						filter = ignore,
+						mask = MASK_SOLID,
+					}, self)
+
+					sound.Play(soundWeld, pos, 75)
+
+					if tr.Hit and (IsValid(tr.Entity) or tr.HitWorld) then
+						local phys = self:GetPhysicsObject()
+
+						if IsValid(phys) then
+							if tr.HitWorld then
+								phys:EnableMotion(false)
+							else
+								self.originalMass = phys:GetMass()
+								phys:SetMass(10)
+							end
+						end
+
+						self.originalCanPickup = self.CanPickup
+
+						self.CanPickup = false
+
+						constraint.Weld(self, tr.Entity, 0, tr.PhysicsBone or 0, 0, true)
+					end
+				else
+					constraint.RemoveConstraints(self, "Weld")
+
+					self.CanPickup = self.originalCanPickup
+
+					self.originalCanPickup = nil
+
+					local phys = self:GetPhysicsObject()
+
+					if IsValid(phys) then
+						phys:EnableMotion(true)
+
+						if self.originalMass then
+							phys:SetMass(self.originalMass)
+
+							self.originalMass = nil
+						end
+					end
+				end
+			end
+
+			function ENT:StickEntity(ply, rotationalOffset, angleCondition)
+				ply:SetAnimation(PLAYER_ATTACK1)
+
+				rotationalOffset = rotationalOffset or Angle(0, 0, 0)
+
+				local pos = ply:GetShootPos()
+
+				local tr = util.TraceLine({
+					start = pos,
+					endpos = pos + ply:GetAimVector() * 100,
+					mask = MASK_SOLID,
+					filter = { self, ply },
+				})
+
+				if not tr.Hit then return false end
+
+				self:SetPos(tr.HitPos)
+				self:SetOriginator(ply)
+				self:Spawn()
+				self:SetHitNormal(tr.HitNormal)
+
+				if tr.HitNormal.x == 0 and tr.HitNormal.y == 0 and tr.HitNormal.z == 1 then
+					rotationalOffset.yaw = rotationalOffset.yaw + ply:GetAngles().yaw + 180
+				end
+
+				if not angleCondition or math.abs(tr.HitNormal:Angle().pitch) >= angleCondition then
+					self:SetStickRotation(rotationalOffset)
+				end
+
+				self:WeldToSurface(true)
+
+				return true
+			end
+		end
+
 		-- Detective hat: Allow it to be possessed by spectators
 		ENT = scripted_ents.GetStored("ttt_hat_deerstalker")
 		if ENT then
