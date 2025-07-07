@@ -430,6 +430,20 @@ util.OnInitialize(function()
 			local downVec = Vector(0, 0, -16)
 			local soundWeld = "weapons/c4/c4_plant.wav"
 
+			local function RestorePhysics(ent)
+				local phys = ent:GetPhysicsObject()
+
+				if IsValid(phys) then
+					phys:EnableMotion(true)
+					phys:Wake()
+
+					if ent.originalMass then
+						phys:SetMass(ent.originalMass)
+						ent.originalMass = nil
+					end
+				end
+			end
+
 			function ENT:WeldToSurface(stateWelding)
 				self.stateWelding = stateWelding
 
@@ -447,15 +461,15 @@ util.OnInitialize(function()
 					end
 
 					local pos = self:GetPos()
-					local ignore = player.GetAll()
 
+					local ignore = player.GetAll()
 					ignore[#ignore + 1] = self
 
 					local tr = util.TraceEntity({
 						start = pos,
 						endpos = pos + downVec,
 						filter = ignore,
-						mask = MASK_SOLID,
+						mask = MASK_SOLID + CONTENTS_DEBRIS,
 					}, self)
 
 					sound.Play(soundWeld, pos, 75)
@@ -476,30 +490,25 @@ util.OnInitialize(function()
 
 						self.CanPickup = false
 
+						if tr.HitWorld then return end
+
 						local weld = constraint.Weld(self, tr.Entity, 0, tr.PhysicsBone or 0, 0, true)
 
-						weld.PlacedEntity = self
-						weld:CallOnRemove("C4Weld", function(ent)
-							local placed = ent.PlacedEntity
-							if not IsValid(placed) then return end
+						if IsValid(weld) then
+							weld.PlacedEntity = self
+							weld:CallOnRemove("C4Weld", function(ent)
+								local placed = ent.PlacedEntity
+								if not IsValid(placed) then return end
 
-							placed.CanPickup = placed.originalCanPickup
+								placed.CanPickup = placed.originalCanPickup
 
-							placed.originalCanPickup = nil
+								placed.originalCanPickup = nil
 
-							local phys = placed:GetPhysicsObject()
-
-							if IsValid(phys) then
-								phys:EnableMotion(true)
-								phys:Wake()
-
-								if placed.originalMass then
-									phys:SetMass(placed.originalMass)
-
-									placed.originalMass = nil
-								end
-							end
-						end)
+								RestorePhysics(placed)
+							end)
+						else
+							RestorePhysics(self)
+						end
 					end
 				else
 					constraint.RemoveConstraints(self, "Weld")
@@ -513,11 +522,14 @@ util.OnInitialize(function()
 
 				local pos = ply:GetShootPos()
 
+				local ignore = player.GetAll()
+				ignore[#ignore + 1] = self
+
 				local tr = util.TraceLine({
 					start = pos,
 					endpos = pos + ply:GetAimVector() * 100,
-					mask = MASK_SOLID,
-					filter = { self, ply },
+					mask = MASK_SOLID + CONTENTS_DEBRIS,
+					filter = ignore,
 				})
 
 				if not tr.Hit then return false end
