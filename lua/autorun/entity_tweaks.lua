@@ -476,26 +476,33 @@ util.OnInitialize(function()
 
 						self.CanPickup = false
 
-						constraint.Weld(self, tr.Entity, 0, tr.PhysicsBone or 0, 0, true)
+						local weld = constraint.Weld(self, tr.Entity, 0, tr.PhysicsBone or 0, 0, true)
+
+						weld.PlacedEntity = self
+						weld:CallOnRemove("C4Weld", function(ent)
+							local placed = ent.PlacedEntity
+							if not IsValid(placed) then return end
+
+							placed.CanPickup = placed.originalCanPickup
+
+							placed.originalCanPickup = nil
+
+							local phys = placed:GetPhysicsObject()
+
+							if IsValid(phys) then
+								phys:EnableMotion(true)
+								phys:Wake()
+
+								if placed.originalMass then
+									phys:SetMass(placed.originalMass)
+
+									placed.originalMass = nil
+								end
+							end
+						end)
 					end
 				else
 					constraint.RemoveConstraints(self, "Weld")
-
-					self.CanPickup = self.originalCanPickup
-
-					self.originalCanPickup = nil
-
-					local phys = self:GetPhysicsObject()
-
-					if IsValid(phys) then
-						phys:EnableMotion(true)
-
-						if self.originalMass then
-							phys:SetMass(self.originalMass)
-
-							self.originalMass = nil
-						end
-					end
 				end
 			end
 
