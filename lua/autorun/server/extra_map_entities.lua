@@ -19,7 +19,9 @@ end
 		pos = VECTOR -- position
 		ang = ANGLE -- angle
 		model = STRING -- model path
+		skin = NUMBER -- skin id
 		scale = NUMBER -- model scale
+		colgroup = NUMBER -- custom collision group id
 		frozen = BOOL -- should freeze prop?
 		chance = NUMBER -- decimal chance for this entity to spawn: 0-1 (only if group ID is 0)
 	}
@@ -68,7 +70,9 @@ function TAB.SaveData()
 					pos = x.pos,
 					ang = isangle(x.ang) and x.ang or nil,
 					model = isstring(x.model) and x.model or nil,
+					skin = isnumber(x.skin) and x.skin != 0 and x.skin or nil,
 					scale = isnumber(x.scale) and x.scale != 1 and x.scale or nil,
+					colgroup = isnumber(x.colgroup) and x.colgroup != 0 and x.colgroup or nil,
 					frozen = x.frozen == true or nil,
 					chance = isnumber(x.chance) and x.chance or nil
 				}
@@ -103,13 +107,17 @@ function TAB.AddEntity(ent, model, frozen, groupid, chance)
 
 	local class = ent:GetClass()
 	local scale = ent:GetModelScale()
+	local skinId = ent:GetSkin()
+	local colGroupId = ent:GetCollisionGroup()
 
 	local newTab = {
 		class = class,
 		pos = ent:GetPos(),
 		ang = ent:GetAngles(),
 		model = model or (string.StartsWith(class, "prop_") and ent:GetModel() or nil),
+		skin = skinId != 0 and skinId or nil,
 		scale = scale != 1 and scale or nil,
+		colgroup = colGroupId != 0 and colGroupId or nil,
 		frozen = frozen,
 		chance = id == 0 and isnumber(chance) and chance or nil
 	}
