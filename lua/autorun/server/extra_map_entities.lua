@@ -73,7 +73,8 @@ function TAB.SaveData()
 					skin = isnumber(x.skin) and x.skin != 0 and x.skin or nil,
 					scale = isnumber(x.scale) and x.scale != 1 and x.scale or nil,
 					colgroup = isnumber(x.colgroup) and x.colgroup != 0 and x.colgroup or nil,
-					frozen = x.frozen == true or nil,
+					frozen = x.invisible == true or x.frozen == true or nil,
+					invisible = x.invisible == true or nil,
 					chance = isnumber(x.chance) and x.chance or nil
 				}
 			end
@@ -96,7 +97,7 @@ function TAB.SaveData()
 	return false
 end
 
-function TAB.AddEntity(ent, model, frozen, groupid, chance)
+function TAB.AddEntity(ent, model, frozen, invisible, groupid, chance)
 	if not IsValid(ent) then return false end
 
 	if not istable(TAB.MapData) then
@@ -118,7 +119,8 @@ function TAB.AddEntity(ent, model, frozen, groupid, chance)
 		skin = skinId != 0 and skinId or nil,
 		scale = scale != 1 and scale or nil,
 		colgroup = colGroupId != 0 and colGroupId or nil,
-		frozen = frozen,
+		frozen = invisible or frozen,
+		invisible = invisible,
 		chance = id == 0 and isnumber(chance) and chance or nil
 	}
 
@@ -143,7 +145,7 @@ function TAB.AddEntity(ent, model, frozen, groupid, chance)
 	return true
 end
 
-function TAB.SpawnEntities(forceSpawn)
+function TAB.SpawnEntities(forceSpawnForDebug)
 	local mapData = TAB.MapData
 	if not istable(mapData) then return end
 
@@ -155,11 +157,11 @@ function TAB.SpawnEntities(forceSpawn)
 
 		local isGroupZero = v.id == 0
 
-		if forceSpawn or (isGroupZero or RollChance(v.chance)) then
+		if forceSpawnForDebug or (isGroupZero or RollChance(v.chance)) then
 			for _, x in pairs(v.ents) do
 				if not isstring(x.class)
 					or not isvector(x.pos)
-					or (not forceSpawn and isGroupZero and not RollChance(x.chance))
+					or (not forceSpawnForDebug and isGroupZero and not RollChance(x.chance))
 				then continue end
 
 				local ent = ents.Create(x.class)
@@ -168,6 +170,7 @@ function TAB.SpawnEntities(forceSpawn)
 
 				if isangle(x.ang) then ent:SetAngles(x.ang) end
 				if isstring(x.model) then ent:SetModel(x.model) end
+				if isnumber(x.skin) then ent:SetSkin(x.skin) end
 
 				ent:Spawn()
 
@@ -181,6 +184,8 @@ function TAB.SpawnEntities(forceSpawn)
 					end)
 				end
 
+				if isnumber(x.colgroup) then ent:SetCollisionGroup(x.colgroup) end
+
 				if x.frozen then
 					local phys = ent:GetPhysicsObject()
 					if IsValid(phys) then
@@ -188,6 +193,15 @@ function TAB.SpawnEntities(forceSpawn)
 					end
 
 					ent:SetMoveType(MOVETYPE_NONE)
+				end
+
+				-- If force spawning for debug, reveal invisible entities
+				if x.invisible then
+					if forceSpawnForDebug then
+						ent:SetMaterial("vgui/progressbar")
+					else
+						ent:SetNoDraw(true)
+					end
 				end
 			end
 		end
