@@ -27,7 +27,8 @@ SWEP.Primary.ClipSize = -1
 SWEP.Primary.DefaultClip = -1
 SWEP.Primary.Automatic = true
 SWEP.Primary.Ammo = "none"
-SWEP.Primary.Delay = 2
+SWEP.Primary.Damage = 4
+SWEP.Primary.Delay = 1.25
 SWEP.Primary.Cone = 0.005
 SWEP.Primary.Sound = "weapons/ar2/fire1.wav"
 SWEP.Primary.Sound2 = "weapons/airboat/airboat_gun_energy2.wav"
@@ -37,7 +38,7 @@ SWEP.Secondary.ClipSize = -1
 SWEP.Secondary.DefaultClip = -1
 SWEP.Secondary.Automatic = true
 SWEP.Secondary.Ammo = "none"
-SWEP.Secondary.Delay = 2
+SWEP.Secondary.Delay = 1.25
 
 SWEP.NoSights = true
 
@@ -51,6 +52,9 @@ SWEP.ViewModel = "models/weapons/c_superphyscannon.mdl"
 SWEP.WorldModel = "models/weapons/w_physics.mdl"
 
 SWEP.idleResetFix = true
+
+SWEP.HeadshotMultiplier = 1
+SWEP.DoorDamageMultiplier = 75
 
 function SWEP:Initialize()
 	if SERVER then
@@ -101,7 +105,7 @@ function SWEP:FirePulse(forceFwd, forceUp)
 		Dir = owner:GetAimVector(),
 		Spread = Vector(cone, cone, 0),
 		Force = 0.000000001,	-- Source whines if this is 0, but we want 0, so...
-		Damage = 5,
+		Damage = self.Primary.Damage or 1,
 		Tracer = 1,
 		TracerName = "AirboatGunHeavyTracer"
 	}
@@ -121,7 +125,7 @@ function SWEP:FirePulse(forceFwd, forceUp)
 					ent:SetGroundEntity(nil)
 					ent:SetVelocity(-ent:GetVelocity() + pushVel)
 
-					ent:SetNWFloat(antiMoveTag, CurTime() + 0.33)
+					ent:SetNWFloat(antiMoveTag, CurTime() + 0.4)
 
 					ent.was_pushed = {
 						att = owner,
