@@ -122,6 +122,11 @@ if SERVER then
 		end
 	end)
 
+	-- Don't include bannis in role selection (they get no role and don't contribute to win conditions)
+	hook.Add("TTT2DisableRoleSelection", Tag, function(pl)
+		if isfunction(pl.IsBanned) and pl:IsBanned() then return true end
+	end)
+
 	-- Disable picking up vehicles
 	hook.Add("TTT2PlayerPreventPickupEnt", Tag, function(pl, ent)
 		for k, v in ipairs(player.GetAll()) do
