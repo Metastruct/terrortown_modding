@@ -35,19 +35,19 @@ if SERVER then
 		if ply.IsAFK and ply:IsAFK() then return true end
 
 		local pos = ply:GetPos()
-		local closestDistance = math.huge
+		local closestDistSqr = math.huge
 
-		for _, otherPly in pairs(player.GetAll()) do
+		for _, otherPly in player.Iterator() do
 			if IsValid(otherPly) and otherPly ~= ply and otherPly:IsTerror() then
-				local distance = pos:Distance(otherPly:GetPos())
+				local distance = pos:DistToSqr(otherPly:GetPos())
 
-				if distance < closestDistance then
-					closestDistance = distance
+				if distance < closestDistSqr then
+					closestDistSqr = distance
 				end
 			end
 		end
 
-		return closestDistance > CV_ISOLATION_DISTANCE:GetInt()
+		return closestDistSqr > (CV_ISOLATION_DISTANCE:GetInt() ^ 2)
 	end
 
 	local function HasPlayerMoved(ply)
@@ -58,7 +58,7 @@ if SERVER then
 		local data = playerData[ply]
 		local currentPos = ply:GetPos()
 
-		local moved = currentPos:Distance(data.lastPos) > CV_MOVEMENT_THRESHOLD:GetInt()
+		local moved = currentPos:DistToSqr(data.lastPos) > (CV_MOVEMENT_THRESHOLD:GetInt() ^ 2)
 		if moved then
 			data.lastPos = currentPos
 		end
@@ -72,15 +72,19 @@ if SERVER then
 		ply:SetNWBool("CampingVisible", true)
 
 		local timer_name = ("camping_visibility_[%s]"):format(ply:SteamID())
+
 		timer.Create(timer_name, CV_VISIBILITY_DURATION:GetInt(), 1, function()
 			if IsValid(ply) then
 				local data = playerData[ply]
-				if data.isCamping then
+
+				if data and data.isCamping then
 					ExposeCamper(ply) -- reset timer if they are still camping
 					return
 				end
 
 				ply:SetNWBool("CampingVisible", false)
+			else
+				timer.Remove(timer_name)
 			end
 		end)
 	end
@@ -101,7 +105,7 @@ if SERVER then
 		if totalPlayers <= 4 then return true end
 
 		local activePlayers = 0
-		for _, ply in pairs(player.GetAll()) do
+		for _, ply in player.Iterator() do
 			if IsValid(ply) and ply:IsTerror() then
 				activePlayers = activePlayers + 1
 			end
@@ -114,7 +118,7 @@ if SERVER then
 		if not CV_ENABLED:GetBool() then return end
 		if not LowPlayerCount() then return end
 
-		for _, ply in pairs(player.GetAll()) do
+		for _, ply in player.Iterator() do
 			if IsValid(ply) and ply:IsTerror() then
 				if not playerData[ply] then
 					InitPlayerData(ply)
@@ -187,7 +191,7 @@ if SERVER then
 	end)
 
 	hook.Add("SetupPlayerVisibility", "Camping_Visibility", function()
-		for _, ply in ipairs(player.GetAll()) do
+		for _, ply in player.Iterator() do
 			if ply:IsTerror() and ply:GetNWBool("CampingVisible", false) then
 				AddOriginToPVS(ply:GetPos())
 			end
@@ -216,10 +220,11 @@ if CLIENT then
 	local OFFSET = Vector(0, 0, 10)
 
 	hook.Add("HUDPaint", "Camping_HUDPaint", function()
-		for _, ply in ipairs(player.GetAll()) do
+		for _, ply in player.Iterator() do
 			if not ply:GetNWBool("CampingVisible", false) then continue end
 			if ply == LocalPlayer() then continue end
 			if not ply:Alive() then continue end
+
 			cam.Start3D(EyePos(), EyeAngles())
 			cam.IgnoreZ(true)
 			render.SuppressEngineLighting(true)
@@ -244,8 +249,10 @@ if CLIENT then
 			render.SuppressEngineLighting(false)
 			cam.IgnoreZ(false)
 			cam.End3D()
+
 			surface.SetTextColor(CAMPER_COLOR)
 			surface.SetFont("CampingWarning")
+
 			local text = ply.IsAFK and ply:IsAFK() and "[AFK]" or "[CAMPER]"
 			local tw, _ = surface.GetTextSize(text)
 			local pos = (ply:GetPos() + OFFSET):ToScreen()
@@ -260,7 +267,7 @@ if CLIENT then
 	hook.Add("PreDrawOutlines", "Camping_Outlines", function()
 		local camper_players = {}
 
-		for _, ply in ipairs(player.GetAll()) do
+		for _, ply in player.Iterator() do
 			if not ply:GetNWBool("CampingVisible", false) then continue end
 			if ply == LocalPlayer() then continue end
 			if not ply:Alive() then continue end
