@@ -4,9 +4,18 @@ if not MetAchievements then return end
 local IsValid = IsValid
 local playerIterator = player.Iterator
 
+local convarDebug = CreateConVar("ttt_metachievements_debug", 0, FCVAR_UNREGISTERED)
+
 local tag = "MetAchievements_TTT"
 
 local unlockQueue = {}
+
+local function debugPrint(...)
+	if not convarDebug:GetBool() then return end
+
+	MsgC(color_white, "[TTT-MetAchievements] Debug: ")
+	print(...)
+end
 
 local function isRoundActive()
 	return gameloop.GetRoundState() == ROUND_ACTIVE
@@ -21,13 +30,13 @@ local function setAchievementToUnlock(pl, id)
 		unlockQueue[pl] = { [id] = true }
 	end
 
-	--print("---- ACHIEVEMENT PENDING for", pl, id)
+	debugPrint("ACHIEVEMENT PENDING for", pl, id)
 end
 
 local function processAchievementUnlocks(pl, ids)
 	for id in pairs(ids) do
+		debugPrint("UNLOCKING ACHIEVEMENT for", pl, id)
 		MetAchievements.UnlockAchievement(pl, id)
-		--print("---- ACHIEVEMENT UNLOCKED for", pl, id)
 	end
 end
 
