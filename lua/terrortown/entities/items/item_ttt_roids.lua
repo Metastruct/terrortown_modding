@@ -74,6 +74,7 @@ local wepAllowment = {
 	weapon_ttt_springmine = true,
 	weapon_ttt_suicide = true,
 	weapon_ttt_confgrenade_s = true,
+	weapon_ttt_electroshock = true,
 	ttt_kamehameha_swep = true,
 
 	-- Utility (built-in)
@@ -100,6 +101,7 @@ local wepAllowment = {
 	weapon_ttt2_kiss = true,
 	weapon_ttt_propdisguiser = true,
 	weapon_ttt_squirtbottle = true,
+	weapon_ttt_minty_blink = true,
 	weapon_fan = true,
 }
 
