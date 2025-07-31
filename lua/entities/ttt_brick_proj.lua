@@ -46,6 +46,7 @@ function ENT:Initialize()
 
 	if SERVER then
 		self.ThrownTime = CurTime()
+		self.ThrownPos = self:WorldSpaceCenter()
 	end
 end
 
