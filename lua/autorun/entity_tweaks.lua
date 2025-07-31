@@ -581,13 +581,26 @@ util.OnInitialize(function()
 		end
 
 		-- Destructible Doors: Allow weapons with SWEP.DoorDamageMultiplier to scale their damage done to doors
-		hook.Add("EntityTakeDamage", "TTTDoorDamageMultiplier", function(ent, dmg)
+		hook.Add("EntityTakeDamage", "TTTDoorDamageMultiplier", function(ent, dmgInfo)
 			if IsValid(ent) and (ent.isDoorProp or ent:IsDoor()) then
-				local inflictor = dmg:GetInflictor()
+				local inflictor = dmgInfo:GetInflictor()
 
 				if IsValid(inflictor) and isnumber(inflictor.DoorDamageMultiplier) then
-					dmg:ScaleDamage(inflictor.DoorDamageMultiplier)
+					dmgInfo:ScaleDamage(inflictor.DoorDamageMultiplier)
 				end
+			end
+		end)
+
+		-- Destructible Doors: Make recently broken doors do extra damage to players (plus add data for achievement tracking)
+		hook.Add("TTT2DoorDestroyed", "TTTDoorExtraInfo", function(doorProp, pl)
+			doorProp.doorDestroyer = pl
+			doorProp.doorDestructionEndTime = CurTime() + 2
+
+			doorProp:SetPhysicsAttacker(pl, 2)
+		end)
+		hook.Add("PlayerTakeDamage", "TTTDoorExtraDamage", function(pl, inflictor, attacker, am, dmgInfo)
+			if inflictor.isDoorProp and CurTime() <= (inflictor.doorDestructionEndTime or 0) then
+				dmgInfo:ScaleDamage(3)
 			end
 		end)
 	else
