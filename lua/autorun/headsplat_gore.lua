@@ -4,7 +4,7 @@ local tag = "TTTHeadsplatGore"
 
 if SERVER then
 	local cvarEnabled = CreateConVar("ttt_headsplat_enable", 1, FCVAR_ARCHIVE + FCVAR_NOTIFY, "Enables head splatting and gibbing on headshots.")
-	local cvarDamageThreshold = CreateConVar("ttt_headsplat_dmgthreshold", 40, FCVAR_ARCHIVE + FCVAR_NOTIFY, "The final headshot must do at least this much damage to splat someone's head.")
+	local cvarDamageThreshold = CreateConVar("ttt_headsplat_dmgthreshold", 50, FCVAR_ARCHIVE + FCVAR_NOTIFY, "The final headshot must do at least this much damage to splat someone's head.")
 
 	local function scaleDownBoneAndChildren(ent, boneId)
 		local children = ent:GetChildBones(boneId)
