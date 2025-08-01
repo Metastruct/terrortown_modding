@@ -30,6 +30,12 @@ util.OnInitialize(function()
 	end
 
 	local function setAchievementToUnlock(pl, id)
+		-- Don't continue at all if they already have the achievement - this prevents clogging the MetaWorks queue
+		if MetAchievements.HasAchievement(pl, id) then
+			debugPrint("ACHIEVEMENT SKIPPED (already unlocked) for", pl, id)
+			return
+		end
+
 		local tab = unlockQueue[pl]
 
 		if tab then
@@ -39,6 +45,13 @@ util.OnInitialize(function()
 		end
 
 		debugPrint("ACHIEVEMENT PENDING for", pl, id)
+
+		-- Let the player secretly know they've completed an achievement
+		local filter = RecipientFilter()
+		filter:AddPlayer(pl)
+
+		pl:EmitSound("garrysmod/save_load3.wav", 0, 72, 1, CHAN_AUTO, 0, 0, filter)
+		LANG.Msg(pl, "ACHIEVEMENT COMPLETED\nIt will unlock when the round ends.", nil, MSG_MSTACK_PLAIN)
 	end
 
 	local function processAchievementUnlocks(pl, ids)
