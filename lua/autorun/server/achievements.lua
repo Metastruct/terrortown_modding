@@ -148,137 +148,134 @@ util.OnInitialize(function()
 	local lastTraitorKiller, lastInnocentKiller, traitorDied, traitorStartCount
 	local propDisguiseSightLimitSqr = 1500 ^ 2
 
-	hook.Add("DoPlayerDeath", tag, function(pl, attacker, dmgInfo)
-		-- Don't attempt to track kills for achievements if: suicide, swapper was killed, no attacker, round isn't active
-		if pl == attacker
-			or pl:GetSubRole() == ROLE_SWAPPER
-			or not IsValid(attacker)
-			or not isRoundActive()
-		then return end
+	hook.Add("DoPlayerDeath", tag, function(pl, baseAttacker, dmgInfo)
+		if not isRoundActive() then return end
 
 		local inflictor = dmgInfo:GetInflictor()
-		if IsValid(inflictor) then
-			local isRecentlyDestroyedDoor = inflictor.isDoorProp and CurTime() <= (inflictor.doorDestructionEndTime or 0)
+		local hasInflictor = IsValid(inflictor)
 
-			local realAttacker = isRecentlyDestroyedDoor and IsValid(inflictor.doorDestroyer) and inflictor.doorDestroyer or attacker
+		local isRecentlyDestroyedDoor = hasInflictor and inflictor.isDoorProp and CurTime() <= (inflictor.doorDestructionEndTime or 0)
 
-			if realAttacker:IsPlayer() then
-				local attackerTeam = realAttacker:GetTeam()
-				local plTeam = pl:GetTeam()
+		local attacker = isRecentlyDestroyedDoor and IsValid(inflictor.doorDestroyer) and inflictor.doorDestroyer or baseAttacker
 
-				-- Store killer for tracking revenge
-				pl._ach_killer = realAttacker
+		local hasAttacker = IsValid(attacker)
+		local attackerIsPlayer = hasAttacker and attacker:IsPlayer()
 
-				-- Revenge kill
-				if realAttacker._ach_revived
-					and realAttacker._ach_killer == pl
-					and plTeam != attackerTeam
-					and plTeam != TEAM_NONE
-				then
-					setAchievementToUnlock(realAttacker, "ttt_revengekill")
+		local attackerTeam = attackerIsPlayer and attacker:GetTeam() or nil
+		local plTeam = pl:GetTeam()
+
+		-- Store round winning kill for innocents/traitors
+		if plTeam == TEAM_INNOCENT then
+			lastInnocentKiller = attackerIsPlayer and attackerTeam == TEAM_TRAITOR and attacker or nil
+		elseif plTeam == TEAM_TRAITOR then
+			lastTraitorKiller = attackerIsPlayer and attackerTeam == TEAM_INNOCENT and attacker or nil
+
+			-- Store that a traitor has died this round
+			traitorDied = true
+		end
+
+		-- Don't attempt to track the following kills if: suicide, no attacker, no inflictor, swapper was killed
+		if pl == attacker
+			or not attackerIsPlayer
+			or not hasInflictor
+			or pl:GetSubRole() == ROLE_SWAPPER
+		then return end
+
+		-- Store killer for tracking revenge
+		pl._ach_killer = attacker
+
+		-- Revenge kill
+		if attacker._ach_revived
+			and attacker._ach_killer == pl
+			and plTeam != attackerTeam
+			and plTeam != TEAM_NONE
+		then
+			setAchievementToUnlock(attacker, "ttt_revengekill")
+		end
+
+		-- Goomba stomp kill
+		if inflictor == attacker and attacker:GetGroundEntity() == pl and dmgInfo:IsDamageType(DMG_CRUSH) then
+			setAchievementToUnlock(attacker, "ttt_stompkill")
+
+		-- Kill with broken down door
+		elseif isRecentlyDestroyedDoor and inflictor.doorDestroyer == attacker then
+			setAchievementToUnlock(attacker, "ttt_doorkill")
+
+		else
+			local infClass = inflictor:GetClass()
+
+			-- Telefrag with the teleporter SWEP
+			if infClass == "weapon_ttt_teleport" then
+				setAchievementToUnlock(attacker, "ttt_teleporterkill")
+
+				-- Multikill with a C4 as traitor
+			elseif infClass == "weapon_ttt_c4" and attackerTeam == TEAM_TRAITOR and attackerTeam != plTeam then
+				local count = attacker._ach_c4BlastKillsCount
+
+				if CurTime() > (attacker._ach_c4BlastKillsStamp or 0) then
+					attacker._ach_c4BlastKillsStamp = CurTime()
+					count = 0
 				end
 
-				-- Goomba stomp kill
-				if inflictor == realAttacker and realAttacker:GetGroundEntity() == pl and dmgInfo:IsDamageType(DMG_CRUSH) then
-					setAchievementToUnlock(realAttacker, "ttt_stompkill")
+				count = count + 1
+				attacker._ach_c4BlastKillsCount = count
 
-					-- Kill with broken down door
-				elseif isRecentlyDestroyedDoor and inflictor.doorDestroyer == realAttacker then
-					setAchievementToUnlock(realAttacker, "ttt_doorkill")
-
-				else
-					local infClass = inflictor:GetClass()
-
-					-- Telefrag with the teleporter SWEP
-					if infClass == "weapon_ttt_teleport" then
-						setAchievementToUnlock(realAttacker, "ttt_teleporterkill")
-
-						-- Multikill with a C4 as traitor
-					elseif infClass == "weapon_ttt_c4" and attackerTeam == TEAM_TRAITOR and attackerTeam != plTeam then
-						local count = realAttacker._ach_c4BlastKillsCount
-
-						if CurTime() > (realAttacker._ach_c4BlastKillsStamp or 0) then
-							realAttacker._ach_c4BlastKillsStamp = CurTime()
-							count = 0
-						end
-
-						count = count + 1
-						realAttacker._ach_c4BlastKillsCount = count
-
-						if count == 4 then
-							setAchievementToUnlock(realAttacker, "ttt_c4multikill")
-						end
-					end
+				if count == 4 then
+					setAchievementToUnlock(attacker, "ttt_c4multikill")
 				end
+			end
+		end
 
-				-- Witness murder of teammate while using prop disguiser and avenge
-				if istable(pl._ach_propWitnesses) then
-					local expireTime = pl._ach_propWitnesses[realAttacker]
+		-- Witness murder of teammate while using prop disguiser and avenge
+		if istable(pl._ach_propWitnesses) then
+			local expireTime = pl._ach_propWitnesses[attacker]
 
-					if expireTime and CurTime() <= expireTime then
-						setAchievementToUnlock(realAttacker, "ttt_propwitness")
+			if expireTime and CurTime() <= expireTime then
+				setAchievementToUnlock(attacker, "ttt_propwitness")
+			end
+		end
+
+		local attackerCenter
+		for _, v in playerIterator() do
+			if v == attacker
+				or v == pl
+				or v:GetTeam() != plTeam
+				or not IsValid(v.PropDisguiserProp)
+			then continue end
+
+			if not attackerCenter then
+				attackerCenter = attacker:WorldSpaceCenter()
+			end
+
+			local propCenter = v.PropDisguiserProp:WorldSpaceCenter()
+
+			if attackerCenter:DistToSqr(propCenter) <= propDisguiseSightLimitSqr then
+				local tr = util.TraceLine({
+					start = attackerCenter,
+					endpos = propCenter,
+					mask = MASK_SOLID_BRUSHONLY
+				})
+
+				if not tr.Hit then
+					if not istable(attacker._ach_propWitnesses) then
+						attacker._ach_propWitnesses = {}
 					end
+
+					attacker._ach_propWitnesses[v] = CurTime() + 60
 				end
+			end
+		end
 
-				local attackerCenter
-				for _, v in playerIterator() do
-					if v == realAttacker
-						or v == pl
-						or v:GetTeam() != plTeam
-						or not IsValid(v.PropDisguiserProp)
-					then continue end
+		-- Scan DNA and kill target
+		local scanner = attacker:GetWeapon("weapon_ttt_wtester")
+		if IsValid(scanner) then
+			local toucher = scanner.ItemSamples[scanner.ActiveSample]
 
-					if not attackerCenter then
-						attackerCenter = realAttacker:WorldSpaceCenter()
-					end
+			if toucher == pl then
+				local finder = istable(scanner.ItemSampleFinders) and scanner.ItemSampleFinders[toucher] or nil
 
-					local propCenter = v.PropDisguiserProp:WorldSpaceCenter()
-
-					if attackerCenter:DistToSqr(propCenter) <= propDisguiseSightLimitSqr then
-						local tr = util.TraceLine({
-							start = attackerCenter,
-							endpos = propCenter,
-							mask = MASK_SOLID_BRUSHONLY
-						})
-
-						if not tr.Hit then
-							if not istable(realAttacker._ach_propWitnesses) then
-								realAttacker._ach_propWitnesses = {}
-							end
-
-							realAttacker._ach_propWitnesses[v] = CurTime() + 60
-						end
-					end
-				end
-
-				-- Scan DNA and kill target
-				local scanner = realAttacker:GetWeapon("weapon_ttt_wtester")
-				if IsValid(scanner) then
-					local toucher = scanner.ItemSamples[scanner.ActiveSample]
-
-					if toucher == pl then
-						local finder = istable(scanner.ItemSampleFinders) and scanner.ItemSampleFinders[toucher] or nil
-
-						if finder == realAttacker then
-							setAchievementToUnlock(realAttacker, "ttt_dnadetective")
-						end
-					end
-				end
-
-				-- Store if any traitor has died this round
-				if plTeam == TEAM_TRAITOR then
-					traitorDied = true
-				end
-
-				-- Store round winning kill for innocents/traitors
-				if attackerTeam == TEAM_INNOCENT then
-					if plTeam == TEAM_TRAITOR then
-						lastTraitorKiller = realAttacker
-					end
-				elseif attackerTeam == TEAM_TRAITOR then
-					if plTeam == TEAM_INNOCENT then
-						lastInnocentKiller = realAttacker
-					end
+				if finder == attacker then
+					setAchievementToUnlock(attacker, "ttt_dnadetective")
 				end
 			end
 		end
