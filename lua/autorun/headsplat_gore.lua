@@ -3,6 +3,8 @@
 local tag = "TTTHeadsplatGore"
 
 if SERVER then
+	resource.AddFile("materials/vgui/ttt/icon_headless.vmt")
+
 	local cvarEnabled = CreateConVar("ttt_headsplat_enable", 1, FCVAR_ARCHIVE + FCVAR_NOTIFY, "Enables head splatting and gibbing on headshots.")
 	local cvarDamageThreshold = CreateConVar("ttt_headsplat_dmgthreshold", 50, FCVAR_ARCHIVE + FCVAR_NOTIFY, "The final headshot must do at least this much damage to splat someone's head.")
 
@@ -58,5 +60,16 @@ if SERVER then
 		end
 	end)
 else
-	-- Bodysearch stuff coming soon...
+	hook.Add("TTTBodySearchPopulate", tag, function(searchAdd, raw, scoreboard)
+		local rag = raw.rag
+		if not IsValid(rag) or not rag:GetNWBool("ttt_headsplatted") then return end
+
+		searchAdd.headsplat_info = {
+			p = 2,
+			order = 3,
+			img = "vgui/ttt/icon_headless",
+			title = "Missing head",
+			text = "Damnnnn, this dude's head was blown smoove off!"
+		}
+	end)
 end
