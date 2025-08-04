@@ -10,6 +10,7 @@ local utilTraceHull = util.TraceHull
 
 if SERVER then
 	AddCSLuaFile()
+
 	resource.AddFile("materials/vgui/ttt/icon_propdisguiser.vmt")
 else
 	SWEP.PrintName = "Prop Disguiser"
@@ -578,7 +579,7 @@ if SERVER then
 				pac.TogglePartDrawing(pl, false)
 			end
 
-			if IsValid(pl.hat) then
+			if IsValid(pl.hat) and isfunction(pl.hat.Drop) then
 				pl.hat:Drop()
 			end
 
@@ -809,7 +810,10 @@ else
 		local p = self:GetDisguisedProp()
 		if not IsValid(p) then return end
 		if p.RenderOverride != renderOverride then
+			p:SetCollisionGroup(COLLISION_GROUP_VEHICLE)
+			p:SetSolid(SOLID_NONE)
 			p:SetRenderMode(RENDERMODE_TRANSCOLOR)
+
 			p.RenderOverride = renderOverride
 		end
 
@@ -921,7 +925,8 @@ else
 		if not IsValid(wep)
 			or wep:GetClass() != className
 			or not wep.GetDisguised
-			or wep:GetDisguised() then return end
+			or wep:GetDisguised()
+		then return end
 
 		local now = RealTime()
 
@@ -963,12 +968,35 @@ else
 		if IsValid(wep)
 			and wep:GetClass() == className
 			and wep.GetDisguised
-			and wep:GetDisguised() then return false end
+			and wep:GetDisguised()
+		then return false end
+	end)
+
+	-- This fixes TargetID showing up incorrectly while disguised
+	hook.Add("TTTModifyTargetedEntity", hookTag, function(ent, dist)
+		local pl = LocalPlayer()
+		if not IsValid(pl) or not pl:IsTerror() then return end
+
+		local wep = pl:GetActiveWeapon()
+
+		if IsValid(wep)
+			and wep:GetClass() == className
+			and wep.GetDisguised
+			and wep:GetDisguised()
+		then
+			local prop = wep:GetDisguisedProp()
+			if not IsValid(prop) then return end
+
+			local filter = pl:GetObserverMode() == OBS_MODE_IN_EYE
+				and { pl, pl:GetObserverTarget(), prop }
+				or { pl, prop }
+
+			return targetid.FindEntityAlongView(pl:EyePos(), pl:EyeAngles():Forward(), filter)
+		end
 	end)
 
 	hook.Add("TTTRenderEntityInfo", hookTag, function(tData)
 		local pl = LocalPlayer()
-
 		if not IsValid(pl) or not pl:IsTerror() then return end
 
 		local wep = pl:GetActiveWeapon()
@@ -977,7 +1005,8 @@ else
 			or wep:GetClass() != className
 			or not wep.GetDisguised
 			or wep:GetDisguised()
-			or tData:GetEntityDistance() > wep.Primary.Range then return end
+			or tData:GetEntityDistance() > wep.Primary.Range
+		then return end
 
 		local ent = tData:GetEntity()
 
