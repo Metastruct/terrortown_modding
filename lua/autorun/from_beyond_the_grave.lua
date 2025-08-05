@@ -666,10 +666,7 @@ if CLIENT then
 	
 	-- TTT2 Spectator Message System
 	local function OpenSpectatorComposer()
-		if not IsPlayerDead() then
-			chat.AddText(Color(255, 100, 100), "You must be dead to send ghostly messages!")
-			return
-		end
+		if not IsPlayerDead() then return end
 		
 		local spectatedPlayer = GetSpectatedPlayer()
 		if spectatedPlayer then
@@ -680,8 +677,12 @@ if CLIENT then
 	end
 	
 	-- Key binding system
+	local nextKeyPress = 0
 	hook.Add("PlayerButtonDown", "FBG_KeyPress", function(ply, button)
 		if ply != LocalPlayer() then return end
+		if nextKeyPress > CurTime() then return end
+		
+		nextKeyPress = CurTime() + 0.5
 		
 		local keyCode = input.GetKeyCode(fbg_key:GetString())
 		if button == keyCode then
