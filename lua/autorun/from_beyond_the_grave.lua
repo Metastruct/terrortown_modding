@@ -834,7 +834,7 @@ if CLIENT then
 	-- Key binding system
 	local nextKeyPress = 0
 	hook.Add("PlayerButtonDown", "FBG_KeyPress", function(ply, button)
-		if ply != LocalPlayer() then return end
+		if ply ~= LocalPlayer() then return end
 		if nextKeyPress > CurTime() then return end
 
 		nextKeyPress = CurTime() + 0.5
@@ -967,10 +967,19 @@ if SERVER then
 		playerMessageTimes[steamID] = currentTime
 
 		local ghostlyName = GenerateGhostlyName(sender:Nick())
+		local receivers = { sender, targetPlayer }
+		for _, ply in ipairs(player.GetAll()) do
+			if not IsPlayerDeadTTT2(ply) then continue end
+			if ply == sender or ply == targetPlayer then continue end
+			if ply:GetObserverTarget() ~= targetPlayer then continue end
+
+			table.insert(receivers, ply)
+		end
+
 		net.Start("fbg_ghostly_message")
 		net.WriteString(validatedMessage)
 		net.WriteString(ghostlyName)
-		net.Send({ sender, targetPlayer }) -- also sends to the sender for visual feedback
+		net.Send(receivers)
 	end
 
 	function FBG.ValidateTemplateMessage(template, words)
