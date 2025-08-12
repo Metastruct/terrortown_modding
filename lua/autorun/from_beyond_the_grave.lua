@@ -369,7 +369,10 @@ if CLIENT then
 		surface.DrawRect(x + 1, y + 1, 1, h - 2)
 	end
 
+	local SPECTATOR_HUD = CreateClientConVar("fbg_spectator_hud", "1", true, false, "Show spectator HUD")
 	local function DrawSpectatorHUD()
+		if not SPECTATOR_HUD:GetBool() then return end
+
 		if not IsPlayerDead() then
 			showSpectatorHUD = false
 			return
