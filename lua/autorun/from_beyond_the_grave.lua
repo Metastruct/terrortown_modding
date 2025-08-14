@@ -105,6 +105,8 @@ FBG.MessageTemplates = {
 	"Occult weapon required"
 }
 
+table.sort(FBG.MessageTemplates)
+
 FBG.WordPools = {
 	action = {
 		-- GMod/Physics actions
@@ -182,6 +184,10 @@ FBG.WordPools = {
 		"citizen", "rebel", "metrocop", "overwatch", "stalker"
 	}
 }
+
+for _, v in pairs(FBG.WordPools) do
+	table.sort(v)
+end
 
 if CLIENT then
 	local ghostlyMessages = {}
