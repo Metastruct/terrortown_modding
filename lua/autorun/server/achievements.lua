@@ -102,6 +102,8 @@ util.OnInitialize(function()
 	hook.Add("TTT2OrderedEquipment", tag, function(pl, class)
 		if pl:GetGroundEntity() == NULL and (class == fallItemClass or class == physItemClass) then
 			pl._ach_boughtNoFallInAir = true
+
+			debugPrint(pl, "triggered '_ach_boughtNoFallInAir = true' with", class)
 		end
 	end)
 
@@ -112,6 +114,8 @@ util.OnInitialize(function()
 		--		 Calculation code is copied from base TTT2's OnPlayerHitGround - if that updates, we need to update it here too, otherwise desync...
 		if pl._ach_boughtNoFallInAir then
 			pl._ach_boughtNoFallInAir = nil
+
+			debugPrint(pl, "hit ground with '_ach_boughtNoFallInAir'...")
 
 			if not inWater
 			and (pl:HasEquipmentItem(fallItemClass) or pl:HasEquipmentItem(physItemClass))
@@ -131,8 +135,12 @@ util.OnInitialize(function()
 					dmg = dmg / 3
 				end
 
-				if math.floor(dmg) >= pl:Health() then
+				dmg = math.floor(dmg)
+
+				if dmg >= pl:Health() then
 					setAchievementToUnlock(pl, "ttt_fallclutch")
+				else
+					debugPrint(pl, "didn't take enough fall damage to trigger ttt_fallclutch -", dmg, "dmg, player had", pl:Health(), "health")
 				end
 			end
 		end
@@ -278,6 +286,8 @@ util.OnInitialize(function()
 					end
 
 					attacker._ach_propWitnesses[v] = CurTime() + 60
+
+					debugPrint(v, "prop-witnessed teammate's death, they now have 60s to kill", attacker)
 				end
 			end
 		end
@@ -378,6 +388,8 @@ util.OnInitialize(function()
 		local ids = unlockQueue[pl]
 
 		if ids then
+			debugPrint(pl, "left with pending achievements, attempting to unlock them before they leave...")
+
 			processAchievementUnlocks(pl, ids)
 
 			unlockQueue[pl] = nil
