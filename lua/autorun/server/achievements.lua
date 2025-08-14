@@ -30,13 +30,16 @@ util.OnInitialize(function()
 	end
 
 	local function setAchievementToUnlock(pl, id)
+		local tab = unlockQueue[pl]
+
+		-- Don't continue if they've already triggered the achievement and it's in their unlock queue
+		if tab and tab[id] then return end
+
 		-- Don't continue at all if they already have the achievement - this prevents clogging the MetaWorks queue
 		if MetAchievements.HasAchievement(pl, id) then
-			debugPrint("ACHIEVEMENT SKIPPED (already unlocked) for", pl, id)
+			debugPrint(">> ACHIEVEMENT SKIPPED (already unlocked) for", pl, id)
 			return
 		end
-
-		local tab = unlockQueue[pl]
 
 		if tab then
 			tab[id] = true
@@ -44,7 +47,7 @@ util.OnInitialize(function()
 			unlockQueue[pl] = { [id] = true }
 		end
 
-		debugPrint("ACHIEVEMENT PENDING for", pl, id)
+		debugPrint(">> ACHIEVEMENT PENDING for", pl, id)
 
 		-- Let the player secretly know they've completed an achievement
 		local filter = RecipientFilter()
@@ -56,7 +59,7 @@ util.OnInitialize(function()
 
 	local function processAchievementUnlocks(pl, ids)
 		for id in pairs(ids) do
-			debugPrint("UNLOCKING ACHIEVEMENT for", pl, id)
+			debugPrint(">> UNLOCKING ACHIEVEMENT for", pl, id)
 			MetAchievements.UnlockAchievement(pl, id)
 		end
 	end
