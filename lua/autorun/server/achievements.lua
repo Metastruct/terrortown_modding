@@ -3,27 +3,30 @@
 require("hookextras")
 
 util.OnInitialize(function()
-	if not MetAchievements then
+	local function tagPrint(...)
 		MsgC(color_white, "[TTT-MetAchievements] ")
-		print("Cannot load achievement logic - 'MetAchievements' table does not exist")
+		print(...)
+	end
+
+	if not MetAchievements then
+		tagPrint("Cannot load achievement logic - 'MetAchievements' table does not exist")
 		return
+	end
+
+	local convarDebug = CreateConVar("ttt_metachievements_debug", 0, FCVAR_UNREGISTERED)
+	local function debugPrint(...)
+		if not convarDebug:GetBool() then return end
+
+		MsgC(color_white, "[TTT-MetAchievements] DEBUG: ")
+		print(...)
 	end
 
 	local IsValid = IsValid
 	local playerIterator = player.Iterator
 
-	local convarDebug = CreateConVar("ttt_metachievements_debug", 0, FCVAR_UNREGISTERED)
-
 	local tag = "MetAchievements_TTT"
 
 	local unlockQueue = {}
-
-	local function debugPrint(...)
-		if not convarDebug:GetBool() then return end
-
-		MsgC(color_white, "[TTT-MetAchievements] Debug: ")
-		print(...)
-	end
 
 	local function isRoundActive()
 		return gameloop.GetRoundState() == ROUND_ACTIVE
@@ -107,7 +110,17 @@ util.OnInitialize(function()
 		end
 	end)
 
-	hook.Add("OnPlayerHitGround", "!" .. tag, function(pl, inWater, onFloater, speed)
+	local hgNoFallName, hgNoPhysName = "TTT2NoFallDmg", "TTT2NoPhysicalDmg"
+
+	if not isfunction(__tttNoFallFunc) then
+		__tttNoFallFunc = hook.GetTable().OnPlayerHitGround[hgNoFallName]
+	end
+	if not isfunction(__tttNoPhysFunc) then
+		__tttNoPhysFunc = hook.GetTable().OnPlayerHitGround[hgNoPhysName]
+	end
+	local hgNoFallFunc, hgNoPhysFunc = __tttNoFallFunc, __tttNoPhysFunc
+
+	hook.Add("OnPlayerHitGround", tag, function(pl, inWater, onFloater, speed)
 		-- Fall damage resistance clutch-buy
 		-- NOTE: Fall damage the player WOULD have taken is recalculated here to determine if the player would have died.
 		--		 Ideally, we would use a stabler way of determining if the fall would have killed, but there isn't one.
@@ -144,7 +157,17 @@ util.OnInitialize(function()
 				end
 			end
 		end
+
+		-- Run the OnPlayerHitGround hooks for the fall damage resistance items
+		-- Disgusting hack but the above code NEEDS to run before this code, otherwise the above code never gets called
+		local resResult = (hgNoFallFunc and hgNoFallFunc(pl, inWater, onFloater, speed)) or (hgNoPhysFunc and hgNoPhysFunc(pl, inWater, onFloater, speed))
+		if resResult != nil then
+			return resResult
+		end
 	end)
+	hook.Remove("OnPlayerHitGround", hgNoFallName)
+	hook.Remove("OnPlayerHitGround", hgNoPhysName)
+	tagPrint(string.format("The following OnPlayerHitGround hooks have been merged into one hook named \"%s\": %s, %s", tag, hgNoFallName, hgNoPhysName))
 
 	hook.Add("PlayerTakeDamage", tag, function(pl, inflictor, attacker, amount)
 		if pl.was_headshot
