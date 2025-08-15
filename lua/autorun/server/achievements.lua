@@ -160,9 +160,14 @@ util.OnInitialize(function()
 
 		-- Run the OnPlayerHitGround hooks for the fall damage resistance items
 		-- Disgusting hack but the above code NEEDS to run before this code, otherwise the above code never gets called
-		local resResult = hgNoFallFunc and hgNoFallFunc(pl, inWater, onFloater, speed)
+		local resResult
+		if hgNoFallFunc then
+			resResult = hgNoFallFunc(pl, inWater, onFloater, speed)
+		end
 		if resResult == nil then
-			resResult = hgNoPhysFunc and hgNoPhysFunc(pl, inWater, onFloater, speed)
+			if hgNoFallFunc then
+				resResult = hgNoPhysFunc(pl, inWater, onFloater, speed)
+			end
 		end
 		if resResult != nil then
 			return resResult
