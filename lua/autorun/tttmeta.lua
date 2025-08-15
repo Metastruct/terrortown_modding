@@ -159,7 +159,10 @@ if SERVER then
 
 		pl._chatsoundsUsedTeam = nil
 
-		if usedTeam or (not pl:IsTerror() and CurTime() > (pl._last_death or 0) + 0.1) then return false end
+		if usedTeam or (not pl:IsTerror() and CurTime() > (pl._last_death or 0) + 0.2) then return false end
+	end)
+	hook.Add("PlayerDeath", Tag, function(pl)
+		pl._last_death = CurTime()
 	end)
 
 	-- Disable AOWL failed/rate-limit sound for spectators/dead
