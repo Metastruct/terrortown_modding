@@ -165,7 +165,7 @@ util.OnInitialize(function()
 			resResult = hgNoFallFunc(pl, inWater, onFloater, speed)
 		end
 		if resResult == nil then
-			if hgNoFallFunc then
+			if hgNoPhysFunc then
 				resResult = hgNoPhysFunc(pl, inWater, onFloater, speed)
 			end
 		end
