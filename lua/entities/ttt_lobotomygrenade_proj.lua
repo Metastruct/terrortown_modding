@@ -205,7 +205,7 @@ else
 			emitter:Finish()
 
 			-- Set the DSP back to normal clientside (supports restoring water DSP if underwater)
-			timer.Simple(effectDuration, function()
+			timer.Simple(effectDuration + 0.03, function()
 				local defaultDsp = 0
 
 				if pl:WaterLevel() == 3 then
@@ -224,12 +224,12 @@ else
 		ensureValues()
 
 		if now < timeEnd then
-			pl:SetDSP(23)
-
 			DrawSharpen(8 * timeFractionEased, -2.5)
 
 			if timeFraction < 0.98 then
 				DrawMotionBlur(0.05, 0.85 * math.min(timeFractionEased * 2, 1), 0)
+
+				pl:SetDSP(23)
 			end
 		end
 	end)
