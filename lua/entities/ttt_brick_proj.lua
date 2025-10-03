@@ -62,8 +62,8 @@ if SERVER then
 
 	local utilTraceLine = util.TraceLine
 
-	ENT.DamageMin = 3
-	ENT.DamageMax = 33
+	ENT.DamageMin = 5
+	ENT.DamageMax = 35
 
 	-- The amount of time the brick projectile has to exist before dealing full speed-scaled damage
 	ENT.DamageGraceTime = 0.075
@@ -281,7 +281,7 @@ if SERVER then
 
 			local tr = utilTraceLine({
 				start = pos,
-				endpos = pos + (velocityNormal * math.max(velocity:Length() * FrameTime() * 1.2, 12)),
+				endpos = pos + (velocityNormal * math.max(velocity:Length() * FrameTime() * 1.25, 12.5)),
 				filter = self,
 				mask = MASK_SOLID
 			})
@@ -294,7 +294,7 @@ if SERVER then
 					local dmg = DamageInfo()
 					dmg:SetInflictor(self)
 					dmg:SetAttacker(self)
-					dmg:SetDamage(20)
+					dmg:SetDamage(25)
 					dmg:SetDamageType(DMG_CLUB)
 
 					tr.Entity:DispatchTraceAttack(dmg, tr, velocityNormal)
