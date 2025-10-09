@@ -100,14 +100,12 @@ function ENT:Explode(tr)
 		end
 
 		flame:Spawn()
-		flame:DropToFloor()
 
 		local phys = flame:GetPhysicsObject()
 		if IsValid(phys) then
 			phys:SetMass(2)
+			phys:Wake()
 		end
-
-		flame:StartFire()
 	end
 
 	gameEffects.StartFires(pos, tr, 18, 24, false, thrower, 512, false, fireRadius, 4)
