@@ -444,23 +444,24 @@ function ROUND:Start()
 		end
 	end)
 
+	local meleeRangeSqr = 144 ^ 2
 	hook.Add("ScalePlayerDamage", tankHookTag, function(pl, _, dmg)
+		local attacker = dmg:GetAttacker()
+
 		if pl:GetNWBool(tankNwTag) then
 			if dmg:IsFallDamage() then
 				-- Make Tank take half fall damage
 				dmg:ScaleDamage(0.5)
-			elseif pl:GetNWFloat(tankRockThrowNwTag) > 0 and pl != dmg:GetAttacker() then
+			elseif pl:GetNWFloat(tankRockThrowNwTag) > 0 and pl != attacker then
 				-- Give Tank damage resistance while throwing rocks
 				dmg:ScaleDamage(0.5)
 			end
 
-			if dmg:IsDamageType(DMG_CLUB) then
+			if dmg:IsDamageType(DMG_CLUB) and IsValid(attacker) and attacker:EyePos():DistToSqr(pl:EyePos()) <= meleeRangeSqr then
 				-- Make Tank take a lot more damage from melee attacks (CLUB is usually melee)
-				dmg:ScaleDamage(4)
+				dmg:ScaleDamage(8)
 			end
 		else
-			local attacker = dmg:GetAttacker()
-
 			if IsValid(attacker) and attacker:IsPlayer() and not attacker:GetNWBool(tankNwTag) then
 				-- Reduce "friendly fire" damage between the terrorists
 				dmg:ScaleDamage(0.25)
