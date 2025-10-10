@@ -367,13 +367,13 @@ function ROUND:Start()
 				if pl:Crouching() then
 					util.ScreenShake(pl:GetPos(), 1.5, 10, 0.8, 300, true, rf)
 				else
-					util.ScreenShake(pl:GetPos(), 3, 10, 0.8, 750, true, rf)
+					util.ScreenShake(pl:GetPos(), 3.5, 10, 0.8, 800, true, rf)
 				end
 			elseif pl != LocalPlayer() then
 				return
 			end
 
-			pl:EmitSound(footstepSounds[math.random(1, #footstepSounds)], 75, 100, vol, CHAN_AUTO, 0, 0, rf)
+			pl:EmitSound(footstepSounds[math.random(1, #footstepSounds)], 85, 100, vol, CHAN_AUTO, 0, 0, rf)
 			return true
 		end
 	end)
