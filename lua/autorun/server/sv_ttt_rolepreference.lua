@@ -67,13 +67,15 @@ local function ReallocateRoles(roleMap)
 
 					totalWeight = totalWeight + weight
 					availables[#availables + 1] = {
-						pl = pl,
+						pl = innoInfo.pl,
 						weight = weight
 					}
 				end
 			end
 
 			if #availables > 0 then
+				table.sort(availables, function(a, b) return a.weight > b.weight end)
+
 				local chosenValue = math.random() * totalWeight
 				local progressWeight = 0
 
@@ -82,7 +84,7 @@ local function ReallocateRoles(roleMap)
 
 					progressWeight = progressWeight + avInfo.weight
 
-					if progressWeight <= chosenValue then
+					if progressWeight > chosenValue then
 						-- Pass the role onto this player using weighted chance (based on weight * preference scale)
 						roleMap[avInfo.pl] = roleInfo.id
 
