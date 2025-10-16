@@ -23,7 +23,7 @@ if SERVER then
 	hook.Add("DoPlayerDeath", tag, function(pl, attacker, dmgInfo)
 		if cvarEnabled:GetBool() and pl.was_headshot and dmgInfo:GetDamage() >= cvarDamageThreshold:GetInt() then
 			local inflictor = dmgInfo:GetInflictor()
-			if inflictor == attacker then
+			if inflictor == attacker and attacker.GetActiveWeapon then
 				inflictor = attacker:GetActiveWeapon()
 			end
 
