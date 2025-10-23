@@ -680,14 +680,16 @@ else
 		if boneId then
 			local matrix = owner:GetBoneMatrix(boneId)
 
-			local ang = matrix:GetAngles()
+			if matrix then
+				local ang = matrix:GetAngles()
 
-			ang:RotateAroundAxis(ang:Up(), -90)
+				ang:RotateAroundAxis(ang:Up(), -90)
 
-			self.RockModel:SetPos(matrix:GetTranslation())
-			self.RockModel:SetAngles(ang)
+				self.RockModel:SetPos(matrix:GetTranslation())
+				self.RockModel:SetAngles(ang)
 
-			self.RockModel:DrawModel(flags)
+				self.RockModel:DrawModel(flags)
+			end
 		end
 	end
 
