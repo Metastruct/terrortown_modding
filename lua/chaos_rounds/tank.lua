@@ -49,7 +49,7 @@ if SERVER then
 		if IsValid(TTTTank.ChosenTank) then return end
 
 		local activePlayers = {}
-		for k, v in ipairs(player.GetAll()) do
+		for k, v in player.Iterator() do
 			if v:IsTerror() then
 				activePlayers[#activePlayers + 1] = v
 			end
@@ -62,7 +62,7 @@ if SERVER then
 	function TTTTank.GetFarthestSpawnPosition(plTank)
 		-- Get the average of all player positions - what could possibly go wrong!!
 		local plPosList = {}
-		for k, v in ipairs(player.GetAll()) do
+		for k, v in player.Iterator() do
 			if plTank != v and v:IsTerror() then
 				plPosList[#plPosList + 1] = v:GetPos()
 			end
@@ -140,7 +140,7 @@ if SERVER then
 
 		-- Set HP based on the amount of active players
 		local plMultiplier = 0
-		for k, v in ipairs(player.GetAll()) do
+		for k, v in player.Iterator() do
 			if v != pl and v:IsTerror() then
 				plMultiplier = plMultiplier + 1
 			end
@@ -153,9 +153,6 @@ if SERVER then
 		pl:AddEFlags(EFL_NO_DAMAGE_FORCES)
 
 		pl:SetLadderClimbSpeed(125)
-
-		-- Hooking into TTT's targetid to not show nametags sucks, so reuse this special NWBool hehe
-		pl:SetNWBool("disguised", true)
 
 		-- Make Tank heavier so it can push props a little easier
 		local plPhys = pl:GetPhysicsObject()
@@ -204,9 +201,6 @@ if SERVER then
 		pl:RemoveEFlags(EFL_NO_DAMAGE_FORCES)
 
 		pl:SetLadderClimbSpeed(pl.l4dTankInfo.OldClimbSpeed or 200)
-
-		-- Turn off NWBool that hides nametags
-		pl:SetNWBool("disguised", false)
 
 		-- Restore mass
 		local plPhys = pl:GetPhysicsObject()
@@ -582,7 +576,7 @@ function ROUND:Start()
 				local timerName = tankHitSlowNwTag .. tostring(pl:EntIndex())
 
 				if not timer.Exists(timerName) then
-					timer.Create(timerName, 0.8, 1, function()
+					timer.Create(timerName, 0.75, 1, function()
 						if IsValid(pl) then
 							pl:SetNWBool(tankHitSlowNwTag, false)
 						end
@@ -705,7 +699,7 @@ function ROUND:Start()
 		timer.Create(tankHookTag .. "_IdleVoice", 7.5, 0, function()
 			local now = CurTime()
 
-			for k, v in ipairs(player.GetAll()) do
+			for k, v in player.Iterator() do
 				if v:GetNWBool(tankNwTag)
 					and v:IsTerror()
 					and now >= v:GetNWFloat(tankVoiceNwTag)
@@ -742,14 +736,24 @@ function ROUND:Start()
 
 		-- Spawn a free defib at a player spawnpoint
 		if weapons.GetStored("weapon_ttt_defibrillator") then
-			local plySpawns = plyspawn.GetPlayerSpawnPoints()
+			local survivors = {}
+			for k, v in player.Iterator() do
+				if v != plTank and v:IsTerror() then
+					survivors[#survivors + 1] = v
+				end
+			end
 
-			local defib = ents.Create("weapon_ttt_defibrillator")
-			if IsValid(defib) then
-				defib:SetPos(plySpawns[math.random(1, #plySpawns)].pos + Vector(0, 0, 16))
-				defib:Spawn()
+			-- Number of defibs to give out - one every 6 survivors, but at least one total
+			local numDefibs = math.max(math.floor(#survivors / 6), 1)
 
-				LANG.Msg(ROLE_INNOCENT, "There's a defibrillator on the floor somewhere!\nFind it for a better chance of survival!", nil, MSG_MSTACK_PLAIN)
+			for i = 1, numDefibs do
+				local randId = math.random(#survivors)
+				local pl = survivors[randId]
+
+				pl:Give("weapon_ttt_defibrillator")
+				LANG.Msg(pl, "You realise you have a defibrillator in your pocket! Use it wisely!", nil, MSG_MSTACK_PLAIN)
+
+				table.remove(survivors, randId)
 			end
 		end
 	else
@@ -775,34 +779,55 @@ function ROUND:Start()
 		local materialLMB = Material("vgui/ttt/hudhelp/lmb")
 		local smashText, smashRed = "SMASH...", Color(255, 80, 80)
 
+		-- Health strings to replace (do it this way to ensure the text colors match)
+		local hpStrings = {
+			hp_healthy = "Full strength",
+			hp_hurt = "Battered",
+			hp_wounded = "Riddled with gashes",
+			hp_badwnd = "Pouring with blood",
+			hp_death = "Falling apart"
+		}
+
 		hook.Add("TTTRenderEntityInfo", tankHookTag, function(tData)
 			local pl = LocalPlayer()
 			local ent = tData:GetEntity()
 
-			if pl:GetNWBool(tankNwTag) and IsValid(ent) then
-				if not ent:IsPlayer() and ent:GetClass() != traitorButtonClass then
-					if tData.params.drawInfo then
-						if ent:IsWeapon() or infoClassBlacklist[ent:GetClass()] then
-							tData.params.drawInfo = false
-							tData.params.drawOutline = false
-						else
-							if tData.params.displayInfo then
-								if tData.params.displayInfo.key then
-									tData.params.displayInfo.key = nil
-									tData.params.displayInfo.icon = {}
+			if IsValid(ent) then
+				if pl:GetNWBool(tankNwTag) then
+					if not ent:IsPlayer() and ent:GetClass() != traitorButtonClass then
+						if tData.params.drawInfo then
+							if ent:IsWeapon() or infoClassBlacklist[ent:GetClass()] then
+								tData.params.drawInfo = false
+								tData.params.drawOutline = false
+							else
+								if tData.params.displayInfo then
+									if tData.params.displayInfo.key then
+										tData.params.displayInfo.key = nil
+										tData.params.displayInfo.icon = {}
 
-									tData:AddIcon(materialLMB)
-								end
+										tData:AddIcon(materialLMB)
+									end
 
-								if tData.params.displayInfo.subtitle then
-									tData:SetSubtitle(smashText, smashRed)
-								end
+									if tData.params.displayInfo.subtitle then
+										tData:SetSubtitle(smashText, smashRed)
+									end
 
-								if tData.params.displayInfo.desc then
-									tData.params.displayInfo.desc = {}
+									if tData.params.displayInfo.desc then
+										tData.params.displayInfo.desc = {}
+									end
 								end
 							end
 						end
+					end
+				elseif ent:IsPlayer() and ent:GetNWBool(tankNwTag) then
+					if tData.params.displayInfo.subtitle then
+						local hpText = util.HealthToString(ent:Health(), ent:GetMaxHealth())
+
+						tData.params.displayInfo.subtitle.text = hpStrings[hpText] or "?"
+					end
+
+					if tData.params.displayInfo.desc then
+						tData.params.displayInfo.desc = {}
 					end
 				end
 			end
@@ -860,7 +885,7 @@ function ROUND:Finish()
 				timer.Remove(tankHookTag .. "_IdleVoice")
 
 				-- Disable all tank related NW variables on all players
-				for k, v in ipairs(player.GetAll()) do
+				for k, v in player.Iterator() do
 					v:SetNWBool(tankHitSlowNwTag, false)
 
 					TTTTank.StopBeingTank(v)

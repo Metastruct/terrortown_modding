@@ -213,7 +213,7 @@ function SWEP:TraceAttack()
 							local timerName = tankHitSlowNwTag .. tostring(ent:EntIndex())
 
 							if not timer.Exists(timerName) then
-								timer.Create(timerName, 0.3, 1, function()
+								timer.Create(timerName, 0.25, 1, function()
 									if IsValid(ent) then
 										ent:SetNWBool(tankHitSlowNwTag, false)
 									end
@@ -241,7 +241,7 @@ function SWEP:TraceAttack()
 					if ent:IsPlayerHolding() then
 						local carryClass = "weapon_zm_carry"
 
-						for k, v in ipairs(player.GetAll()) do
+						for k, v in player.Iterator() do
 							local vWep = v:GetActiveWeapon()
 
 							if IsValid(vWep) and vWep:GetClass() == carryClass and vWep:GetCarryTarget() == ent then
@@ -535,7 +535,7 @@ if SERVER then
 		local closestPos
 		local closestDot = 0.95	-- Base lower limit
 
-		for k, v in ipairs(player.GetAll()) do
+		for k, v in player.Iterator() do
 			if v != owner and v:IsTerror() then
 				local vpos = v:WorldSpaceCenter()
 
