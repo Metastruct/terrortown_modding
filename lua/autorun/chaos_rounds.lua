@@ -57,10 +57,11 @@ if SERVER then
 		net.Broadcast()
 	end
 
-	local force_chaos_round = nil
-	function ForceChaosRound(round_name)
+	local force_chaos_round, force_chaos_once
+	function ForceChaosRound(round_name, once)
 		if round_name == false then
 			force_chaos_round = nil
+			force_chaos_once = nil
 			return
 		elseif round_name == nil then
 			force_chaos_round = true
@@ -73,6 +74,8 @@ if SERVER then
 
 			force_chaos_round = round_name
 		end
+
+		force_chaos_once = once
 	end
 
 	function GetActiveChaosRound()
@@ -93,6 +96,11 @@ if SERVER then
 		end
 
 		if not ROUNDS[rand_key] then return end
+
+		if force_chaos_once then
+			force_chaos_round = nil
+			force_chaos_once = nil
+		end
 
 		ACTIVE_CHAOS_ROUND = ROUNDS[rand_key]
 
