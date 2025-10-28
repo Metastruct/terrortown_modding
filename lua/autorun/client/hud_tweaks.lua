@@ -1,8 +1,20 @@
 require("hookextras")
 
 util.OnInitialize(function()
-	local HUDELEMENT = hudelements.GetTypeElement("tttvoice")
+	-- Hacky fix for voice spectrum on the voicehud not working correctly for players using Identity Disguiser
+	if VOICE and VOICE.GetFakeVoiceSpectrum then
+		VOICE.GetFakeVoiceSpectrum_Original = VOICE.GetFakeVoiceSpectrum_Original or VOICE.GetFakeVoiceSpectrum
 
+		function VOICE.GetFakeVoiceSpectrum(pl, stepCount)
+			if IsValid(pl.__originalVoiceUser) then
+				pl = pl.__originalVoiceUser
+			end
+
+			return VOICE.GetFakeVoiceSpectrum_Original(pl, stepCount)
+		end
+	end
+
+	local HUDELEMENT = hudelements.GetTypeElement("tttvoice")
 	if HUDELEMENT then
 		-- Override the tttvoice HUD element's Draw function to allow disguising players using the Identity Disguiser
 		function HUDELEMENT:Draw()
@@ -39,11 +51,17 @@ util.OnInitialize(function()
 					local disguise = pl:GetDisguiserTarget()
 
 					if IsValid(disguise) then
+						-- Hacky fix variable for VOICE.GetFakeVoiceSpectrum (see above)
+						disguise.__originalVoiceUser = pl
+
 						pl = disguise
 					end
 				end
 
 				self:DrawVoiceBar(pl, x, y, w, h)
+
+				-- Clear hacky fix variable so it doesn't linger and leak to other speaking clients
+				pl.__originalVoiceUser = nil
 
 				y = y + h + self.padding
 			end

@@ -95,67 +95,71 @@ util.OnInitialize(function()
 				end
 			end
 		else
+			ENT.ShowDefaultViewModel = false
+
 			function ENT:DrawWorldModel(flags)
-				local owner = self:GetOwner()
-
-				if IsValid(owner) then return end
-
+				if IsValid(self:GetOwner()) then return end
 				self:DrawModel(flags)
 			end
 
 			-- Completely overwrite this net message with tweaks to handle outfitter (if it's present)
-			if outfitter then
-				net.Receive("TTT2ToggleDisguiserTarget", function()
-					local addDisguise = net.ReadBool()
-					local owner = net.ReadEntity()
+			net.Receive("TTT2ToggleDisguiserTarget", function()
+				local addDisguise = net.ReadBool()
+				local owner = net.ReadEntity()
 
-					if not IsValid(owner) then return end
+				if not IsValid(owner) then return end
 
-					if addDisguise then
-						owner.disguiserTarget = net.ReadEntity()
+				if addDisguise then
+					owner.disguiserTarget = net.ReadEntity()
 
-						if IsValid(owner.disguiserTarget) then
-							local mdl = owner.disguiserTarget.outfitter_mdl or owner.disguiserTarget:GetModel()
+					if IsValid(owner.disguiserTarget) then
+						local mdl = owner.disguiserTarget.outfitter_mdl or owner.disguiserTarget:GetModel()
 
-							owner.disguiserOriginalIsOutfitter = owner.outfitter_mdl != nil
-							owner.disguiserOriginalModel = owner.outfitter_mdl or owner:GetModel()
+						owner.disguiserOriginalIsOutfitter = owner.outfitter_mdl != nil
+						owner.disguiserOriginalModel = owner.outfitter_mdl or owner:GetModel()
 
-							-- Clear any PAC outfits due to custom playermodels conflicting
-							if owner == LocalPlayer() and pac and pace and pace.ClearParts then
-								pace.ClearParts()
-
-								chat.AddText(Color(255, 120, 120), "Your PAC has been cleared to avoid any playermodel conflicts with the Identity Disguiser. You can rewear your PAC once you're done.")
-							end
-
+						if outfitter then
 							-- Use outfitter to enforce it because a simple SetModel isn't effective
 							owner:EnforceModel(mdl)
+						else
+							owner:SetModel(mdl)
 						end
-					else
-						owner.disguiserTarget = nil
 
-						if owner.disguiserOriginalModel then
-							if owner.disguiserOriginalIsOutfitter then
-								-- Enforce the owner's own outfitter model back
-								owner:EnforceModel(owner.disguiserOriginalModel)
-							else
-								-- Stop enforcing, then try setting the regular model back
-								owner:EnforceModel()
-								owner:SetModel(owner.disguiserOriginalModel)
-							end
+						-- Clear any PAC outfits due to custom playermodels conflicting
+						if owner == LocalPlayer() and pac and pace and pace.ClearParts then
+							pace.ClearParts()
 
-							owner.disguiserOriginalIsOutfitter = nil
-							owner.disguiserOriginalModel = nil
-
-							if owner == LocalPlayer() and pac then
-								chat.AddText(Color(150, 255, 150), "It's now safe to rewear your PAC.")
-							end
+							chat.AddText(Color(255, 120, 120), "Your PAC has been cleared to avoid any playermodel conflicts with the Identity Disguiser. You can rewear your PAC once you're done.")
 						end
 					end
-				end)
-			end
+				else
+					owner.disguiserTarget = nil
+
+					if owner.disguiserOriginalModel then
+						if owner.disguiserOriginalIsOutfitter and outfitter then
+							-- Enforce the owner's own outfitter model back
+							owner:EnforceModel(owner.disguiserOriginalModel)
+						else
+							if outfitter then
+								-- Stop enforcing, then try setting the regular model back
+								owner:EnforceModel()
+							end
+
+							owner:SetModel(owner.disguiserOriginalModel)
+						end
+
+						owner.disguiserOriginalIsOutfitter = nil
+						owner.disguiserOriginalModel = nil
+
+						if owner == LocalPlayer() and pac then
+							chat.AddText(Color(150, 255, 150), "It's now safe to rewear your PAC.")
+						end
+					end
+				end
+			end)
 		end
 
-		-- See client/voicehud_disguise.lua for the voicehud tweaks
+		-- See client/hud_tweaks.lua for the voicehud tweaks
 	end
 
 	-- Detective Toy Car: Change holdtype, remove jank driver damage application from this hook (damage is already dealt via another hook anyway)
