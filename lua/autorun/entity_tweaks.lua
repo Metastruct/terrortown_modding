@@ -610,12 +610,21 @@ util.OnInitialize(function()
 	else
 		-- Clientside only tweaks
 
-		-- Kiss: Hide its weird heart model on players
+		-- Teleporter: Hide its worldmodel when held
+		ENT = weapons.GetStored("weapon_ttt_teleport")
+		if ENT then
+			function ENT:DrawWorldModel(flags)
+				if IsValid(self:GetOwner()) then return end
+				self:DrawModel(flags)
+			end
+		end
+
+		-- Kiss: Hide its worldmodel (weird giant heart) when held
 		ENT = weapons.GetStored("weapon_ttt2_kiss")
 		if ENT then
-			function ENT:DrawWorldModel()
+			function ENT:DrawWorldModel(flags)
 				if IsValid(self:GetOwner()) then return end
-				self:DrawModel()
+				self:DrawModel(flags)
 			end
 
 			function ENT:DrawWorldModelTranslucent() end
