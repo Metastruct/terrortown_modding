@@ -632,7 +632,7 @@ function ROUND:Start()
 			"obliterating",
 			"smashing",
 			"mutilating",
-			"bloodying"
+			"crushing"
 		}
 
 		hook.Add("DoPlayerDeath", tankHookTag, function(pl)
@@ -657,6 +657,33 @@ function ROUND:Start()
 					plTank:SetHealth(math.min(math.ceil(plTank:Health() + (tankMaxHP * healMult)), tankMaxHP))
 
 					LANG.Msg(plTank, string.format("You feel better after %s %s...", killWordsList[math.random(1, #killWordsList)], pl:Name()), nil, MSG_MSTACK_PLAIN)
+				end
+
+				-- If there's one INNOCENT survivor left, revigorate them (only once)
+				if not TTTTank.GaveLastPower then
+					local lastPl
+					for k, v in player.Iterator() do
+						if v != plTank and v:IsTerror() and v:GetTeam() != TEAM_NONE then
+							if lastPl then
+								-- A second survivor was found, cancel
+								lastPl = nil
+								break
+							else
+								lastPl = v
+							end
+						end
+					end
+
+					if IsValid(lastPl) then
+						lastPl:SetHealth(math.max(200, lastPl:GetMaxHealth()))
+
+						lastPl:EmitSound("ambient/levels/outland/ol07_advisorblast01.wav")
+						lastPl:ScreenFade(SCREENFADE.IN, Color(230, 255, 128, 50), 1, 0.25)
+
+						LANG.Msg(lastPl, "You're the last one standing...\nAdrenaline courses through you!", nil, MSG_MSTACK_PLAIN)
+
+						TTTTank.GaveLastPower = true
+					end
 				end
 			end
 		end)
@@ -778,6 +805,7 @@ function ROUND:Start()
 
 		local materialLMB = Material("vgui/ttt/hudhelp/lmb")
 		local smashText, smashRed = "SMASH...", Color(255, 80, 80)
+		local adrenalineText, adrenalineYel = "Full of adrenaline", Color(195, 255, 120)
 
 		-- Health strings to replace (do it this way to ensure the text colors match)
 		local hpStrings = {
@@ -819,15 +847,21 @@ function ROUND:Start()
 							end
 						end
 					end
-				elseif ent:IsPlayer() and ent:GetNWBool(tankNwTag) then
-					if tData.params.displayInfo.subtitle then
-						local hpText = util.HealthToString(ent:Health(), ent:GetMaxHealth())
+				elseif ent:IsPlayer() then
+					if ent:GetNWBool(tankNwTag) then
+						if tData.params.displayInfo.subtitle then
+							local hpText = util.HealthToString(ent:Health(), ent:GetMaxHealth())
 
-						tData.params.displayInfo.subtitle.text = hpStrings[hpText] or "?"
-					end
+							tData.params.displayInfo.subtitle.text = hpStrings[hpText] or "?"
+						end
 
-					if tData.params.displayInfo.desc then
-						tData.params.displayInfo.desc = {}
+						if tData.params.displayInfo.desc then
+							tData.params.displayInfo.desc = {}
+						end
+					elseif ent:Health() > ent:GetMaxHealth() then
+						if tData.params.displayInfo.subtitle then
+							tData:SetSubtitle(adrenalineText, adrenalineYel)
+						end
 					end
 				end
 			end
@@ -892,6 +926,7 @@ function ROUND:Finish()
 				end
 
 				TTTTank.ChosenTank = nil
+				TTTTank.GaveLastPower = nil
 			else
 				hook.Remove("NotifyShouldTransmit", tankHookTag)
 				hook.Remove("TTT2PreventAccessShop", tankHookTag)
