@@ -454,7 +454,7 @@ function ROUND:Start()
 			if dmg:IsDamageType(DMG_CLUB) then
 				if IsValid(attacker) and attacker:EyePos():DistToSqr(pl:EyePos()) <= meleeRangeSqr then
 					-- Tank takes a lot more damage from melee attacks (CLUB is usually melee)
-					dmg:ScaleDamage(8)
+					dmg:ScaleDamage(6)
 				else
 					-- If it isn't a melee attack but still CLUB (eg. bricks), Tank still takes more damage but less than melees
 					dmg:ScaleDamage(3)
