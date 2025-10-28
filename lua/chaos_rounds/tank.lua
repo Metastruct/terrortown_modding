@@ -821,6 +821,8 @@ function ROUND:Start()
 			local ent = tData:GetEntity()
 
 			if IsValid(ent) then
+				local isEntPlayer = ent:IsPlayer()
+
 				if pl:GetNWBool(tankNwTag) then
 					if not ent:IsPlayer() and ent:GetClass() != traitorButtonClass then
 						if tData.params.drawInfo then
@@ -847,22 +849,23 @@ function ROUND:Start()
 							end
 						end
 					end
-				elseif ent:IsPlayer() then
-					if ent:GetNWBool(tankNwTag) then
-						if tData.params.displayInfo.subtitle then
-							local hpText = util.HealthToString(ent:Health(), ent:GetMaxHealth())
+				elseif isEntPlayer and ent:GetNWBool(tankNwTag) then
+					if tData.params.displayInfo.subtitle then
+						local hpText = util.HealthToString(ent:Health(), ent:GetMaxHealth())
 
-							tData.params.displayInfo.subtitle.text = hpStrings[hpText] or "?"
-						end
-
-						if tData.params.displayInfo.desc then
-							tData.params.displayInfo.desc = {}
-						end
-					elseif ent:Health() > ent:GetMaxHealth() then
-						if tData.params.displayInfo.subtitle then
-							tData:SetSubtitle(adrenalineText, adrenalineYel)
-						end
+						tData.params.displayInfo.subtitle.text = hpStrings[hpText] or "?"
 					end
+
+					if tData.params.displayInfo.desc then
+						tData.params.displayInfo.desc = {}
+					end
+				end
+
+				if isEntPlayer
+					and ent:Health() > ent:GetMaxHealth()
+					and tData.params.displayInfo.subtitle
+				then
+					tData:SetSubtitle(adrenalineText, adrenalineYel)
 				end
 			end
 		end)
