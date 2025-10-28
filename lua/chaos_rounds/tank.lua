@@ -663,7 +663,7 @@ function ROUND:Start()
 				if not TTTTank.GaveLastPower then
 					local lastPl
 					for k, v in player.Iterator() do
-						if v != plTank and v:IsTerror() and v:GetTeam() != TEAM_NONE then
+						if v != plTank and v:Alive() and v:GetTeam() != TEAM_NONE then
 							if lastPl then
 								-- A second survivor was found, cancel
 								lastPl = nil
