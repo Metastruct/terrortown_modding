@@ -7,6 +7,7 @@ local IsValid = IsValid
 local math = math
 local utilTraceLine = util.TraceLine
 local utilTraceHull = util.TraceHull
+local emptyStr = ""
 
 if SERVER then
 	AddCSLuaFile()
@@ -71,6 +72,7 @@ SWEP.EntityClassWhitelist = {
 	prop_physics = true,
 	prop_physics_multiplayer = true,
 	prop_physics_respawnable = true,
+	func_physbox = true,
 	ttt_hat_deerstalker = true
 }
 
@@ -161,7 +163,7 @@ function SWEP:SecondaryAttack()
 	if not IsValid(owner) or owner:InVehicle() then return end
 
 	local mdl = self:GetSelectedModelPath()
-	if not mdl or mdl == "" then return end
+	if not mdl or mdl == emptyStr then return end
 
 	self:SetNextSecondaryFire(CurTime() + self.Secondary.DelaySuccess)
 
@@ -535,7 +537,7 @@ if SERVER then
 			if self:GetDisguised() then return end
 
 			local mdl = self:GetSelectedModelPath()
-			if not mdl or mdl == "" then return end
+			if not mdl or mdl == emptyStr then return end
 
 			local pos = pl:GetPos()
 			local ang = pl:EyeAngles()
@@ -845,10 +847,7 @@ else
 	end
 
 	function SWEP:DrawWorldModel(flags)
-		local owner = self:GetOwner()
-
-		if IsValid(owner) then return end
-
+		if IsValid(self:GetOwner()) then return end
 		self:DrawModel(flags)
 	end
 
@@ -888,7 +887,7 @@ else
 		else
 			local mdl = self:GetSelectedModelPath()
 
-			if mdl and mdl != "" then
+			if mdl and mdl != emptyStr then
 				self:AddTTT2HUDHelp(textCopyProp, textBecomeProp .. self:GetModelName(mdl))
 			else
 				self:AddTTT2HUDHelp(textCopyProp)
@@ -898,7 +897,7 @@ else
 
 	function SWEP:GetModelName(modelPath)
 		if not modelPath then return end
-		return string.gsub(modelPath, "^models/.+/", "")
+		return string.gsub(modelPath, "^models/.+/", emptyStr)
 	end
 
 	function SWEP:AddToSettingsMenu(parent)
