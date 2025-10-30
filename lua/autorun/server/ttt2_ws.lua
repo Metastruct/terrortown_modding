@@ -21,7 +21,6 @@ local addons = {
 	"3048226332", 	-- Green Demon
 	"2846938449", 	-- Kiss
 	"1641605106", 	-- Beartrap
-	"1615324913", 	-- Demonic Possession
 	"2807269633", 	-- Laser Phaser
 	"2893718679",	-- Cozy Coupe simfphys car
 	"3003509443",	-- Detective Toy Car (Cozy Coupe)
