@@ -4,16 +4,18 @@ if CLIENT then
 	SWEP.PrintName = "Silenced M4A1"
 	SWEP.Slot = 6
 
+	SWEP.ViewModelFlip = false
+	SWEP.ViewModelFOV = 64
+
 	SWEP.Icon = "vgui/ttt/icon_m16"
 	SWEP.IconLetter = "w"
 
 	SWEP.EquipMenuData = {
-		type = "Weapon",
+		type = "item_weapon",
 		desc = "A modified M4A1 carbine with a suppressor.\n\nVictims will not scream when killed."
 	}
 end
 
-SWEP.Base = "weapon_tttbase"
 SWEP.HoldType = "ar2"
 
 SWEP.Primary.Ammo = "SMG1"
@@ -25,13 +27,12 @@ SWEP.Primary.Automatic = true
 SWEP.Primary.ClipSize = 30
 SWEP.Primary.ClipMax = 60
 SWEP.Primary.DefaultClip = 30
-SWEP.Primary.Sound = Sound("Weapon_M4A1.Silenced")
+SWEP.Primary.Sound = ")weapons/m4a1/m4a1-1.wav"
+SWEP.Primary.SoundLevel = 65
 
 SWEP.HeadshotMultiplier = 2.4
 
 SWEP.UseHands = true
-SWEP.ViewModelFlip = false
-SWEP.ViewModelFOV = 64
 SWEP.ViewModel = Model("models/weapons/cstrike/c_rif_m4a1.mdl")
 SWEP.WorldModel = Model("models/weapons/w_rif_m4a1_silencer.mdl")
 SWEP.idleResetFix = true
@@ -40,14 +41,12 @@ SWEP.IronSightsPos = Vector(-7.58, -9.2, 0.55)
 SWEP.IronSightsAng = Vector(2.599, -1.3, -3.6)
 
 SWEP.Kind = WEAPON_EQUIP1
-SWEP.AmmoEnt = "item_ammo_smg1_ttt"
 SWEP.CanBuy = { ROLE_TRAITOR }
-SWEP.InLoadoutFor = {}
+SWEP.AmmoEnt = "item_ammo_smg1_ttt"
 SWEP.LimitedStock = true
 SWEP.AllowDrop = true
 
 SWEP.IsSilent = true
-SWEP.NoSights = false
 
 SWEP.PrimaryAnim = ACT_VM_PRIMARYATTACK_SILENCED
 SWEP.ReloadAnim = ACT_VM_RELOAD_SILENCED
