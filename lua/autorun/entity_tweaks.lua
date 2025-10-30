@@ -30,7 +30,7 @@ util.OnInitialize(function()
 		end
 	end
 
-	-- Identity Disguiser: Make disguiser invisible in hand and make user stand straight, add fire delays, hide PACs and steal outfitter models while in use
+	-- Identity Disguiser: Make disguiser invisible in hand and make user stand straight, add fire delays, hide PACs and steal outfitter models while in use, allow lastinv
 	ENT = weapons.GetStored("weapon_ttt_identity_disguiser")
 	if ENT then
 		ENT.HoldType = "normal"
@@ -52,6 +52,10 @@ util.OnInitialize(function()
 			self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
 
 			self:SecondaryAttack_Original()
+		end
+
+		function ENT:Deploy()
+			return true
 		end
 
 		if SERVER then
