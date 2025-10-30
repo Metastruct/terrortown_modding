@@ -51,6 +51,12 @@ else
 		mdl:SetSkin(pl:GetSkin())
 		function mdl:GetPlayerColor() return plColor end
 
+		local bodygroups = pl:GetBodyGroups()
+		for i = 1, #bodygroups do
+			local group = bodygroups[i]
+			mdl:SetBodygroup(group.id, pl:GetBodygroup(group.id))
+		end
+
 		mdl:SetParent(rag)
 		mdl:SetLocalPos(vector_origin)
 		mdl:AddEffects(EF_BONEMERGE)
