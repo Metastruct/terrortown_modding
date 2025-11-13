@@ -16,6 +16,8 @@ if CLIENT then
 	}
 end
 
+DEFINE_BASECLASS("weapon_tttbase")
+
 SWEP.HoldType = "ar2"
 
 SWEP.Primary.Ammo = "SMG1"
