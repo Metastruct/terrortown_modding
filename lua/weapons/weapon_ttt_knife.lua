@@ -179,14 +179,16 @@ function SWEP:PrepareStickingKnife(tr, spos, sdest)
             mask = MASK_SHOT_HULL,
         })
 
+        local ang = Angle(-28, 0, 0)
+
         if IsValid(rtr.Entity) and rtr.Entity == rag then
             bone = rtr.PhysicsBone
             pos = rtr.HitPos
 
-            ang = Angle(-28, 0, 0) + rtr.Normal:Angle()
+            ang:Add(rtr.Normal:Angle())
             ang:RotateAroundAxis(ang:Right(), -90)
 
-            pos = pos - (norm * 7.5)
+            pos:Sub(norm * 7.5)
         end
 
         local knife = ents.Create("prop_physics")
