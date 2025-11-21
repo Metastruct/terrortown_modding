@@ -117,7 +117,6 @@ local DoCorpseEffects = SERVER and function(rag)
 
 		if IsValid(phys) then
 			phys:ApplyForceOffset(data.PointImpulse, data.HitPos or phys:GetPos())
-			print("applied force offset", rag, data.PointImpulse, data.HitPos)
 		end
 	end
 end or nil
