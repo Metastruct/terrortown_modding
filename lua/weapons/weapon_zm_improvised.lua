@@ -8,16 +8,8 @@ if SERVER then
 
 	resource.AddFile("models/weapons/c_punch.mdl")
 
-	---
-	-- @realm server
 	cvCrowbarDelay = CreateConVar(cvCrowbarDelayName, "1.0", { FCVAR_ARCHIVE, FCVAR_NOTIFY })
-
-	---
-	-- @realm server
 	cvCrowbarUnlocks = CreateConVar("ttt_crowbar_unlocks", "1", { FCVAR_ARCHIVE, FCVAR_NOTIFY })
-
-	---
-	-- @realm server
 	cvCrowbarPushForce = CreateConVar("ttt_crowbar_pushforce", "395", { FCVAR_ARCHIVE, FCVAR_NOTIFY })
 end
 
@@ -84,6 +76,13 @@ local pmnc_tbl = {
 	func_movelinear = OPEN_NOTOGGLE,
 }
 
+local PUNCHGESTURE_PUNCH, PUNCHGESTURE_BIGPUNCH, PUNCHGESTURE_SHOVE = 0, 1, 2
+local gestureTbl = {
+	[PUNCHGESTURE_PUNCH] = ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST,
+	[PUNCHGESTURE_BIGPUNCH] = ACT_HL2MP_GESTURE_RANGE_ATTACK_KNIFE,
+	[PUNCHGESTURE_SHOVE] = ACT_GMOD_GESTURE_MELEE_SHOVE_1HAND
+}
+
 local function OpenableEnt(ent)
 	return ent:GetName() ~= "" and pmnc_tbl[ent:GetClass()] or OPEN_NO
 end
@@ -92,14 +91,14 @@ local function CrowbarCanUnlock(t)
 	return not GAMEMODE.crowbar_unlocks or GAMEMODE.crowbar_unlocks[t]
 end
 
-local function PlayPunchGesture(pl, hard)
-	pl:AnimRestartGesture(GESTURE_SLOT_VCD, hard and ACT_HL2MP_GESTURE_RANGE_ATTACK_KNIFE or ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST, true)
+local function PlayPunchGesture(pl, gestureEnum)
+	pl:AnimRestartGesture(GESTURE_SLOT_VCD, gestureTbl[gestureEnum] or ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST, true)
 	pl:AnimRestartGesture(GESTURE_SLOT_FLINCH, ACT_FLINCH_STOMACH, true)
 
 	if SERVER then
 		net.Start(netFistStanceName)
 		net.WritePlayer(pl)
-		net.WriteBool(hard)
+		net.WriteUInt(gestureEnum, 3)
 		net.SendOmit(pl)
 	end
 end
@@ -177,8 +176,6 @@ function SWEP:OpenEnt(hitEnt)
 	end
 end
 
----
--- @ignore
 function SWEP:PrimaryAttack()
 	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 
@@ -209,7 +206,7 @@ function SWEP:PrimaryAttack()
 	local hitEnt = tr_main.Entity
 
 	self:SendWeaponAnim(willHitHard and ACT_VM_SWINGMISS or ACT_VM_PRIMARYATTACK)
-	PlayPunchGesture(owner, willHitHard)
+	PlayPunchGesture(owner, willHitHard and PUNCHGESTURE_BIGPUNCH or PUNCHGESTURE_PUNCH)
 
 	if IsValid(hitEnt) or tr_main.HitWorld then
 		local hitFlesh = tr_main.MatType == MAT_FLESH or tr_main.MatType == MAT_BLOODYFLESH
@@ -218,14 +215,14 @@ function SWEP:PrimaryAttack()
 
 		if SERVER or IsFirstTimePredicted() then
 			local efName = hitFlesh and "Impact" or "Impact_GMOD"
-            local ef = EffectData()
+			local ef = EffectData()
 
-            ef:SetStart(spos)
-            ef:SetOrigin(tr_main.HitPos)
-            ef:SetNormal(tr_main.Normal)
-            ef:SetSurfaceProp(tr_main.SurfaceProps)
-            ef:SetHitBox(tr_main.HitBox)
-            ef:SetEntity(hitEnt)
+			ef:SetStart(spos)
+			ef:SetOrigin(tr_main.HitPos)
+			ef:SetNormal(tr_main.Normal)
+			ef:SetSurfaceProp(tr_main.SurfaceProps)
+			ef:SetHitBox(tr_main.HitBox)
+			ef:SetEntity(hitEnt)
 
 			if not hitFlesh then
 				ef:SetFlags(1) -- IMPACT_NODECAL
@@ -251,8 +248,8 @@ function SWEP:PrimaryAttack()
 			if hitEnt:IsPlayer() then
 				hitEnt.FistsCorpseData = {
 					HitHard = willHitHard,
-					Velocity = tr_main.Normal * (willHitHard and 250 or 50),
-					PointImpulse = tr_main.Normal * (willHitHard and 30000 or 10000),
+					Velocity = tr_main.Normal * (willHitHard and 300 or 50),
+					PointImpulse = tr_main.Normal * (willHitHard and 33000 or 10000),
 					PhysBoneId = tr_main.PhysicsBone,
 					HitPos = tr_main.HitPos
 				}
@@ -269,6 +266,13 @@ function SWEP:PrimaryAttack()
 						end
 					end
 				end)
+			elseif willHitHard then
+				local phys = hitEnt:GetPhysicsObjectNum(tr_main.PhysicsBone)
+
+				if IsValid(phys) then
+					-- Hit props harder when doing hard punch
+					phys:ApplyForceOffset(tr_main.Normal * 24000, tr_main.HitPos)
+				end
 			end
 
 			if self:OpenEnt(hitEnt) == OPEN_NO and IsValid(trEnt) then
@@ -312,15 +316,15 @@ function SWEP:SecondaryAttack()
 	local tr = owner:GetEyeTrace(MASK_SHOT)
 	local ply = tr.Entity
 
-	if
-		tr.Hit
+	if tr.Hit
 		and IsValid(ply)
 		and ply:IsPlayer()
 		and (owner:EyePos() - tr.HitPos):LengthSqr() < 10000 -- 100hu
 	then
-		---
-		-- @realm shared
-		if SERVER and not ply:IsFrozen() and not hook.Run("TTT2PlayerPreventPush", owner, ply) then
+		if SERVER
+			and not ply:IsFrozen()
+			and not hook.Run("TTT2PlayerPreventPush", owner, ply)
+		then
 			local pushvel = tr.Normal * cvCrowbarPushForce:GetFloat()
 			pushvel.z = math.Clamp(pushvel.z, 50, 100) -- limit the upward force to prevent launching
 
@@ -334,9 +338,9 @@ function SWEP:SecondaryAttack()
 			}
 		end
 
-		self:EmitSound(string.format("physics/flesh/flesh_impact_hard%s.wav", math.random(2, 3)), 66, math.random(80, 85), 0.5)
+		ply:EmitSound(string.format("physics/flesh/flesh_impact_hard%s.wav", math.random(2, 3)), 69, math.random(80, 85), 0.66)
 		self:SendWeaponAnim(ACT_VM_SECONDARYATTACK)
-		owner:SetAnimation(PLAYER_ATTACK1)
+		PlayPunchGesture(owner, PUNCHGESTURE_SHOVE)
 
 		self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
 	end
@@ -458,16 +462,12 @@ if SERVER then
 		end
 	end)
 else
-	---
-	-- @ignore
 	function SWEP:Initialize()
 		self:AddTTT2HUDHelp("crowbar_help_primary", "crowbar_help_secondary")
 
 		return BaseClass.Initialize(self)
 	end
 
-	---
-	-- @ignore
 	function SWEP:AddToSettingsMenu(parent)
 		local form = vgui.CreateTTT2Form(parent, "header_equipment_additional")
 
@@ -498,23 +498,30 @@ else
 		local pl = net.ReadPlayer()
 		if not IsValid(pl) then return end
 
-		local willHitHard = net.ReadBool()
+		local gestureEnum = net.ReadUInt(3)
 
-		PlayPunchGesture(pl, willHitHard)
+		PlayPunchGesture(pl, gestureEnum)
+	end)
+
+	local function FixStances()
+		for k, v in player.Iterator() do
+			local isStance = v:GetNWBool(nwFistStanceName)
+
+			if isStance then
+				v:AnimRestartGesture(GESTURE_SLOT_GRENADE, ACT_HL2MP_FIST_BLOCK)
+				v:AnimSetGestureWeight(GESTURE_SLOT_GRENADE, stanceWeight)
+			end
+		end
+	end
+
+	-- Ensure fists stance persists when the round starts (outfitter can end up messing with it)
+	hook.Add("TTTBeginRound", "TTT2FistsHoldType", function()
+		timer.Simple(0, FixStances)
 	end)
 
 	-- Ensure fists stance persists after a full update happens
 	gameevent.Listen("OnRequestFullUpdate")
 	hook.Add("OnRequestFullUpdate", "TTT2FistsHoldType", function(data)
-		timer.Simple(0, function()
-			for k, v in player.Iterator() do
-				local isStance = v:GetNWBool(nwFistStanceName)
-
-				if isStance then
-					v:AnimRestartGesture(GESTURE_SLOT_GRENADE, ACT_HL2MP_FIST_BLOCK)
-					v:AnimSetGestureWeight(GESTURE_SLOT_GRENADE, stanceWeight)
-				end
-			end
-		end)
+		timer.Simple(0, FixStances)
 	end)
 end
