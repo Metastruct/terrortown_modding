@@ -108,7 +108,7 @@ local DoCorpseEffects = SERVER and function(rag)
 	if not data then return end
 
 	if data.HitHard then
-		rag:EmitSound("ambient/explosions/explode_9.wav", 70, 125)
+		rag:EmitSound("physics/glass/glass_impact_bullet4.wav", 72, math.random(68, 72))
 	end
 
 	if data.PhysBoneId then
@@ -248,8 +248,8 @@ function SWEP:PrimaryAttack()
 			if hitEnt:IsPlayer() then
 				hitEnt.FistsCorpseData = {
 					HitHard = willHitHard,
-					Velocity = tr_main.Normal * (willHitHard and 300 or 50),
-					PointImpulse = tr_main.Normal * (willHitHard and 33000 or 10000),
+					Velocity = tr_main.Normal * (willHitHard and 300 or 60),
+					PointImpulse = tr_main.Normal * (willHitHard and 33300 or 12000),
 					PhysBoneId = tr_main.PhysicsBone,
 					HitPos = tr_main.HitPos
 				}
