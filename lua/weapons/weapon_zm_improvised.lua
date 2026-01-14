@@ -108,7 +108,7 @@ local DoCorpseEffects = SERVER and function(rag)
 	if not data then return end
 
 	if data.HitHard then
-		rag:EmitSound("physics/glass/glass_impact_bullet4.wav", 72, math.random(68, 72))
+		rag:EmitSound("weapons/awp/awp1.wav", 72, math.random(85, 90))
 	end
 
 	if data.PhysBoneId then
@@ -248,8 +248,8 @@ function SWEP:PrimaryAttack()
 			if hitEnt:IsPlayer() then
 				hitEnt.FistsCorpseData = {
 					HitHard = willHitHard,
-					Velocity = tr_main.Normal * (willHitHard and 300 or 60),
-					PointImpulse = tr_main.Normal * (willHitHard and 33300 or 12000),
+					Velocity = tr_main.Normal * (willHitHard and 360 or 60),
+					PointImpulse = tr_main.Normal * (willHitHard and 50000 or 20000),
 					PhysBoneId = tr_main.PhysicsBone,
 					HitPos = tr_main.HitPos
 				}
@@ -338,7 +338,18 @@ function SWEP:SecondaryAttack()
 			}
 		end
 
-		ply:EmitSound(string.format("physics/flesh/flesh_impact_hard%s.wav", math.random(2, 3)), 69, math.random(80, 85), 0.66)
+		-- Play the shove sound on the shoved player so they hear it the loudest, make sure it plays nice with prediction
+		if IsFirstTimePredicted() then
+			local filter
+			if SERVER then
+				filter = RecipientFilter()
+				filter:AddPAS(tr.HitPos)
+				filter:RemovePlayer(owner)
+			end
+
+			ply:EmitSound(string.format("physics/flesh/flesh_impact_hard%s.wav", math.random(2, 3)), 69, math.random(80, 85), 0.6, CHAN_AUTO, 0, 0, filter)
+		end
+
 		self:SendWeaponAnim(ACT_VM_SECONDARYATTACK)
 		PlayPunchGesture(owner, PUNCHGESTURE_SHOVE)
 
