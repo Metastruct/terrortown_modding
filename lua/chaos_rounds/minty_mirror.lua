@@ -174,8 +174,6 @@ if CLIENT then
 end
 
 -- Callbacks --
-function ROUND:DrawSelection( _, _ ) end
-function ROUND:OnPostSelection() end
 function ROUND:OnPrepare() end
 function ROUND:OnSelected() end
 
