@@ -161,7 +161,7 @@ util.OnInitialize(function()
 			end
 
 			hook.Add("TTTPrepareRound", "TTT2GamblerReset", function()
-				for _, p in ipairs(player.GetAll()) do
+				for _, p in player.Iterator() do
 					p.GamblerEquipmentList = nil
 				end
 			end)
@@ -256,9 +256,9 @@ util.OnInitialize(function()
 			end
 
 			-- Fix vampire bloodlust damage applying force from world origin (can only overwrite the whole hook to fix it)
-			local playerGetAll = player.GetAll
+			local playerIterator = player.Iterator
 			hook.Add("Think", "ThinkVampire", function()
-				for _, pl in ipairs(playerGetAll()) do
+				for _, pl in playerIterator() do
 					if pl:IsActive() and pl:GetSubRole() == ROLE_VAMPIRE and pl:GetNWInt("Bloodlust", 0) < CurTime() then
 						pl:SetNWBool("InBloodlust", true)
 						pl:SetNWInt("Bloodlust", CurTime() + 2)

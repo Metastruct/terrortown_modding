@@ -528,6 +528,7 @@ else
 	-- Ensure fists stance persists when the round starts (outfitter can end up messing with it)
 	hook.Add("TTTBeginRound", "TTT2FistsHoldType", function()
 		timer.Simple(0, FixStances)
+		timer.Simple(1, FixStances)
 	end)
 
 	-- Ensure fists stance persists after a full update happens
