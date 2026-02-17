@@ -429,7 +429,7 @@ if SERVER then
 				prop:SetMoveType(MOVETYPE_NONE)
 				prop:DrawShadow(false)
 
-				timer.Simple(0.03, function()
+				timer.Simple(0, function()
 					if IsValid(prop) then
 						prop:Remove()
 					end
