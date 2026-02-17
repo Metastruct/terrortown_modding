@@ -6,7 +6,6 @@ local CurTime = CurTime
 local IsValid = IsValid
 local math = math
 local utilTraceLine = util.TraceLine
-local utilTraceHull = util.TraceHull
 local emptyStr = ""
 
 if SERVER then
@@ -259,7 +258,7 @@ hook.Add("SetupMove", hookTag, function(pl, mv, cm)
 							if p:IsPlayerHolding() then
 								local carryClass = "weapon_zm_carry"
 
-								for k, v in ipairs(player.GetAll()) do
+								for k, v in player.Iterator() do
 									local vWep = v:GetActiveWeapon()
 
 									if IsValid(vWep) and vWep:GetClass() == carryClass and vWep:GetCarryTarget() == p then
@@ -284,224 +283,6 @@ hook.Add("SetupMove", hookTag, function(pl, mv, cm)
 end)
 
 if SERVER then
-	local testMaxsSize = 0.3
-	local trTab = {
-		start = nil,
-		endpos = nil,
-		mins = nil,
-		maxs = nil,
-		mask = MASK_PLAYERSOLID,
-		filter = nil
-	}
-
-	local function isPlStuck(pl, pos, hullMins, hullMaxs)
-		trTab.start = pos
-		trTab.endpos = pos
-		trTab.mins = hullMins
-		trTab.maxs = hullMaxs
-		trTab.filter = pl
-
-		local tr = utilTraceHull(trTab)
-
-		return tr.StartSolid
-	end
-
-	local function findBestRestorePos(pl, pos)
-		-- Before doing any of our epic checking, check if we're stuck in a playerclip first - just respawn us if we are
-		local pointContents = util.PointContents(pos)
-		if bit.band(pointContents, CONTENTS_PLAYERCLIP) != 0 then
-			local spawnPoint = plyspawn.GetRandomSafePlayerSpawnPoint(pl)
-
-			if spawnPoint then
-				print("[Prop Disguiser]", pl, "tried undisguising inside a playerclip! Moved them to a spawnpoint for safety!")
-				return spawnPoint.pos
-			end
-
-			print("[Prop Disguiser]", pl, "tried undisguising inside a playerclip and a suitable spawnpoint wasn't found somehow! They might be fucked!")
-		end
-
-		local newPos = pos * 1
-
-		local hullMins, hullMaxs = pl:GetHullDuck()
-
-		local checkHullMins, checkHullMaxs = hullMins * 1, hullMaxs * 1
-
-		checkHullMins.z = 0
-		checkHullMaxs.z = testMaxsSize
-
-		trTab.start = pos
-		trTab.endpos = pos - (vector_up * ((pl.PropDisguiserSavedOffsets and pl.PropDisguiserSavedOffsets.Full.z or 64) + 1))
-		trTab.mins = checkHullMins
-		trTab.maxs = checkHullMaxs
-		trTab.filter = pl
-
-		local tr = utilTraceHull(trTab)
-
-		if tr.Hit then
-			newPos = tr.HitPos + vector_up
-		end
-
-		if tr.StartSolid then
-			-- Check we aren't still stuck after that
-
-			checkHullMins.z = hullMins.z
-			checkHullMaxs.z = hullMaxs.z
-
-			if isPlStuck(pl, newPos, hullMins, hullMaxs) then
-				-- We are stuck... try pushing our position away from any nearby walls in each direction
-
-				-- Reuse this vector object
-				local testVec = Vector()
-
-				local testDirs = {
-					{hullMins.x, 0},
-					{hullMaxs.x, 0},
-					{0, hullMins.y},
-					{0, hullMaxs.y}
-				}
-
-				for i = 1, #testDirs do
-					local dir = testDirs[i]
-
-					testVec.x = dir[1]
-					testVec.y = dir[2]
-
-					if testVec.x > 0 then
-						checkHullMins.x = -testMaxsSize
-						checkHullMaxs.x = 0
-					elseif testVec.x < 0 then
-						checkHullMins.x = 0
-						checkHullMaxs.x = testMaxsSize
-					else
-						checkHullMins.x = hullMins.x
-						checkHullMaxs.x = hullMaxs.x
-					end
-
-					if testVec.y > 0 then
-						checkHullMins.y = -testMaxsSize
-						checkHullMaxs.y = 0
-					elseif testVec.y < 0 then
-						checkHullMins.y = 0
-						checkHullMaxs.y = testMaxsSize
-					else
-						checkHullMins.y = hullMins.y
-						checkHullMaxs.y = hullMaxs.y
-					end
-
-					trTab.start = newPos
-					trTab.endpos = newPos + testVec
-					trTab.mins = checkHullMins
-					trTab.maxs = checkHullMaxs
-					trTab.filter = pl
-
-					tr = utilTraceHull(trTab)
-
-					if tr.Hit and not tr.AllSolid then
-						local correction
-						if tr.HitNormal != vector_origin then
-							correction = tr.HitNormal * ((hullMaxs.x * (1 - tr.Fraction)) + 0.5)
-						else
-							correction = testVec
-						end
-
-						newPos = newPos + correction
-					end
-
-					if not isPlStuck(pl, newPos, hullMins, hullMaxs) then return newPos end
-				end
-
-				-- Pushing against walls hasn't worked, try finding two good directions and creep towards them
-				local maxTestRange = 64
-				local desiredDirs = {}
-
-				testDirs = {
-					{1, 0},
-					{-1, 0},
-					{0, 1},
-					{0, -1}
-				}
-
-				for i = 1, #testDirs do
-					local dir = testDirs[i]
-
-					testVec.x = dir[1] * maxTestRange
-					testVec.y = dir[2] * maxTestRange
-
-					trTab.start = newPos
-					trTab.endpos = newPos + testVec
-
-					tr = utilTraceLine(trTab)
-
-					local len = maxTestRange * tr.Fraction
-					len = len > hullMaxs.x and len or 0
-
-					if len > 0 then
-						desiredDirs[#desiredDirs + 1] = {Dir = dir, Len = len}
-					end
-				end
-
-				if #desiredDirs > 0 then
-					table.sort(desiredDirs, function(a, b) return a.Len > b.Len end)
-
-					local dir1, dir2 = desiredDirs[1], desiredDirs[2]
-					dir1, dir2 = dir1 and dir1.Dir, dir2 and dir2.Dir
-
-					local dir1X, dir1Y, dir2X, dir2Y
-
-					-- Lift the traces off the ground a bit, restore it after
-					testVec.z = newPos.z + 8
-
-					for i = 1, maxTestRange do
-						dir1X, dir1Y = dir1[1] * i, dir1[2] * i
-
-						testVec.x = newPos.x + dir1X
-						testVec.y = newPos.y + dir1Y
-
-						if not isPlStuck(pl, testVec, hullMins, hullMaxs) then
-							testVec.z = newPos.z
-							return testVec
-						end
-
-						if dir2 then
-							dir2X, dir2Y = dir2[1] * i, dir2[2] * i
-
-							testVec.x = newPos.x + dir2X
-							testVec.y = newPos.y + dir2Y
-
-							if not isPlStuck(pl, testVec, hullMins, hullMaxs) then
-								testVec.z = newPos.z
-								return testVec
-							end
-
-							if (dir1X - dir2X) != 0 and (dir1Y - dir2Y) != 0 then
-								testVec.x = newPos.x + dir1X + dir2X
-								testVec.y = newPos.y + dir1Y + dir2Y
-
-								if not isPlStuck(pl, testVec, hullMins, hullMaxs) then
-									testVec.z = newPos.z
-									return testVec
-								end
-							end
-						end
-					end
-				else
-					-- We have no good directions, try lifting us upwards instead...
-
-					testVec.x = newPos.x
-					testVec.y = newPos.y
-
-					for i = 1, maxTestRange do
-						testVec.z = newPos.z + i
-
-						if not isPlStuck(pl, testVec, hullMins, hullMaxs) then return testVec end
-					end
-				end
-			end
-		end
-
-		return newPos
-	end
-
 	function SWEP:Equip()
 		self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 		self:SetNextSecondaryFire(CurTime() + self.Secondary.Delay)
@@ -622,27 +403,42 @@ if SERVER then
 			local pos, vel
 
 			if IsValid(pl.PropDisguiserProp) then
-				pos = pl.PropDisguiserProp:GetPos()
+				local prop = pl.PropDisguiserProp
+
+				pos = prop:GetPos()
 				pos.z = pos.z + pl.PropDisguiserSavedOffsets.Ducked.z
 
-				vel = pl.PropDisguiserProp:GetVelocity()
+				vel = prop:GetVelocity()
 
-				if pl.PropDisguiserProp.PropDisguiserBreatheTimer then
-					timer.Remove(pl.PropDisguiserProp.PropDisguiserBreatheTimer)
+				if prop.PropDisguiserBreatheTimer then
+					timer.Remove(prop.PropDisguiserBreatheTimer)
 				end
 
-				if pl.PropDisguiserProp.PropDisguiserBreatheSound then
-					pl.PropDisguiserProp.PropDisguiserBreatheSound:Stop()
-					pl.PropDisguiserProp.PropDisguiserBreatheSound = nil
+				if prop.PropDisguiserBreatheSound then
+					prop.PropDisguiserBreatheSound:Stop()
+					prop.PropDisguiserBreatheSound = nil
 				end
 
-				pl.PropDisguiserProp:RemoveCallOnRemove(hookTag)
-				pl.PropDisguiserProp:Remove()
+				prop:RemoveCallOnRemove(hookTag)
+
+				-- For some reason, if we remove the ragdoll on the same frame as we unparent,
+				-- clients THINK the player entity is at 0,0,0 before interp'ing to their real position.
+				-- To stop this render bug, the ragdoll has to continue existing for a frame.
+				prop:SetNoDraw(true)
+				prop:SetSolid(SOLID_NONE)
+				prop:SetMoveType(MOVETYPE_NONE)
+				prop:DrawShadow(false)
+
+				timer.Simple(0.03, function()
+					if IsValid(prop) then
+						prop:Remove()
+					end
+				end)
 			else
 				pos = pl:EyePos()
 			end
 
-			pos = findBestRestorePos(pl, pos)
+			pos = util.FindBestRestorePos(pl, pos, pl.PropDisguiserSavedOffsets and pl.PropDisguiserSavedOffsets.Full.z)
 
 			pl:SetPos(pos)
 
@@ -720,15 +516,15 @@ if SERVER then
 		end
 
 		-- The player already takes explosion damage even when disguised, don't apply more damage
-		if dmg:GetDamageType() == DMG_BLAST then return end
+		if dmg:IsDamageType(DMG_BLAST) then return end
 
-		local orginalDmg = dmg:GetDamage()
-		dmg:SetDamage(math.ceil(orginalDmg * 0.5))
+		local originalDmg = dmg:GetDamage()
+		dmg:SetDamage(math.ceil(originalDmg * 0.5))
 
 		pl:TakeDamageInfo(dmg)
 
 		-- Set it back to normal for the prop
-		dmg:SetDamage(orginalDmg)
+		dmg:SetDamage(originalDmg)
 	end)
 
 	local function denyIfDisguised(pl)
@@ -744,6 +540,9 @@ if SERVER then
 	-- Don't let disguised people pick up items like ammo
 	hook.Add("PlayerCanPickupItem", hookTag, denyIfDisguised)
 
+	-- Don't let disguised people drop ammo boxes
+	hook.Add("TTT2DropAmmo", hookTag, denyIfDisguised)
+
 	-- Don't let disguised people turn on their flashlight
 	hook.Add("PlayerSwitchFlashlight", hookTag, function(pl, state)
 		if state and IsValid(pl.PropDisguiserProp) then return false end
@@ -751,7 +550,7 @@ if SERVER then
 
 	-- We need to force people out of disguises before the next round starts, otherwise people don't respawn properly
 	hook.Add("TTTEndRound", hookTag, function()
-		for k, v in ipairs(player.GetAll()) do
+		for k, v in player.Iterator() do
 			if not v:IsTerror() then continue end
 
 			local p = v.PropDisguiserProp
