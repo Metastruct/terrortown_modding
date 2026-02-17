@@ -20,21 +20,26 @@ if SERVER then
 		end
 	end
 
-	hook.Add("DoPlayerDeath", tag, function(pl, attacker, dmgInfo)
-		if cvarEnabled:GetBool() and pl.was_headshot and dmgInfo:GetDamage() >= cvarDamageThreshold:GetInt() then
+	local function shouldHeadExplode(pl, attacker, dmgInfo)
+		if not pl._ignoreHeadExplode
+			and cvarEnabled:GetBool()
+			and pl.was_headshot
+			and dmgInfo:GetDamage() >= cvarDamageThreshold:GetInt()
+		then
 			local inflictor = dmgInfo:GetInflictor()
+
 			if inflictor == attacker and attacker.GetActiveWeapon then
 				inflictor = attacker:GetActiveWeapon()
 			end
 
-			if IsValid(inflictor) then
-				pl._shouldHeadExplode = not inflictor.IsSilent
-			end
+			return IsValid(inflictor) and not inflictor.IsSilent
 		end
-	end)
 
-	hook.Add("TTTOnCorpseCreated", tag, function(rag, pl)
-		if IsValid(rag) and IsValid(pl) and pl._shouldHeadExplode then
+		return false
+	end
+
+	local function explodeHead(rag, pl)
+		if IsValid(rag) and IsValid(pl) then
 			pl._shouldHeadExplode = nil
 
 			local boneId = rag:LookupBone("ValveBiped.Bip01_Head1")
@@ -54,11 +59,28 @@ if SERVER then
 
 				ef:SetOrigin(boneMat:GetTranslation())
 
-				-- Use a custom made effect, can be found in the lua/effects/ folder
 				util.Effect("ttt_headshot_gore", ef, true)
 			end
 		end
+	end
+
+	hook.Add("DoPlayerDeath", tag, function(pl, attacker, dmgInfo)
+		local explode = shouldHeadExplode(pl, attacker, dmgInfo)
+
+		if explode then
+			pl._shouldHeadExplode = explode
+		end
 	end)
+
+	hook.Add("TTTOnCorpseCreated", tag, function(rag, pl)
+		if pl._shouldHeadExplode then
+			explodeHead(rag, pl)
+		end
+	end)
+
+	TTTHeadSplats = TTTHeadSplats or {}
+	TTTHeadSplats.ShouldHeadExplode = shouldHeadExplode
+	TTTHeadSplats.ExplodeHead = explodeHead
 else
 	hook.Add("TTTBodySearchPopulate", tag, function(searchAdd, raw, scoreboard)
 		local rag = raw.rag
