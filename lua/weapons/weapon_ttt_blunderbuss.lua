@@ -497,14 +497,6 @@ else
 		sound.Play("weapons/blunderbuss_fire_distant.mp3", pos, 120, 100, dist > 300 and 1 or 0.5)
 	end
 
-	function SWEP:OnRemove()
-		if IsValid(self.ClientsideWorldModel.Model) then
-			self.ClientsideWorldModel.Model:Remove()
-		end
-
-		BaseClass.OnRemove(self)
-	end
-
 	function SWEP:GetViewModelPosition(pos, ang)
 		local right = ang:Right()
 		local up = ang:Up()
@@ -534,26 +526,21 @@ else
 
 	function SWEP:DrawWorldModel(flags)
 		if not self:TryDrawWorldModel() then
-			self:DrawModel(flags)
+			self:SetRenderOrigin()
+			self:SetRenderAngles()
 		end
+
+		self:DrawModel(flags)
 	end
 
 	function SWEP:TryDrawWorldModel()
 		local owner = self:GetOwner()
-
 		if not IsValid(owner) then return false end
 
 		local pl = LocalPlayer()
 		if not IsValid(pl) or (pl:GetObserverMode() == OBS_MODE_IN_EYE and pl:GetObserverTarget() == owner) then return false end
 
 		local modelData = self.ClientsideWorldModel
-
-		if not IsValid(modelData.Model) then
-			modelData.Model = ClientsideModel(self:GetModel())
-
-			modelData.Model:SetNoDraw(true)
-			modelData.Model:SetupBones()
-		end
 
 		local boneId = owner:LookupBone(modelData.Bone)
 		if not boneId then return false end
@@ -563,10 +550,8 @@ else
 
 		local pos, ang = LocalToWorld(modelData.Pos, modelData.Ang, matrix:GetTranslation(), matrix:GetAngles())
 
-		modelData.Model:SetPos(pos)
-		modelData.Model:SetAngles(ang)
-
-		modelData.Model:DrawModel()
+		self:SetRenderOrigin(pos)
+		self:SetRenderAngles(ang)
 
 		return true
 	end
