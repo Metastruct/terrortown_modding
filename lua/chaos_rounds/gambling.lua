@@ -6,7 +6,6 @@ local TAG = "ChaosRoundGambling"
 
 if SERVER then
 	local WEAPON_LIST = {
-		"stungun", -- yes theres no mistake here
 		"weapon_banana",
 		"weapon_laser_phaser",
 		"weapon_prop_rain",
@@ -25,6 +24,7 @@ if SERVER then
 		"weapon_ttt_ricochet",
 		"weapon_ttt_robloxbazooka",
 		"weapon_ttt_slam",
+		"weapon_ttt_taser",
 	}
 
 	function ROUND:SelectRandomWeapon()
