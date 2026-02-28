@@ -309,28 +309,29 @@ else
 	end
 
 	function SWEP:DrawWorldModel(flags)
-		if not self:TryDrawWorldModel() then
-			self:SetRenderOrigin()
-			self:SetRenderAngles()
-		end
+		self:SetRenderOrigin()
+		self:SetRenderAngles()
 
-		self:DrawModel(flags)
+		if self:TryPrepareWorldModel() then
+			self:DrawModel(flags)
+		end
 	end
 
-	function SWEP:TryDrawWorldModel()
+	-- Return false to not render, return true to render
+	function SWEP:TryPrepareWorldModel()
 		local owner = self:GetOwner()
-		if not IsValid(owner) then return false end
+		if not IsValid(owner) then return true end
 
 		local pl = LocalPlayer()
-		if not IsValid(pl) or (pl:GetObserverMode() == OBS_MODE_IN_EYE and pl:GetObserverTarget() == owner) then return false end
+		if not IsValid(pl) or (pl:GetObserverMode() == OBS_MODE_IN_EYE and pl:GetObserverTarget() == owner) then return true end
 
 		local modelData = self.ClientsideWorldModel
 
 		local boneId = owner:LookupBone(modelData.Bone)
-		if not boneId then return false end
+		if not boneId then return true end
 
 		local matrix = owner:GetBoneMatrix(boneId)
-		if not matrix then return false end
+		if not matrix then return true end
 
 		local pos, ang = LocalToWorld(modelData.Pos, modelData.Ang, matrix:GetTranslation(), matrix:GetAngles())
 
