@@ -1,3 +1,5 @@
+local eyesAttachment = "eyes"
+
 local physDmgMinSpeed, physDmgMinRampSpeed = 200, 900
 local physHitGroupScales = {
 	[HITGROUP_HEAD] = 1.2,
@@ -161,6 +163,10 @@ function TTTRagdolling.Start(pl)
 
 	rag._RagdollingCallbackId = rag:AddCallback("PhysicsCollide", physDmgCollisionFunc)
 
+	if pl:InVehicle() then
+		pl:ExitVehicle()
+	end
+
 	pl:SelectWeapon("weapon_ttt_unarmed")
 	pl:SetNWEntity(TTTRagdolling._nwRagdoll, rag)
 
@@ -211,6 +217,8 @@ function TTTRagdolling.Start(pl)
 	pl:SetLocalPos(vector_origin)
 	pl:SetMoveType(MOVETYPE_NONE)
 
+	hook.Run("TTTRagdollingStarted", rag, pl)
+
 	return rag
 end
 
@@ -230,7 +238,7 @@ function TTTRagdolling.Stop(plOrRag, dontRemoveRagdoll)
 	pl:SetParent()
 	pl:SetNWEntity(TTTRagdolling._nwRagdoll, NULL)
 
-	local pos, vel
+	local pos, angYaw, vel
 	local rag = data.Ragdoll
 
 	if IsValid(rag) then
@@ -238,6 +246,13 @@ function TTTRagdolling.Stop(plOrRag, dontRemoveRagdoll)
 		pos.z = pos.z + data.ViewDucked.z
 
 		vel = rag:GetVelocity()
+
+		local eyesId = rag:LookupAttachment(eyesAttachment)
+		if eyesId > 0 then
+			local eyes = rag:GetAttachment(eyesId)
+
+			angYaw = eyes.Ang.y
+		end
 
 		rag:RemoveCallOnRemove(TTTRagdolling._hookName)
 
@@ -250,14 +265,14 @@ function TTTRagdolling.Stop(plOrRag, dontRemoveRagdoll)
 		end
 
 		if not dontRemoveRagdoll then
-			-- For some reason, if we remove the ragdoll on the same frame as we unparent,
-			-- clients THINK the player entity is at 0,0,0 before interp'ing to their real position.
-			-- To stop this render bug, the ragdoll has to continue existing for a frame.
+			-- We delay deleting the ragdoll for two reasons:
+			-- 1. To give clients some time to get data from the ragdoll,
+			-- 2. To prevent a render bug where clients THINK the player entity is at 0,0,0 before they interp to their real position.
 			rag:SetNoDraw(true)
 			rag:SetSolid(SOLID_NONE)
 			rag:DrawShadow(false)
 
-			timer.Simple(0, function()
+			timer.Simple(0.05, function()
 				if IsValid(rag) then
 					rag:Remove()
 				end
@@ -270,6 +285,13 @@ function TTTRagdolling.Stop(plOrRag, dontRemoveRagdoll)
 	pos = util.FindBestRestorePos(pl, pos, data.ViewStand.z)
 
 	pl:SetPos(pos)
+
+	if isnumber(angYaw) then
+		local eyeAng = pl:EyeAngles()
+		eyeAng.y = angYaw
+
+		pl:SetEyeAngles(eyeAng)
+	end
 
 	pl:SetViewOffset(data.ViewStand)
 	pl:SetViewOffsetDucked(data.ViewDucked)
@@ -309,6 +331,8 @@ function TTTRagdolling.Stop(plOrRag, dontRemoveRagdoll)
 	pl:DrawShadow(true)
 
 	pl._RagdollingData = nil
+
+	hook.Run("TTTRagdollingStopped", rag, pl)
 end
 
 function TTTRagdolling.GetHitGroupFromPhysBone(rag, physBoneId)
@@ -437,6 +461,13 @@ hook.Add("TTTOnCorpseCreated", TTTRagdolling._hookName, function(corpse, pl)
 				corpse:Remove()
 			end
 		end)
+	end
+end)
+
+-- Fix weapons dropping through floors on death by temporarily repositioning ragdolled players
+hook.Add("DoPlayerDeath", TTTRagdolling._hookName, function(pl)
+	if TTTRagdolling.IsPlayerRagdolling(pl) then
+		pl:SetLocalPos(Vector(0, 0, 12))
 	end
 end)
 
