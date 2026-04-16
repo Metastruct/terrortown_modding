@@ -328,6 +328,10 @@ function SWEP:SecondaryAttack()
 			local pushvel = tr.Normal * cvCrowbarPushForce:GetFloat()
 			pushvel.z = math.Clamp(pushvel.z, 50, 100) -- limit the upward force to prevent launching
 
+			if ply:GetMoveType() == MOVETYPE_LADDER then
+				ply:SetMoveType(MOVETYPE_WALK)
+			end
+
 			ply:SetVelocity(ply:GetVelocity() + pushvel)
 
 			ply.was_pushed = {

@@ -122,6 +122,10 @@ function SWEP:FirePulse(forceFwd, forceUp)
 
 					pushVel.z = math.max(pushVel.z, forceUp)
 
+					if ent:GetMoveType() == MOVETYPE_LADDER then
+						ent:SetMoveType(MOVETYPE_WALK)
+					end
+
 					ent:SetGroundEntity(nil)
 					ent:SetVelocity(-ent:GetVelocity() + pushVel)
 
