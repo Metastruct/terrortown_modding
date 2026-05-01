@@ -84,12 +84,12 @@ function SWEP:Reload() end
 -- A copy of PrimaryAttack pulled from weapon_tttbase
 -- This has been moved from PrimaryAttack so it doesn't trigger on regular primary fire
 function SWEP:PrimaryAttackEx()
-    self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
+	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 
-    if not self:CanPrimaryAttack() then
+	if not self:CanPrimaryAttack() then
 		self:StopFiringSound()
-        return
-    end
+		return
+	end
 
 	if not self.SpinupFiring then
 		self.SpinupFiring = true
@@ -99,17 +99,17 @@ function SWEP:PrimaryAttackEx()
 
 	local recoil = self:GetPrimaryRecoil()
 
-    self:ShootBullet(
-        self.Primary.Damage,
-        recoil,
-        self.Primary.NumShots,
-        self:GetPrimaryCone()
-    )
+	self:ShootBullet(
+		self.Primary.Damage,
+		recoil,
+		self.Primary.NumShots,
+		self:GetPrimaryCone()
+	)
 
-    self:TakePrimaryAmmo(1)
+	self:TakePrimaryAmmo(1)
 
-    local owner = self:GetOwner()
-    if not IsValid(owner) then return end
+	local owner = self:GetOwner()
+	if not IsValid(owner) then return end
 
 	if IsFirstTimePredicted() and (SERVER or (owner == LocalPlayer() and owner:ShouldDrawLocalPlayer())) then
 		local ef = EffectData()
@@ -130,19 +130,19 @@ function SWEP:PrimaryAttackEx()
 		end
 	end
 
-    owner:ViewPunch(
-        Angle(
-            util.SharedRandom(className, -0.5, -0.2, 0) * recoil,
-            util.SharedRandom(className, -0.5, 0.5, 1) * recoil,
-            0
-        )
-    )
+	owner:ViewPunch(
+		Angle(
+			util.SharedRandom(className, -0.5, -0.2, 0) * recoil,
+			util.SharedRandom(className, -0.5, 0.5, 1) * recoil,
+			0
+		)
+	)
 end
 
 function SWEP:DryFire()
-    self:EmitSound(self.DryFireSound, 65, 82, 0.3, CHAN_ITEM)
+	self:EmitSound(self.DryFireSound, 65, 82, 0.3, CHAN_ITEM)
 
-    self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
+	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
 end
 
 function SWEP:IsSpinningUp()
@@ -170,8 +170,6 @@ function SWEP:StopFiringSound(stopSpinupSoundToo)
 		and owner
 		or self
 
-	self:StopSound(self.Primary.Sound)
-
 	if hasLostOwner then
 		self.SpinupLastOwner:StopSound(self.Primary.Sound)
 	end
@@ -190,18 +188,9 @@ function SWEP:StopFiringSound(stopSpinupSoundToo)
 		end
 
 		if self:IsSpinningUp() then
-			emitSoundSource:EmitSound(self.SpinupStopSound, 78, 100, 1, CHAN_VOICE)
+			emitSoundSource:EmitSound(self.SpinupStopSound, 82, 100, 1, CHAN_VOICE)
 		end
 	end
-
-	-- Flag for the Think function to not recreate any sounds this frame
-	self._stopSoundFrame = true
-
-	timer.Simple(0, function()
-		if IsValid(self) then
-			self._stopSoundFrame = nil
-		end
-	end)
 end
 
 function SWEP:Think()
@@ -209,13 +198,14 @@ function SWEP:Think()
 	if not IsValid(owner) then return end
 
 	local wantsToFire = owner:KeyDown(IN_ATTACK)
+	local wantsToRev = owner:KeyDown(IN_ATTACK2)
 
-	if wantsToFire then
-		if not self:IsSpinningUp() and not self._stopSoundFrame then
+	if wantsToFire or wantsToRev then
+		if not self:IsSpinningUp() then
 			self.SpinupLastOwner = owner
 			self:SetSpinupTime(CurTime() + self.SpinupDuration)
 
-			self:EmitSound(self.SpinupStartSound, 78, 100, 1, CHAN_VOICE)
+			self:EmitSound(self.SpinupStartSound, 82, 100, 1, CHAN_VOICE)
 
 			owner:DoAnimationEvent(ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2)
 		end
@@ -228,10 +218,14 @@ function SWEP:Think()
 	end
 
 	if self:IsSpinningUp() then
-		local now = CurTime()
+		if wantsToFire then
+			local now = CurTime()
 
-		if self:GetSpinupTime() <= now and self:GetNextPrimaryFire() <= now then
-			self:PrimaryAttackEx()
+			if self:GetSpinupTime() <= now and self:GetNextPrimaryFire() <= now then
+				self:PrimaryAttackEx()
+			end
+		elseif IsFirstTimePredicted() and wantsToRev and self.SpinupFiring then
+			self:StopFiringSound()
 		end
 	end
 
@@ -273,12 +267,12 @@ end
 
 hook.Add("TTTPlayerSpeedModifier", "TTTMassiveMinigun", function(pl, _, _, speedMultiplierModifier)
 	if IsValid(pl) then
-        local wep = pl:GetActiveWeapon()
+		local wep = pl:GetActiveWeapon()
 
 		if IsValid(wep) and wep:GetClass() == className then
 			speedMultiplierModifier[1] = speedMultiplierModifier[1] * (wep.IsSpinningUp and wep:IsSpinningUp() and 0.45 or 0.8)
 		end
-    end
+	end
 end)
 
 if CLIENT then
