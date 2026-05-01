@@ -228,8 +228,6 @@ else
 
 			if timeFraction < 0.98 then
 				DrawMotionBlur(0.05, 0.85 * math.min(timeFractionEased * 2, 1), 0)
-
-				pl:SetDSP(23)
 			end
 		end
 	end)
