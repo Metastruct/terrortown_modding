@@ -1,17 +1,12 @@
 local ROUND = {}
 ROUND.Name = "Very Quiet Hill"
-ROUND.Description = "Everyone is nearly blind in this fog - you'll need a radar!"
+ROUND.Description = "Where did all this fog come from...?"
 
 local TAG = "ttt_chaos_veryquiethill"
 
 function ROUND:Start()
-	if SERVER then
-		-- Give everyone the radar item using this hook
-		for _, ply in ipairs(player.GetAll()) do
-			ply:GiveEquipmentItem("item_ttt_radar")
-		end
-	else
-		local startDist, endDist = -65, 650
+	if CLIENT then
+		local startDist, endDist = -120, 500
 		local fogShade, fogDensity = 160, 0.995
 
 		hook.Add("SetupWorldFog", TAG, function()
