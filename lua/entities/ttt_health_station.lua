@@ -26,13 +26,11 @@ ENT.RechargeFreq = 2 -- in seconds
 
 ENT.NextHeal = 0
 ENT.HealRate = 1
-ENT.HealFreq = 0.15
+ENT.HealFreq = 0.16
 ENT.HealingList = {}
 
 ENT.MaxUseDist = 100
 ENT.NextUseList = {}
-
-ENT.CanUseKey = false
 
 ---
 -- @realm shared
@@ -206,6 +204,9 @@ if SERVER then
 
 			self.NextHeal = t + self.HealFreq
 		end
+
+		self:NextThink(t)
+		return true
 	end
 
 	---
@@ -268,19 +269,6 @@ else
 		walkkey = Key("+walk", "WALK"),
 	}
 
-	---
-	-- Hook that is called if a player uses their use key while focusing on the entity.
-	-- Early check if client can use the health station
-	-- @return bool True to prevent pickup
-	-- @realm client
-	function ENT:ClientUse()
-		local client = LocalPlayer()
-
-		if not IsValid(client) or not client:IsPlayer() or not client:IsActive() then
-			return true
-		end
-	end
-
 	-- handle looking at healthstation
 	hook.Add("TTTRenderEntityInfo", "HUDDrawTargetIDHealthStation", function(tData)
 		local client = LocalPlayer()
@@ -308,7 +296,7 @@ else
 
 		local hstation_charge = ent:GetStoredHealth() or 0
 
-		tData:AddDescriptionLine("When activated, the station will heal you while you stay near.")
+		tData:AddDescriptionLine("Using the station will heal you while you stay near.")
 		tData:AddDescriptionLine("Slowly recharges over time.")
 
 		tData:AddDescriptionLine(
