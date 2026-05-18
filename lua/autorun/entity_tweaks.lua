@@ -10,9 +10,10 @@ end
 util.OnInitialize(function()
 	local ENT
 
-	-- Magneto-stick: Allow for bigger camera turns while holding a prop without dropping it
+	-- Magneto-stick: Deploy faster, and allow for bigger camera turns while holding a prop without dropping it
 	ENT = weapons.GetStored("weapon_zm_carry")
 	if ENT then
+		ENT.DeploySpeed = 2
 		ENT.dropAngleThreshold = 0.925
 	end
 
