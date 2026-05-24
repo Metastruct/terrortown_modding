@@ -31,6 +31,146 @@ util.OnInitialize(function()
 		end
 	end
 
+	-- C4: Overhaul explosion using TTTC4Explode hook
+	local scorchMat = Material(util.DecalMaterial("Scorch"))
+	local takeDmgVar = "m_takedamage"
+	hook.Add("TTTC4Explode", "TTTC4ExplosionOverhaul", function(self)
+		local pos = self:WorldSpaceCenter()
+		local tr = util.TraceLine({
+			start = pos,
+			endpos = pos + Vector(0, 0, -64),
+			mask = MASK_SHOT_HULL,
+			filter = self
+		})
+
+		if SERVER then
+			self:SetNoDraw(true)
+			self:SetSolid(SOLID_NONE)
+
+			local inWater = bit.band(util.PointContents(pos), MASK_WATER) != 0
+
+			local dmgOwner = self:GetThrower()
+			dmgOwner = IsValid(dmgOwner) and dmgOwner or self
+
+			local rInner = self:GetRadiusInner()
+			local rOuter = self:GetRadius()
+			local blastDmg = self:GetDmg()
+
+			if rOuter < rInner then
+				rInner = rOuter
+			end
+
+			local rInnerForDmg = rInner
+			local rOuterForDmg = rOuter
+
+			if inWater then
+				-- Only reduce the range for damage calculation
+				rInnerForDmg = rInner / 4
+				rOuterForDmg = rOuter / 4
+
+				blastDmg = blastDmg / 2
+			elseif self.DisarmCausedExplosion then
+				-- Reduce range globally
+				rInner = rInner / 2.5
+				rOuter = rOuter / 2.5
+
+				rInnerForDmg = rInner
+				rOuterForDmg = rOuter
+			end
+
+			local dummyWep = ents.Create("weapon_ttt_c4")
+			local radiusDiff = rOuterForDmg - rInnerForDmg
+
+			local dist, distFraction, distDmg = 0, 0, 0
+			local distDiff, entPos, dmgInfo
+
+			local entsInRadius = ents.FindInSphere(pos, rOuterForDmg)
+			for i = 1, #entsInRadius do
+				local ent = entsInRadius[i]
+
+				if ent == self
+					or not IsValid(ent)
+					or (ent:IsPlayer() and not ent:IsTerror())
+					or (ent:IsWeapon() and IsValid(ent:GetOwner()))
+					or ent:GetInternalVariable(takeDmgVar) == 0 then continue end
+
+				entPos = ent:WorldSpaceCenter()
+
+				distDiff = pos - entPos
+				dist = distDiff:Length()
+
+				distFraction = 1 - math.max((dist - rInnerForDmg) / radiusDiff, 0)
+				if distFraction < 0 then continue end
+
+				dmg = math.ceil(blastDmg * distFraction * distFraction)
+
+				dmgInfo = DamageInfo()
+				dmgInfo:SetDamage(dmg)
+				dmgInfo:SetAttacker(dmgOwner)
+				dmgInfo:SetInflictor(dummyWep)
+				dmgInfo:SetDamageType(DMG_BLAST)
+				dmgInfo:SetDamageForce(distDiff)
+				dmgInfo:SetDamagePosition(entPos)
+
+				ent:TakeDamageInfo(dmgInfo)
+			end
+
+			if IsValid(dummyWep) then
+				dummyWep:Remove()
+			end
+
+			local effect = EffectData()
+			effect:SetOrigin(pos)
+			effect:SetRadius(rOuter)
+			effect:SetFlags(inWater and 1 or 0)
+
+			util.Effect("ttt_new_c4_blast", effect, true, true)
+
+			if inWater then
+				self:BroadcastSound("weapons/underwater_explode3.wav", 100)
+				self:BroadcastSound("ambient/explosions/exp3.wav", 100)
+			else
+				self:BroadcastSound("c4.explode", 100)
+				self:BroadcastSound("ambient/explosions/explode_3.wav", 100)
+			end
+
+			local physExp = ents.Create("env_physexplosion")
+			physExp:SetPos(pos)
+			physExp:SetKeyValue("magnitude", blastDmg)
+			physExp:SetKeyValue("radius", rOuter)
+			physExp:SetKeyValue("spawnflags", "19")
+			physExp:Spawn()
+			physExp:Fire("Explode", "", 0)
+
+			SafeRemoveEntityDelayed(physExp, 0.5)
+
+			if not inWater then
+				-- A few fire bits to ignite things
+				timer.Simple(0.2, function()
+					gameEffects.StartFires(pos, tr, 6, 5, true, dmgOwner, 500, false, 150, 1)
+				end)
+			end
+
+			-- Screen shake strength greater than 10 have no greater effect, but stacking it does... :)
+			local shakeOuter = rOuter * 1.5
+			for i = 1, 16 do
+				util.ScreenShake(pos, 10, 100, 2, shakeOuter, true)
+			end
+
+			self:SetExplodeTime(0)
+
+			events.Trigger(EVENT_C4EXPLODE, dmgOwner)
+
+			self:Remove()
+		else
+			util.DecalEx(scorchMat, game.GetWorld(), tr.HitPos, tr.HitNormal, color_white, 2.5, 2.5)
+
+			self:SetExplodeTime(0)
+		end
+
+		return false
+	end)
+
 	-- Identity Disguiser:
 	--		Make disguiser invisible in hand and make user stand straight,
 	--		Add fire delay,
