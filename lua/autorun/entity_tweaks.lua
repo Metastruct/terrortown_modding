@@ -643,35 +643,39 @@ util.OnInitialize(function()
 		end
 
 		-- Spring Mine: Fix GhostDM players triggering mines + fade them away like beartraps
-		ENT = scripted_ents.GetStored("ttt_spring_mine")
+		ENT = scripted_ents.GetStored("ttt_springmine")
 		if ENT then
 			ENT = ENT.t
 
 			function ENT:Initialize()
 				self:SetModel(self.Model)
-				self:SetMaterial(self.Material)
-
+				self:SetMaterial("models/debug/debugwhite")
 				self:SetRenderMode(RENDERMODE_TRANSCOLOR)
 				self:SetColor(self.Color)
 
-				self:PhysicsInit(SOLID_VPHYSICS)
+				self.BaseClass.Initialize(self)
 
-				self:SetHealth(25)
-
-				timer.Simple(0.666, function()
+				timer.Simple(1, function()
 					if not IsValid(self) then return end
 
 					self.Color.a = 80
 
 					self:SetColor(self.Color)
+
+					self:SetSolidFlags(FSOLID_TRIGGER)
+					self:WeldToSurface(true)
 				end)
 
-				return self.BaseClass.Initialize(self)
+				self:SetHealth(50)
+
+				local mvObject = self:AddMarkerVision("spring_owner")
+				mvObject:SetOwner(self:GetOriginator())
+				mvObject:SetVisibleFor(VISIBLE_FOR_TEAM)
+				mvObject:SyncToClients()
 			end
 
 			function ENT:StartTouch(ent)
-				if not self.touched and ent:IsValid() and ent:IsTerror() then
-					self.touched = true
+				if ent:IsValid() and ent:IsTerror() then
 					self:Boing(ent)
 				end
 			end
