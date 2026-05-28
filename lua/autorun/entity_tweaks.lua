@@ -658,7 +658,7 @@ util.OnInitialize(function()
 				timer.Simple(1, function()
 					if not IsValid(self) then return end
 
-					self.Color.a = 80
+					self.Color.a = 100
 
 					self:SetColor(self.Color)
 

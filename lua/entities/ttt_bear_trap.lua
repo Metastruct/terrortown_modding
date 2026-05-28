@@ -70,7 +70,7 @@ if SERVER then
 			self.ReadyToBite = true
 
 			self:SetSequence("OpenIdle")
-			self:SetColor(Color(255, 255, 255, 80))
+			self:SetColor(Color(255, 255, 255, 100))
 		end)
 
 		self:SetUseType(SIMPLE_USE)
