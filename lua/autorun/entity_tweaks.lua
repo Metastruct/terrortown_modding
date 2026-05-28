@@ -675,7 +675,7 @@ util.OnInitialize(function()
 			end
 
 			function ENT:StartTouch(ent)
-				if ent:IsValid() and ent:IsTerror() then
+				if ent:IsValid() and ent:IsPlayer() and ent:IsTerror() then
 					self:Boing(ent)
 				end
 			end
