@@ -642,6 +642,41 @@ util.OnInitialize(function()
 			end
 		end
 
+		-- Spring Mine: Fix GhostDM players triggering mines + fade them away like beartraps
+		ENT = scripted_ents.GetStored("ttt_spring_mine")
+		if ENT then
+			ENT = ENT.t
+
+			function ENT:Initialize()
+				self:SetModel(self.Model)
+				self:SetMaterial(self.Material)
+
+				self:SetRenderMode(RENDERMODE_TRANSCOLOR)
+				self:SetColor(self.Color)
+
+				self:PhysicsInit(SOLID_VPHYSICS)
+
+				self:SetHealth(25)
+
+				timer.Simple(0.666, function()
+					if not IsValid(self) then return end
+
+					self.Color.a = 80
+
+					self:SetColor(self.Color)
+				end)
+
+				return self.BaseClass.Initialize(self)
+			end
+
+			function ENT:StartTouch(ent)
+				if not self.touched and ent:IsValid() and ent:IsTerror() then
+					self.touched = true
+					self:Boing(ent)
+				end
+			end
+		end
+
 		-- Detective hat: Allow it to be possessed by spectators
 		ENT = scripted_ents.GetStored("ttt_hat_deerstalker")
 		if ENT then
