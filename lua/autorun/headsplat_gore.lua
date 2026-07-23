@@ -4,9 +4,13 @@ local tag = "TTTHeadsplatGore"
 
 if SERVER then
 	resource.AddFile("materials/vgui/ttt/icon_headless.vmt")
+	resource.AddSingleFile("sound/weapons/headshots/head_burst1.ogg")
+	resource.AddSingleFile("sound/weapons/headshots/head_burst2.ogg")
 
 	local cvarEnabled = CreateConVar("ttt_headsplat_enable", 1, FCVAR_ARCHIVE + FCVAR_NOTIFY, "Enables head splatting and gibbing on headshots.")
 	local cvarDamageThreshold = CreateConVar("ttt_headsplat_dmgthreshold", 50, FCVAR_ARCHIVE + FCVAR_NOTIFY, "The final headshot must do at least this much damage to splat someone's head.")
+
+	local headPhysForceAmount = 1000
 
 	local function scaleDownBoneAndChildren(ent, boneId)
 		local children = ent:GetChildBones(boneId)
@@ -40,7 +44,10 @@ if SERVER then
 
 	local function explodeHead(rag, pl)
 		if IsValid(rag) and IsValid(pl) then
+			local hitDir = pl._headExplodeHitDir
+
 			pl._shouldHeadExplode = nil
+			pl._headExplodeHitDir = nil
 
 			local boneId = rag:LookupBone("ValveBiped.Bip01_Head1")
 			if not boneId then return end
@@ -50,16 +57,34 @@ if SERVER then
 
 			rag:SetNWBool("ttt_headsplatted", true)
 
-			rag:EmitSound("npc/antlion_grub/squashed.wav", 66, math.random(90, 110))
-			rag:EmitSound("physics/flesh/flesh_bloody_break.wav", 66, 100, 0.8)
+			rag:EmitSound(string.format("weapons/headshots/head_burst%s.ogg", math.random(1, 2)), 70, math.random(85, 105))
 
+			-- Do gore visual effect at the head
 			local boneMat = rag:GetBoneMatrix(boneId)
 			if boneMat then
 				local ef = EffectData()
-
 				ef:SetOrigin(boneMat:GetTranslation())
 
+				if hitDir then
+					ef:SetNormal(hitDir)
+				end
+
 				util.Effect("ttt_headshot_gore", ef, true)
+			end
+
+			-- Apply more physical blowback to the head
+			if hitDir then
+				local physBoneId = rag:TranslateBoneToPhysBone(boneId)
+				if physBoneId > -1 then
+					local phys = rag:GetPhysicsObjectNum(physBoneId)
+
+					if IsValid(phys) then
+						local force = hitDir * headPhysForceAmount
+						force.z = force.z - 100
+
+						phys:AddVelocity(force)
+					end
+				end
 			end
 		end
 	end
@@ -69,6 +94,11 @@ if SERVER then
 
 		if explode then
 			pl._shouldHeadExplode = explode
+
+			local dir = dmgInfo:GetDamageForce()
+			if dir and dir != vector_origin then
+				pl._headExplodeHitDir = dir:GetNormalized()
+			end
 		end
 	end)
 
