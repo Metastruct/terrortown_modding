@@ -129,7 +129,7 @@ if SERVER then
 
 	-- Disable picking up vehicles
 	hook.Add("TTT2PlayerPreventPickupEnt", Tag, function(pl, ent)
-		for k, v in ipairs(player.GetAll()) do
+		for k, v in player.Iterator() do
 			local veh = v:GetVehicle()
 			if veh:IsValid() and veh:GetParent() == ent then
 				return true
