@@ -177,7 +177,8 @@ if SERVER then
 		["models/player/alyx.mdl"] = true,
 		["models/player/mossman.mdl"] = true,
 		["models/player/mossman_arctic.mdl"] = true,
-		["models/player/p2_chell.mdl"] = true
+		["models/player/p2_chell.mdl"] = true,
+		["models/pac/female_base.mdl"] = true
 	}
 	local function IsModelFemale(mdl)
 		return femaleMdls[mdl] or mdl:find("female") != nil
@@ -185,24 +186,26 @@ if SERVER then
 
 	local moanSounds = {
 		male = {
-			"vo/npc/male01/moan01.wav",
-			"vo/npc/male01/moan02.wav",
-			"vo/npc/male01/moan03.wav",
-			"vo/npc/barney/ba_pain03.wav"
+			"vo/npc/male01/pain02.wav",
+			"vo/npc/male01/pain05.wav",
+			"vo/npc/male01/pain06.wav",
+			"vo/npc/male01/ow01.wav",
+			"vo/episode_1/npc/male01/cit_pain02.wav",
+			"vo/episode_1/npc/male01/cit_pain09.wav"
 		},
 		female = {
-			"vo/npc/female01/pain03.wav",
+			"vo/npc/female01/pain02.wav",
+			"vo/npc/female01/pain05.wav",
 			"vo/npc/female01/pain07.wav",
-			"vo/outland_12a/launch/al_launch_breath06.wav",
-			"vo/outland_12a/launch/al_launch_breath14.wav",
-			"vo/outland_12a/launch/al_launch_struggle06.wav",
-			"vo/outland_12a/launch/al_launch_struggle09.wav"
+			"vo/npc/female01/pain08.wav",
+			"vo/npc/female01/ow01.wav",
+			"vo/episode_1/npc/female01/cit_pain02.wav"
 		}
 	}
 	local function PlayMoan(ent, isFem)
 		local tbl = isFem and moanSounds.female or moanSounds.male
 
-		ent:EmitSound(tbl[math.random(1, #tbl)], 70, 100, 0.333)
+		ent:EmitSound(tbl[math.random(1, #tbl)], 66, math.random(99, 102), 0.8)
 	end
 
 	function SWEP:TryTazeVictim(ent)
@@ -228,7 +231,7 @@ if SERVER then
 		for i = 0, rag:GetPhysicsObjectCount() - 1 do
 			local phys = rag:GetPhysicsObjectNum(i)
 
-			phys:AddAngleVelocity(VectorRand(-750, 750))
+			phys:AddAngleVelocity(VectorRand(-800, 800))
 		end
 
 		if not IsValid(pl) then return end
@@ -243,8 +246,8 @@ if SERVER then
 		local timerTaseEndId = "RagdollTaseEnd" .. entIndexStr
 		local timerStart = CurTime()
 
-		-- Spasm movements (500 reps are a fallback in case it somehow gets left running)
-		timer.Create(timerTasingId, 0.1, 500, function()
+		-- Spasm movements (High reps are a fallback in case it somehow gets left running)
+		timer.Create(timerTasingId, 0.06, 500, function()
 			if not IsValid(rag) or not IsValid(pl) or not pl:IsTerror() then
 				timer.Remove(timerTasingId)
 				timer.Remove(timerTaseMoanId)
@@ -252,16 +255,27 @@ if SERVER then
 				return
 			end
 
+			local initialShockPassed = CurTime() >= (timerStart + 8)
+			local force = initialShockPassed and 150 or 500
+
 			for i = 0, rag:GetPhysicsObjectCount() - 1 do
 				local phys = rag:GetPhysicsObjectNum(i)
-				local force = CurTime() >= (timerStart + 5) and 80 or 260
 
 				phys:AddAngleVelocity(VectorRand(-force, force))
+			end
+
+			if not initialShockPassed then
+				local ef = EffectData()
+
+				ef:SetEntity(rag)
+				ef:SetMagnitude(1)
+
+				util.Effect("TeslaHitboxes", ef)
 			end
 		end)
 
 		-- Displeasure sounds
-		timer.Create(timerTaseMoanId, 3, 10, function()
+		timer.Create(timerTaseMoanId, 2, 10, function()
 			if not IsValid(rag) or not IsValid(pl) or not pl:IsTerror() then
 				timer.Remove(timerTasingId)
 				timer.Remove(timerTaseMoanId)
