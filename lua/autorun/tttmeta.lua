@@ -402,6 +402,20 @@ else
 		return false
 	end)
 
+	-- Hide certain tags from the Meta scoreboard (to avoid metagaming or to prevent processing tags that are useless in TTT)
+	local tagsToHide = {
+		dead = true,
+		noclip = true,
+		swimming = true,
+		weapon = true,
+		vehicle = true,
+		rpland = true,
+		vr = true
+	}
+	hook.Add("ScoreboardShouldHideTag", Tag, function(id, ent)
+		if tagsToHide[id] then return true end
+	end)
+
 	-- Outfitter fixes
 	local outfitter_ttt_perfmode = CreateClientConVar("outfitter_terrortown_perfmode", "1", true, false, "Only load outfits during spectate and endround and prepare", 0, 1)
 
