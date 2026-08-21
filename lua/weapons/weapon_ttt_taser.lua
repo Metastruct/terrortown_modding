@@ -26,13 +26,13 @@ DEFINE_BASECLASS("weapon_tttbase")
 SWEP.HoldType = "revolver"
 
 SWEP.Primary.Ammo = ""
-SWEP.Primary.Delay = 0.4
+SWEP.Primary.Delay = 0.275
 SWEP.Primary.Recoil = 0
 SWEP.Primary.Cone = 0
 SWEP.Primary.Automatic = true
-SWEP.Primary.ClipSize = 4
+SWEP.Primary.ClipSize = 5
 SWEP.Primary.ClipMax = -1
-SWEP.Primary.DefaultClip = 4
+SWEP.Primary.DefaultClip = 5
 SWEP.Primary.Sound1 = "^npc/turret_floor/shoot2.wav"
 SWEP.Primary.Sound2 = "weapons/stunstick/stunstick_impact2.wav"
 SWEP.Primary.Range = 360
@@ -57,11 +57,23 @@ function SWEP:SetupDataTables()
 	self:NetworkVar("Float", "ReloadEnd")
 end
 
+function SWEP:Initialize()
+	BaseClass.Initialize(self)
+
+	-- Edit the holdtype gesture anims this way to not have to redefine it all using TranslateActivity
+	self.ActivityTranslate[ACT_MP_ATTACK_STAND_PRIMARYFIRE] = ACT_HL2MP_GESTURE_RANGE_ATTACK_PISTOL
+	self.ActivityTranslate[ACT_MP_ATTACK_CROUCH_PRIMARYFIRE] = ACT_HL2MP_GESTURE_RANGE_ATTACK_PISTOL
+	self.ActivityTranslate[ACT_MP_RELOAD_STAND] = ACT_HL2MP_GESTURE_RELOAD_AR2
+	self.ActivityTranslate[ACT_MP_RELOAD_CROUCH] = ACT_HL2MP_GESTURE_RELOAD_AR2
+end
+
 function SWEP:PrimaryAttack(worldsnd)
 	if self:GetPendingReload() then return end
 
-	self:SetNextPrimaryFire(CurTime() + self.Primary.Delay)
-	self:SetNextSecondaryFire(CurTime() + self.Primary.Delay)
+	local nextActionTime = CurTime() + self.Primary.Delay
+
+	self:SetNextPrimaryFire(nextActionTime)
+	self:SetNextSecondaryFire(nextActionTime)
 
 	local owner = self:GetOwner()
 	if not IsValid(owner) then return end
@@ -78,7 +90,7 @@ function SWEP:PrimaryAttack(worldsnd)
 
 	if self:Clip1() > 0 then
 		self:SetPendingReload(true)
-		self:SetReloadStart(self:GetNextPrimaryFire())
+		self:SetReloadStart(nextActionTime)
 	end
 
 	owner:LagCompensation(true)
@@ -102,10 +114,10 @@ function SWEP:PrimaryAttack(worldsnd)
 
 	if not worldsnd then
 		self:EmitSound(self.Primary.Sound1, self.Primary.SoundLevel, math.random(120, 130))
-		self:EmitSound(self.Primary.Sound2, self.Primary.SoundLevel, math.random(95, 100), 0.15, CHAN_VOICE2)
+		self:EmitSound(self.Primary.Sound2, self.Primary.SoundLevel, math.random(95, 110), 0.175, CHAN_VOICE2)
 	elseif SERVER then
 		sound.Play(self.Primary.Sound1, self:GetPos(), self.Primary.SoundLevel, math.random(120, 130))
-		sound.Play(self.Primary.Sound2, self:GetPos(), self.Primary.SoundLevel, math.random(95, 100), 0.15)
+		sound.Play(self.Primary.Sound2, self:GetPos(), self.Primary.SoundLevel, math.random(95, 110), 0.175)
 	end
 
 	if CLIENT then return end
@@ -138,9 +150,9 @@ function SWEP:Think()
 			owner:SetAnimation(PLAYER_RELOAD)
 
 			self:SendWeaponAnim(ACT_VM_RELOAD)
-			owner:GetViewModel():SetPlaybackRate(0.95)
+			owner:GetViewModel():SetPlaybackRate(1.15)
 
-			self:SetReloadEnd(now + 2.25)
+			self:SetReloadEnd(now + 1.9)
 		end
 	end
 
@@ -173,6 +185,8 @@ function SWEP:FireAnimationEvent(pos, ang, eventId, param)
 end
 
 if SERVER then
+	local taseTimerAlive, taseTimerDead = 12, 2
+
 	local femaleMdls = {
 		["models/player/alyx.mdl"] = true,
 		["models/player/mossman.mdl"] = true,
@@ -208,11 +222,27 @@ if SERVER then
 		ent:EmitSound(tbl[math.random(1, #tbl)], 66, math.random(99, 102), 0.8)
 	end
 
+	local function ZapStep(rag, force, useZapEffect)
+		for i = 0, rag:GetPhysicsObjectCount() - 1 do
+			local phys = rag:GetPhysicsObjectNum(i)
+
+			phys:AddAngleVelocity(VectorRand(-force, force))
+		end
+
+		if useZapEffect then
+			local ef = EffectData()
+
+			ef:SetEntity(rag)
+			ef:SetMagnitude(1)
+
+			util.Effect("TeslaHitboxes", ef)
+		end
+	end
+
 	function SWEP:TryTazeVictim(ent)
 		if not IsValid(ent) then return end
 
-		local pl
-		local rag
+		local pl, rag
 
 		if ent:IsPlayer() then
 			pl = ent
@@ -231,14 +261,17 @@ if SERVER then
 		for i = 0, rag:GetPhysicsObjectCount() - 1 do
 			local phys = rag:GetPhysicsObjectNum(i)
 
-			phys:AddAngleVelocity(VectorRand(-800, 800))
+			phys:AddAngleVelocity(VectorRand(-1000, 1000))
 		end
 
-		if not IsValid(pl) then return end
+		local isFem
 
-		local isFem = IsModelFemale(rag:GetModel())
+		local plValid = IsValid(pl)
+		if plValid then
+			isFem = IsModelFemale(rag:GetModel())
 
-		PlayMoan(rag, isFem)
+			PlayMoan(rag, isFem)
+		end
 
 		local entIndexStr = tostring(rag:EntIndex())
 		local timerTasingId = "RagdollTasing" .. entIndexStr
@@ -246,50 +279,48 @@ if SERVER then
 		local timerTaseEndId = "RagdollTaseEnd" .. entIndexStr
 		local timerStart = CurTime()
 
+		plValid = plValid and pl:IsTerror()
+
+		local timerSeconds = plValid and taseTimerAlive or taseTimerDead
+
 		-- Spasm movements (High reps are a fallback in case it somehow gets left running)
-		timer.Create(timerTasingId, 0.06, 500, function()
-			if not IsValid(rag) or not IsValid(pl) or not pl:IsTerror() then
+		timer.Create(timerTasingId, 0.06, 1000, function()
+			if not IsValid(rag) then
 				timer.Remove(timerTasingId)
 				timer.Remove(timerTaseMoanId)
 				timer.Remove(timerTaseEndId)
+				return
+			elseif not IsValid(pl) or not pl:IsTerror() then
+				timer.Remove(timerTaseMoanId)
+
+				ZapStep(rag, 150, true)
 				return
 			end
 
 			local initialShockPassed = CurTime() >= (timerStart + 8)
 			local force = initialShockPassed and 150 or 500
 
-			for i = 0, rag:GetPhysicsObjectCount() - 1 do
-				local phys = rag:GetPhysicsObjectNum(i)
-
-				phys:AddAngleVelocity(VectorRand(-force, force))
-			end
-
-			if not initialShockPassed then
-				local ef = EffectData()
-
-				ef:SetEntity(rag)
-				ef:SetMagnitude(1)
-
-				util.Effect("TeslaHitboxes", ef)
-			end
+			ZapStep(rag, force, not initialShockPassed)
 		end)
 
-		-- Displeasure sounds
-		timer.Create(timerTaseMoanId, 2, 10, function()
-			if not IsValid(rag) or not IsValid(pl) or not pl:IsTerror() then
-				timer.Remove(timerTasingId)
-				timer.Remove(timerTaseMoanId)
-				timer.Remove(timerTaseEndId)
-				return
-			end
+		-- Displeasure sounds if alive
+		if plValid then
+			timer.Create(timerTaseMoanId, 2, 30, function()
+				if not IsValid(rag) or not IsValid(pl) or not pl:IsTerror() then
+					timer.Remove(timerTasingId)
+					timer.Remove(timerTaseMoanId)
+					timer.Remove(timerTaseEndId)
+					return
+				end
 
-			if math.random() > 0.25 then
-				PlayMoan(rag, isFem)
-			end
-		end)
+				if math.random() > 0.25 then
+					PlayMoan(rag, isFem)
+				end
+			end)
+		end
 
 		-- End timer
-		timer.Create(timerTaseEndId, 12, 1, function()
+		timer.Create(timerTaseEndId, timerSeconds, 1, function()
 			timer.Remove(timerTasingId)
 			timer.Remove(timerTaseMoanId)
 
