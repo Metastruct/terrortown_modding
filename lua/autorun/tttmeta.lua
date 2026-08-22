@@ -258,7 +258,7 @@ if SERVER then
 						"Yes",
 						"No",
 						function(results)
-							local yesVotes, needed = table.Count(results.Yes), math.floor(#player.GetHumans() * 0.66)
+							local yesVotes, needed = table.Count(results.Yes), math.max(math.floor(#player.GetHumans() * 0.66), 1)
 
 							if yesVotes >= needed then
 								ForceChaosRound("Tank!", true)

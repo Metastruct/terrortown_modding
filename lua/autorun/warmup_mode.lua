@@ -138,7 +138,7 @@ if SERVER then
 				"Yes",
 				"No",
 				function(results)
-					local yesVotes, needed = table.Count(results.Yes), math.floor(#player.GetHumans() * 0.75)
+					local yesVotes, needed = table.Count(results.Yes), math.max(math.floor(#player.GetHumans() * 0.75), 1)
 
 					if yesVotes >= needed then
 						TTTSetWarmupMode(true)
@@ -159,7 +159,7 @@ if SERVER then
 				"Yes",
 				"No",
 				function(results)
-					local yesVotes, needed = table.Count(results.Yes), math.floor(#player.GetHumans() * 0.5)
+					local yesVotes, needed = table.Count(results.Yes), math.max(math.floor(#player.GetHumans() * 0.5), 1)
 
 					if yesVotes >= needed then
 						TTTSetWarmupMode(false)
