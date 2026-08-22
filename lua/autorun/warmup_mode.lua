@@ -134,7 +134,7 @@ if SERVER then
 			end
 
 			local vote = GVote.Vote(
-				("Enable warmup mode? (Needs 75% yes votes)\n\nVoter: %s"):format(IsValid(pl) and pl:Name() or "SERVER"),
+				("Enable warmup mode? (Needs 75%% yes votes)\n\nVoter: %s"):format(IsValid(pl) and pl:Name() or "SERVER"),
 				"Yes",
 				"No",
 				function(results)
@@ -155,7 +155,7 @@ if SERVER then
 			end
 
 			local vote = GVote.Vote(
-				("End warmup mode? (Needs 50% yes votes)\n\nVoter: %s"):format(IsValid(pl) and pl:Name() or "SERVER"),
+				("End warmup mode? (Needs 50%% yes votes)\n\nVoter: %s"):format(IsValid(pl) and pl:Name() or "SERVER"),
 				"Yes",
 				"No",
 				function(results)

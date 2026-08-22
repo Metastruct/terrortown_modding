@@ -254,7 +254,7 @@ if SERVER then
 			if GVote and ForceChaosRound then
 				aowl.AddCommand("votetank", "Creates a vote to make the next TTT round a \"Tank!\" chaos round", function(pl, line, target)
 					local vote = GVote.Vote(
-						("Make next round a TANK chaos round? Needs 66% yes votes.\n\nVoter: %s"):format(IsValid(pl) and pl:Name() or "SERVER"),
+						("Make next round a TANK chaos round? (Needs 66%% yes votes)\n\nVoter: %s"):format(IsValid(pl) and pl:Name() or "SERVER"),
 						"Yes",
 						"No",
 						function(results)
