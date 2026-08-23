@@ -29,10 +29,24 @@ if SERVER then
 				if not v:IsTerror() and v:ShouldSpawn() then
 					Respawn(v)
 				else
-					v:Give("weapon_ttt_testing_roleswitch")
-					v:SetCredits(100)
+					timer.Simple(0, function()
+						if not IsValid(v) then return end
+
+						v:Give("weapon_ttt_testing_roleswitch")
+						v:SetCredits(100)
+					end)
 				end
 			end
+
+			-- Respawn weapons and ammo but not players (sorry this sucks but I want it to run EXACT as it normally would, just not touch players)
+			local spawnPlayers = entspawn.SpawnPlayers
+
+			entspawn.SpawnPlayers = function() end
+			entspawn.HandleSpawns()
+
+			timer.Simple(0, function()
+				entspawn.SpawnPlayers = spawnPlayers
+			end)
 
 			-- Periodic check to ensure force-spectators who undo that setting are respawned in
 			timer.Create(specCheckTag, 1, 0, function()
@@ -121,6 +135,9 @@ if SERVER then
 			SetGlobal2Bool(globalBoolTag, false)
 
 			if wasEnabled then
+				hook.Run("TTT2PreEndRound", WIN_TIMELIMIT, 0)
+				hook.Run("TTTEndRound", WIN_TIMELIMIT)
+
 				gameloop.Reset()
 			end
 		end
@@ -134,7 +151,7 @@ if SERVER then
 			end
 
 			local vote = GVote.Vote(
-				("Enable warmup mode? (Needs 75%% yes votes)\n\nVoter: %s"):format(IsValid(pl) and pl:Name() or "SERVER"),
+				("Start warmup mode? (Needs 75%% yes votes)\n\nVoter: %s"):format(IsValid(pl) and pl:Name() or "SERVER"),
 				"Yes",
 				"No",
 				function(results)
