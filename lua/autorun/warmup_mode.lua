@@ -124,8 +124,9 @@ if SERVER then
 				end)
 			end)
 
-			hook.Add("TTT2OrderedEquipment", tag, function()
+			hook.Add("TTT2OrderedEquipment", tag, function(pl)
 				shop.Reset()
+				pl:ResetBought()
 			end)
 		else
 			local wasEnabled = GetGlobal2Bool(globalBoolTag, false)
