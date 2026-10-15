@@ -7,14 +7,22 @@ if SERVER then
 		return (mdl:find("charple")) != nil
 	end
 
+	local function CopyOutfitterModel(rag, pl)
+		if rag:IsRagdoll() then
+			net.Start(tag)
+			net.WritePlayer(pl)
+			net.WriteUInt(rag:EntIndex(), 13)
+			net.Broadcast()
+		end
+	end
+
+	FindMetaTable("Entity").CopyOutfitterModelToCorpse = CopyOutfitterModel
+
 	-- Tell clients there is a corpse being created
 	hook.Add("TTTOnCorpseCreated", tag, function(rag, pl)
-		if not IsValid(rag) or IsModelCharple(rag:GetModel()) then return end
-
-		net.Start(tag)
-		net.WritePlayer(pl)
-		net.WriteUInt(rag:EntIndex(), 13)
-		net.Broadcast()
+		if IsValid(rag) and not IsModelCharple(rag:GetModel()) then
+			CopyOutfitterModel(rag, pl)
+		end
 	end)
 else
 	local outfitterRagdollList = {}

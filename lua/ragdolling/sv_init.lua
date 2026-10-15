@@ -161,6 +161,10 @@ function TTTRagdolling.Start(pl)
 		TTTRagdolling.Stop(ent)
 	end)
 
+	if outfitter and rag.CopyOutfitterModelToCorpse then
+		rag:CopyOutfitterModelToCorpse(pl)
+	end
+
 	rag._RagdollingCallbackId = rag:AddCallback("PhysicsCollide", physDmgCollisionFunc)
 
 	if pl:InVehicle() then
