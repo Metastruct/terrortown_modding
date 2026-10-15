@@ -29,7 +29,7 @@ if SERVER then
 				if not v:IsTerror() and v:ShouldSpawn() then
 					Respawn(v)
 				else
-					timer.Simple(0, function()
+					timer.Simple(0.05, function()
 						if not IsValid(v) then return end
 
 						v:Give("weapon_ttt_testing_roleswitch")
@@ -123,6 +123,10 @@ if SERVER then
 					end
 				end)
 			end)
+
+			hook.Add("TTT2OrderedEquipment", tag, function()
+				shop.Reset()
+			end)
 		else
 			local wasEnabled = GetGlobal2Bool(globalBoolTag, false)
 
@@ -131,6 +135,7 @@ if SERVER then
 			hook.Remove("PostPlayerDeath", tag)
 			hook.Remove("PlayerSpawn", tag)
 			hook.Remove("TTTOnCorpseCreated", tag)
+			hook.Remove("TTT2OrderedEquipment", tag)
 
 			SetGlobal2Bool(globalBoolTag, false)
 
@@ -248,6 +253,13 @@ else
 		surface.SetTextPos(x, y)
 		surface.DrawText(text)
 	end
+
+	-- Run on a timer to avoid taking up a network slot just for this
+	timer.Create(tag .. "_InfiniteShop", 1, 0, function()
+		if GetGlobal2Bool(globalBoolTag, false) then
+			shop.Reset()
+		end
+	end)
 
 	hook.Add("HUDPaint", tag, function()
 		if not GetGlobal2Bool(globalBoolTag, false) then return end
